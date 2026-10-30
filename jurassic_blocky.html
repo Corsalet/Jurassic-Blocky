@@ -62,6 +62,11 @@
   .ab .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);height:0%}
   .ab.cool{filter:grayscale(.7) brightness(.75)}
   .ab.rest{border-color:#7dff8d;box-shadow:0 0 14px rgba(126,255,150,.5)}
+  /* магазин динозавров */
+  #dc-buyrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+  #menu-coins{font-size:13px;font-weight:900;color:var(--amb);font-family:monospace;letter-spacing:1px;text-align:left}
+  .jb-btn.mini{font-size:14px;padding:9px 22px;border-bottom-width:3px;border-radius:10px}
+  .jb-btn.mini:disabled{filter:grayscale(.85) brightness(.75);cursor:not-allowed}
   .dc-arr{font-family:inherit;font-size:15px;font-weight:900;color:var(--grn);background:rgba(20,40,22,.6);
     border:1px solid var(--line);border-radius:8px;width:27px;height:27px;cursor:pointer;margin:0 8px;vertical-align:middle}
   .dc-arr:hover{background:rgba(63,174,74,.35);color:#fff}
@@ -115,11 +120,12 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 5: новые динозавры, отдых и лечение</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 6: магазин, текстуры и преграды</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — захват: напрыгни на жертву, прижми её и, удерживая Q, рви на части; отпустишь — слезешь. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
       <div id="dc-stats"></div>
+      <div id="dc-buyrow"><span id="menu-coins">0 DinoCoins</span><button id="dc-buy" class="jb-btn mini">КУПИТЬ</button></div>
     </div>
     <div id="ctrl-grid">
       <div class="ctrl"><b>WASD</b><span>движение</span></div>
@@ -135,7 +141,7 @@
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
     <button id="btn-play" class="jb-btn">ИГРАТЬ</button>
-    <div id="menu-tip">Мультиплеер 30 игроков, DinoCoins за PvP, скины и мировые боссы — в следующих итерациях</div>
+    <div id="menu-tip">Охота на диких динозавров приносит DinoCoins — на них открываются Трицератопс (100) и Тираннозавр (180)</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -172,25 +178,25 @@ const DINOS=[
     pal:{body:0x8d99a6, belly:0xe7e0c9, dark:0x39434e, head:0x99a4ae, stripe:0x2c3540, eye:0xffc23d, claw:0x35302a, accent:0xd07a35},
     desc:'Засадный хищник: комбо укусов и рывки. Приём Q — прыжок: прижми жертву и грызи, пока держишь Q.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
-    bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', npc:true, ai:'pack',
+    bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', coin:15, npc:true, ai:'pack',
     pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
     desc:'Дикий раптор джунглей.' },
-  { id:'trike', name:'Трицератопс', cost:0, hp:2100, sta:85, walk:4.8, run:12,
+  { id:'trike', name:'Трицератопс', cost:100, hp:2100, sta:85, walk:4.8, run:12,
     bite:[90,70,130], heavy:200, jumpV:6.5, scale:1.28, turn:2.0, model:'trike',
     q:'charge', qLabel:'Таран', qStat:'160 + отброс', qDmg:160, qSta:30, qCd:6, heavySta:40, heavyCd:7,
     pal:{body:0x9a7d54, belly:0xe8dcc0, dark:0x5c452a, head:0xa98a5e, stripe:0x7a5f38, eye:0x2b2013, claw:0x4a3a26, accent:0xe0b25c},
     desc:'Живой танк: комбо рогов и приём Q — таран: разгон, отбрасывает и оглушает всех на пути.' },
   { id:'trikeWild', name:'Дикий трицератопс', cost:0, hp:1500, sta:70, walk:4.4, run:11.5,
-    bite:[70,55,95], heavy:150, jumpV:6, scale:1.15, turn:1.9, model:'trike', npc:true, ai:'herb',
+    bite:[70,55,95], heavy:150, jumpV:6, scale:1.15, turn:1.9, model:'trike', coin:35, npc:true, ai:'herb',
     pal:{body:0x8a6f4a, belly:0xdccfae, dark:0x4f3b22, head:0x97794f, stripe:0x6b5230, eye:0x241a0e, claw:0x40311f, accent:0xc79a48},
     desc:'Пасущийся травоядный гигант.' },
-  { id:'rex', name:'Тираннозавр', cost:0, hp:2600, sta:90, walk:4.2, run:11,
-    bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'raptor', rig:{bulk:1.3, head:1.3},
+  { id:'rex', name:'Тираннозавр', cost:180, hp:2600, sta:90, walk:4.2, run:11,
+    bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
     pal:{body:0x5d6b46, belly:0xcfc39a, dark:0x333d26, head:0x67754e, stripe:0x27301c, eye:0xffb02e, claw:0x2e2a20, accent:0x9c7c3c},
     desc:'Царь ящеров: челюсти ломают кости, а приём Q — попрание, сотрясающее землю вокруг.' },
   { id:'rexWild', name:'Дикий тираннозавр', cost:0, hp:2400, sta:80, walk:4.2, run:10.5,
-    bite:[170,130,230], heavy:300, jumpV:7, scale:1.5, turn:1.6, model:'raptor', rig:{bulk:1.3, head:1.3}, npc:true, ai:'apex',
+    bite:[170,130,230], heavy:300, jumpV:7, scale:1.5, turn:1.6, model:'rex', coin:70, npc:true, ai:'apex',
     pal:{body:0x515f3e, belly:0xc4b78e, dark:0x2b331f, head:0x5a6845, stripe:0x222a17, eye:0xff8a2e, claw:0x292418, accent:0x8d6f34},
     desc:'Верхушка пищевой цепи. Сам не отступает.' }
 ];
@@ -200,7 +206,13 @@ const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
 // Мультиплеер-задел: ENT — единый формат для локального игрока, NPC и будущих сетевых игроков.
 // Симуляция идёт фиксированным шагом SIM_DT; рендер читает то же состояние.
 const SIM_DT=1/30;
-const G={ state:'menu', myId:'p1', coins:0, t:0, comboIdx:0, comboT:0 };
+const G={ state:'menu', myId:'p1', coins:0, t:0, comboIdx:0, comboT:0, owned:{raptor:true} };
+// профиль (монеты и купленные виды) — в localStorage; мультиплеер заменит его серверным аккаунтом
+function loadProfile(){ try{ const s=JSON.parse(localStorage.getItem('jb_profile')||'null');
+  if(s){ if(typeof s.coins==='number') G.coins=s.coins; if(s.owned&&s.owned.raptor) G.owned=s.owned; } }catch(e){}
+  $('coins-num').textContent=G.coins; }
+function saveProfile(){ try{ localStorage.setItem('jb_profile',JSON.stringify({coins:G.coins,owned:G.owned})); }catch(e){} }
+loadProfile();
 const ENT=[];
 function makeEnt(id,kind,dinoId,team){
   const def=dinoDef(dinoId);
@@ -238,6 +250,72 @@ sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-90; sun.shadow.camera.right=90; sun.shadow.camera.top=90; sun.shadow.camera.bottom=-90;
 sun.shadow.camera.far=420; sun.shadow.bias=-0.0004;
 scene.add(sun); scene.add(sun.target);
+
+// ================= ПРОЦЕДУРНЫЕ ТЕКСТУРЫ (canvas — без внешних файлов) =================
+function makeTex(fn,size){
+  size=size||128;
+  const cv=document.createElement('canvas'); cv.width=cv.height=size;
+  fn(cv.getContext('2d'),size);
+  const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+}
+const TEX={};
+TEX.rock=makeTex((g,s)=>{ g.fillStyle='#9a9a92'; g.fillRect(0,0,s,s);
+  for(let i=0;i<420;i++){ g.fillStyle='rgba('+(Math.random()<.5?'60,60,56':'216,216,206')+','+rand(.06,.22)+')';
+    g.fillRect(rand(0,s),rand(0,s),rand(1,4),rand(1,4)); }
+  g.strokeStyle='rgba(40,40,38,.35)';
+  for(let i=0;i<10;i++){ g.beginPath(); let x=rand(0,s),y=rand(0,s); g.moveTo(x,y);
+    for(let j=0;j<4;j++){ x+=rand(-14,14); y+=rand(6,16); g.lineTo(x,y); } g.stroke(); }
+});
+TEX.bark=makeTex((g,s)=>{ g.fillStyle='#6b4a2c'; g.fillRect(0,0,s,s);
+  for(let i=0;i<70;i++){ g.fillStyle='rgba('+(Math.random()<.5?'40,26,12':'150,110,64')+','+rand(.12,.3)+')';
+    g.fillRect(rand(0,s),0,rand(1,3.5),s); }
+  for(let i=0;i<26;i++){ g.fillStyle='rgba(30,20,10,'+rand(.15,.3)+')'; g.fillRect(rand(0,s),rand(0,s),rand(2,5),rand(1,3)); }
+});
+TEX.bone=makeTex((g,s)=>{ g.fillStyle='#e8e1ca'; g.fillRect(0,0,s,s);
+  for(let i=0;i<300;i++){ g.fillStyle='rgba('+(Math.random()<.6?'170,160,130':'246,242,228')+','+rand(.1,.3)+')';
+    g.fillRect(rand(0,s),rand(0,s),rand(1,4),rand(1,4)); }
+  g.strokeStyle='rgba(140,128,96,.4)';
+  for(let i=0;i<7;i++){ g.beginPath(); let x=rand(0,s),y=rand(0,s); g.moveTo(x,y);
+    for(let j=0;j<3;j++){ x+=rand(-12,12); y+=rand(-10,14); g.lineTo(x,y); } g.stroke(); }
+});
+TEX.leaf=makeTex((g,s)=>{ g.fillStyle='#f2f2ee'; g.fillRect(0,0,s,s);
+  for(let i=0;i<500;i++){ const v=(Math.random()*70)|0; g.fillStyle='rgba('+(200+v)+','+(205+v)+','+(195+v)+','+rand(.2,.5)+')';
+    g.fillRect(rand(0,s),rand(0,s),rand(1,3),rand(1,3)); }
+});
+TEX.cloth=makeTex((g,s)=>{ g.fillStyle='#d9cca6'; g.fillRect(0,0,s,s);
+  g.strokeStyle='rgba(120,105,70,.25)';
+  for(let i=0;i<s;i+=6){ g.beginPath(); g.moveTo(0,i); g.lineTo(s,i); g.stroke();
+    g.beginPath(); g.moveTo(i,0); g.lineTo(i,s); g.stroke(); }
+});
+
+// ================= ПРЕГРАДЫ МИРА: круговые коллайдеры =================
+// Деревья, камни, кости, брёвна и постройки — сплошные: сквозь них не пройти (как в JB).
+// Мультиплеер-задел: список OBST детерминирован (seed) — сервер отдаст те же преграды.
+const OBST=[];
+function addObs(x,z,r){ OBST.push({x,z,r}); }
+const OBS_GRID=new Map(), OBS_CELL=10;
+function obsIndex(){
+  for(const o of OBST){
+    const k=Math.floor(o.x/OBS_CELL)+','+Math.floor(o.z/OBS_CELL);
+    let a=OBS_GRID.get(k); if(!a){ a=[]; OBS_GRID.set(k,a); }
+    a.push(o);
+  }
+}
+function resolveObs(e){
+  if(!e.alive||e.pinnedBy||e.pinTarget) return;
+  const er=.62*(e.def.scale||1);
+  const cx=Math.floor(e.pos.x/OBS_CELL), cz=Math.floor(e.pos.z/OBS_CELL);
+  for(let ix=cx-1;ix<=cx+1;ix++) for(let iz=cz-1;iz<=cz+1;iz++){
+    const arr=OBS_GRID.get(ix+','+iz); if(!arr) continue;
+    for(const o of arr){
+      const dx=e.pos.x-o.x, dz=e.pos.z-o.z, rr=o.r+er, d2=dx*dx+dz*dz;
+      if(d2>=rr*rr) continue;
+      if(d2<1e-6){ e.pos.x=o.x+rr*.75; e.pos.z=o.z+rr*.75; continue; }  // ровно в центре — сдвигаем
+      const d=Math.sqrt(d2), k=(rr-d)/d;
+      e.pos.x+=dx*k; e.pos.z+=dz*k;
+    }
+  }
+}
 
 // ================= МИР v3: остров как в Jurassic Blocky =================
 // Гладкий low-poly рельеф (без майнкрафт-кубиков): лагерь с частоколом в центре,
@@ -353,34 +431,44 @@ function terrainH(x,z){ return rawHeight(x,z); }       // гладкий рел�
   const w=new THREE.Mesh(g,m); w.rotation.x=-Math.PI/2; w.position.y=WATER_Y+.4;
   w.receiveShadow=false; scene.add(w);
 })();
-// водопад с месы: колонна + пена у подножия + падающие брызги (анимация в кадре)
+// водопад с месы: отвесный скальный уступ на кромке пруда + ровная струя, пена и брызги
+// (постановка по реальному профилю склона: вода падает с кромки ~15м в пруд на −1.6)
 const foam=[];
 (function buildFalls(){
-  const wm=new THREE.MeshLambertMaterial({color:0xbfe6ff,transparent:true,opacity:.75});
-  const col=new THREE.Mesh(new THREE.BoxGeometry(6,17,2.6),wm);
-  col.position.set(115.4,5.8,-105.4); col.rotation.y=-Math.PI/4; scene.add(col);
+  const rockM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock});
+  const cliff=new THREE.Mesh(new THREE.BoxGeometry(13,17.5,3.2),rockM);
+  cliff.position.set(114.6,6.9,-104.6); cliff.rotation.y=-Math.PI/4;
+  cliff.castShadow=true; cliff.receiveShadow=true; scene.add(cliff);
+  const wm=new THREE.MeshLambertMaterial({color:0xbfe6ff,transparent:true,opacity:.78});
+  const col=new THREE.Mesh(new THREE.BoxGeometry(7.5,16.6,1.15),wm);
+  col.position.set(113.75,6.7,-103.75); col.rotation.y=-Math.PI/4; scene.add(col);
+  const lip=new THREE.Mesh(new THREE.BoxGeometry(7.5,.6,1.7),wm);   // гребень, через который переливается вода
+  lip.position.set(113.95,15.05,-103.95); lip.rotation.y=-Math.PI/4; scene.add(lip);
   const fm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.85});
-  const splash=new THREE.Mesh(new THREE.BoxGeometry(10,.9,6),fm);
-  splash.position.set(112,-1.5,-102); splash.rotation.y=-Math.PI/4; scene.add(splash);
+  const splash=new THREE.Mesh(new THREE.BoxGeometry(11,.9,5.5),fm);
+  splash.position.set(112.4,-1.3,-102.4); splash.rotation.y=-Math.PI/4; scene.add(splash);
+  const fpos=[[112.0,-102.0],[113.1,-103.1],[114.2,-104.2]];
   for(let i=0;i<3;i++){
-    const b=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),fm);
-    b.position.set(115.4+rand(-1.5,1.5),0,-105.4+rand(-.8,.8));
+    const b=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,1.6),fm);
+    b.position.set(fpos[i][0]+rand(-.4,.4),0,fpos[i][1]+rand(-.4,.4));
     scene.add(b); foam.push(b);
   }
+  addObs(115.8,-101.2,3.6); addObs(111.2,-105.8,3.6);   // сквозь уступ не пройти
 })();
 // лагерь-спавн как в JB: частокол с воротами в стороны троп, палатки, ящики, костёр
 const flames=[];
 (function buildCamp(){
-  const wood=new THREE.MeshLambertMaterial({color:0x7a5230});
-  const woodD=new THREE.MeshLambertMaterial({color:0x5c3c20});
-  const cloth=new THREE.MeshLambertMaterial({color:0xd9cca6});
-  const stone=new THREE.MeshLambertMaterial({color:0x8d8a80});
+  const wood=new THREE.MeshLambertMaterial({color:0x7a5230,map:TEX.bark});
+  const woodD=new THREE.MeshLambertMaterial({color:0x5c3c20,map:TEX.bark});
+  const cloth=new THREE.MeshLambertMaterial({color:0xd9cca6,map:TEX.cloth});
+  const stone=new THREE.MeshLambertMaterial({color:0x8d8a80,map:TEX.rock});
   const GATES=[-0.66,0.98,2.79], R=20;
   for(let i=0;i<46;i++){                                   // столбы частокола
     const a=i/46*6.283;
     let gate=false; for(const gt of GATES) if(Math.abs(wrapA(a-gt))<.14) gate=true;
     if(gate) continue;
     const x=Math.cos(a)*R, z=Math.sin(a)*R, y=terrainH(x,z);
+    addObs(x,z,.55);                                     // частокол — сплошной
     const post=new THREE.Mesh(new THREE.BoxGeometry(.55,2.7,.55),wood);
     post.position.set(x,y+1.25,z); post.rotation.y=a; post.castShadow=true; scene.add(post);
     const tip=new THREE.Mesh(new THREE.BoxGeometry(.75,.4,.75),woodD);
@@ -397,6 +485,7 @@ const flames=[];
     rail.rotation.y=-Math.atan2(z1-z0,x1-x0); rail.castShadow=true; scene.add(rail);
   }
   function tent(x,z,ry){                                   // палатка из двух полотнищ
+    addObs(x,z,2.1);
     const gp=new THREE.Group(); gp.position.set(x,terrainH(x,z),z); gp.rotation.y=ry;
     const s1=new THREE.Mesh(new THREE.BoxGeometry(3,.32,4.6),cloth); s1.position.set(-1.05,1.35,0); s1.rotation.z=.6;
     const s2=new THREE.Mesh(new THREE.BoxGeometry(3,.32,4.6),cloth); s2.position.set(1.05,1.35,0); s2.rotation.z=-.6;
@@ -406,10 +495,11 @@ const flames=[];
     scene.add(gp);
   }
   tent(-7.5,5.5,.5); tent(8,6.5,-2.2);
-  const crate=(x,z,s,ry)=>{ const c2=new THREE.Mesh(new THREE.BoxGeometry(s,s,s),wood);
+  const crate=(x,z,s,ry)=>{ addObs(x,z,s*.62); const c2=new THREE.Mesh(new THREE.BoxGeometry(s,s,s),wood);
     c2.position.set(x,terrainH(x,z)+s/2,z); c2.rotation.y=ry; c2.castShadow=true; scene.add(c2); };
   crate(6.5,2.5,1.4,.4); crate(8,3.4,1.1,.9); crate(7.2,1.2,.9,.2);
   const fx=-3, fz=-4, fy=terrainH(fx,fz);                  // костёр с каменным кольцом
+  addObs(fx,fz,1.35);
   for(let i=0;i<7;i++){ const a=i/7*6.283;
     const st=new THREE.Mesh(new THREE.BoxGeometry(.5,.4,.5),stone);
     st.position.set(fx+Math.cos(a)*1.5,fy+.2,fz+Math.sin(a)*1.5); st.rotation.y=a; scene.add(st); }
@@ -428,6 +518,7 @@ const flames=[];
     const a=srng()*6.283, d=42+srng()*(MAP_R-70);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+2.4||h>10) continue;
+    if(Math.hypot(x-113.5,z+103.5)<13) continue;        // не у водопада
     if(Math.hypot(x,z)<40) continue;                   // поляна лагеря
     if(Math.hypot(x-60,z-95)<27) continue;             // арена
     if(pathAt(x,z)>.3) continue;                       // не на тропе
@@ -436,14 +527,15 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const trunkG=new THREE.BoxGeometry(1.4,6.4,1.4), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026});
-  const crownG=new THREE.BoxGeometry(4.8,2.9,4.8), crownM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const trunkG=new THREE.BoxGeometry(1.4,6.4,1.4), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026,map:TEX.bark});
+  const crownG=new THREE.BoxGeometry(4.8,2.9,4.8), crownM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
   const crown=new THREE.InstancedMesh(crownG,crownM,spots.length*2);
   trunk.castShadow=true; crown.castShadow=true;
   let k2=0;
   spots.forEach((s,i)=>{
     const sc=.85+s[3]*.85, th=6.4*sc;
+    addObs(s[0],s[1],.7*sc+.25);                        // ствол — сплошной
     dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.setScalar(sc);
     dummy.position.set(s[0],s[2]+th/2,s[1]); dummy.updateMatrix(); trunk.setMatrixAt(i,dummy.matrix);
     dummy.scale.set(1,1,1);
@@ -465,6 +557,7 @@ const flames=[];
     const a=srng()*6.283, d=55+srng()*(MAP_R-80);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+2.4||h>9) continue;
+    if(Math.hypot(x-113.5,z+103.5)<13) continue;        // не у водопада
     if(Math.hypot(x,z)<45||Math.hypot(x-60,z-95)<27) continue;
     if(pathAt(x,z)>.3) continue;
     if(bioAt(x,z)>.4) continue;
@@ -472,8 +565,8 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const trunkG=new THREE.BoxGeometry(1,5,1), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30});
-  const topG=new THREE.BoxGeometry(7,.9,7), topM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const trunkG=new THREE.BoxGeometry(1,5,1), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30,map:TEX.bark});
+  const topG=new THREE.BoxGeometry(7,.9,7), topM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const t2G=new THREE.BoxGeometry(4.4,.8,4.4);
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
   const top=new THREE.InstancedMesh(topG,topM,spots.length);
@@ -481,6 +574,7 @@ const flames=[];
   trunk.castShadow=true; top.castShadow=true;
   spots.forEach((s,i)=>{
     const sc=.8+s[3]*.7;
+    addObs(s[0],s[1],.5*sc+.25);                        // ствол акации
     dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.setScalar(sc);
     dummy.position.set(s[0],s[2]+2.5*sc,s[1]); dummy.updateMatrix(); trunk.setMatrixAt(i,dummy.matrix);
     dummy.scale.set(1,1,1);
@@ -505,13 +599,14 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const segG=new THREE.BoxGeometry(1.1,2.2,1.1), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a});
-  const leafG=new THREE.BoxGeometry(.9,.14,4.2), leafM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const segG=new THREE.BoxGeometry(1.1,2.2,1.1), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a,map:TEX.bark});
+  const leafG=new THREE.BoxGeometry(.9,.14,4.2), leafM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const seg=new THREE.InstancedMesh(segG,segM,spots.length*3);
   const leaf=new THREE.InstancedMesh(leafG,leafM,spots.length*12);
   seg.castShadow=true; leaf.castShadow=true;
   let ks=0, kl=0;
   spots.forEach((s)=>{
+    addObs(s[0],s[1],.8);                               // основание палмы
     const lean=s[3]*6.28, lx=Math.cos(lean)*.55, lz=Math.sin(lean)*.55;
     let px=s[0], py=s[2], pz=s[1];
     for(let j=0;j<3;j++){
@@ -629,10 +724,12 @@ const flames=[];
     if(pathAt(x,z)>.3) continue;
     lo.push([x,z,h,srng()]);
   }
-  const lG=new THREE.BoxGeometry(1.1,1.1,1), lM=new THREE.MeshLambertMaterial({color:0x63452a});
+  const lG=new THREE.BoxGeometry(1.1,1.1,1), lM=new THREE.MeshLambertMaterial({color:0x63452a,map:TEX.bark});
   const log=new THREE.InstancedMesh(lG,lM,lo.length);
   log.castShadow=true;
   lo.forEach((s,i)=>{
+    const ry=s[3]*6.28, Ln=4.5+s[3]*3, ax=Math.sin(ry), az=Math.cos(ry);
+    for(let t=-1;t<=1;t++) addObs(s[0]+ax*t*Ln/3.2, s[1]+az*t*Ln/3.2, .85);   // бревно вдоль всей длины
     dummy.position.set(s[0],s[2]+.5,s[1]);
     dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.set(1,1,4.5+s[3]*3);
     dummy.updateMatrix(); log.setMatrixAt(i,dummy.matrix);
@@ -643,12 +740,13 @@ const flames=[];
 // валуны и скальные шпили
 (function buildRocks(){
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const g=new THREE.BoxGeometry(2.4,2.4,2.4), mm=new THREE.MeshLambertMaterial({color:0xffffff});
+  const g=new THREE.BoxGeometry(2.4,2.4,2.4), mm=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock});
   const rocks=[];
   for(let i=0;i<160&&rocks.length<70;i++){
     const a=srng()*6.283, d=38+srng()*(MAP_R-60);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+1) continue;
+    if(Math.hypot(x-113.5,z+103.5)<14) continue;        // не у водопада
     if(pathAt(x,z)>.5) continue;
     rocks.push([x,z,h,srng()]);
   }
@@ -657,6 +755,7 @@ const flames=[];
   const q=new THREE.Quaternion();
   rocks.forEach((s,i)=>{
     const sc=1+s[3]*2.2;
+    addObs(s[0],s[1],sc*1.15); addObs(s[0]+sc*.9,s[1]-sc*.6,sc*.8);   // оба валуна
     q.setFromAxisAngle(UP,s[3]*6.28);
     dummy.position.set(s[0],s[2]+sc*.35,s[1]);
     dummy.quaternion.copy(q); dummy.scale.set(sc,sc*.8,sc);
@@ -676,14 +775,16 @@ const flames=[];
     const a=srng()*6.283, d=90+srng()*(MAP_R-140);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+2.4) continue;
+    if(Math.hypot(x-113.5,z+103.5)<16) continue;        // не у водопада
     let ok=true; for(const s of sp) if(Math.hypot(s[0]-x,s[1]-z)<70){ ok=false; break; }
     if(ok) sp.push([x,z,h,srng()]);
   }
-  const sG=new THREE.BoxGeometry(1,1,1), sM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const sG=new THREE.BoxGeometry(1,1,1), sM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock});
   const spire=new THREE.InstancedMesh(sG,sM,sp.length*6);
   spire.castShadow=true;
   let ksp=0;
   sp.forEach(s=>{
+    addObs(s[0],s[1],2.1);                              // основание шпиля
     const n=4+((s[3]*3)|0);
     for(let j=0;j<n;j++){
       const w=3.4-j*.5;
@@ -701,7 +802,7 @@ const flames=[];
 // арена из гигантских костей на ЮВ: арка рёбер + череп-врата + кости
 (function buildBones(){
   const cx=60, cz=95;
-  const boneM=new THREE.MeshLambertMaterial({color:0xe8e1ca});
+  const boneM=new THREE.MeshLambertMaterial({color:0xe8e1ca,map:TEX.bone});
   const darkM=new THREE.MeshLambertMaterial({color:0x2a2318});
   const mk=(w,h,d,x,y,z,rx,ry,rz,parent)=>{
     const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),boneM);
@@ -712,6 +813,7 @@ const flames=[];
     const a=i/8*6.283, rx=cx+Math.cos(a)*17, rz=cz+Math.sin(a)*17;
     const rib=new THREE.Group(); rib.position.set(rx,terrainH(rx,rz),rz);
     rib.rotation.y=Math.PI-a; scene.add(rib);
+    addObs(rx,rz,.95);                                  // основание пары рёбер
     mk(.9,6.8,.9,0,3.2,0,0,0,.4,rib);
     mk(.85,5.4,.85,1.9,6.4,0,0,0,.85,rib);
     mk(.8,3.6,.8,3.6,8.4,0,0,0,1.25,rib);
@@ -724,6 +826,7 @@ const flames=[];
   const gx=cx+vx/vl*19.5, gz=cz+vz/vl*19.5;
   const skull=new THREE.Group(); skull.position.set(gx,terrainH(gx,gz),gz);
   skull.rotation.y=Math.atan2(vx,vz); scene.add(skull);
+  addObs(gx,gz,2.3);                                    // череп-врата — сплошной
   mk(3.8,3.2,3.2,0,2.4,0,0,0,0,skull);            // черепная коробка
   mk(2.3,1.7,2.4,0,1.2,2.6,0,0,0,skull);          // морда (к центру арены)
   const e1=mk(.8,.9,.3,-.95,2.5,1.62,0,0,0,skull); e1.material=darkM;
@@ -735,6 +838,7 @@ const flames=[];
   for(let i=0;i<10;i++){
     const a=srng()*6.283, d=srand(6,20);
     const bx=cx+Math.cos(a)*d, bz=cz+Math.sin(a)*d;
+    addObs(bx,bz,.7);                                   // россыпь костей
     mk(srand(1,2),.5,srand(1.2,2.4),bx,terrainH(bx,bz)+.25,bz,0,srng()*6.28,srand(-.15,.15));
   }
 })();
@@ -774,11 +878,13 @@ const birds=[];
   }
 })();
 
+obsIndex();   // все преграды расставлены — строим сетку коллизий
+
 // ================= МОДЕЛЬ ДИНОЗАВРА v3: велоцираптор в стиле Jurassic Blocky =================
 // Горизонтальная посадка, зубчатый гребень на спине, крупная голова с зигзагом зубов,
 // мощные бёдра, полосатые бока и маленькие прижатые руки. Одна сборка — для игрока,
 // NPC и будущих сетевых игроков. Материалы кэшируются по цвету внутри одной сборки.
-function buildDino(def){ return (def.model||'raptor')==='trike'?buildTrike(def):buildRaptor(def); }
+function buildDino(def){ const m=def.model||'raptor'; return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):buildRaptor(def); }
 function buildRaptor(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye, KG=def.rig||{}, bulk=KG.bulk||1, hd=KG.head||1;
   const mats=[], cache={};
@@ -893,7 +999,9 @@ function buildTrike(def){
   const neckM=box(1.05,.85,.7,P.body); neckM.rotation.x=.15; neckM.position.set(0,.1,-.25); neck.add(neckM);
   // голова: воротник, бровные и носовой рога, клюв
   const head=new THREE.Group(); head.position.set(0,.32,-.62); neck.add(head);
-  const frill=box(2.05,1.75,.24,P.stripe); frill.position.set(0,.42,.24); head.add(frill);
+  const skull=box(.95,.95,1.3,P.head); skull.position.set(0,.08,-.28); head.add(skull);   // череп — голова сплошная, не «стеклянная»
+  const face=box(.8,.7,.8,P.head); face.position.set(0,-.02,-.85); head.add(face);
+  const frill=box(2.05,1.75,.34,P.stripe); frill.position.set(0,.42,.24); head.add(frill);
   const rimT=box(2.2,.22,.3,AC); rimT.position.set(0,1.3,.24); head.add(rimT);
   const rimB=box(1.4,.2,.3,AC); rimB.position.set(0,-.44,.26); head.add(rimB);
   for(const s of [-1,1]){
@@ -932,6 +1040,88 @@ function buildTrike(def){
   }
   g.scale.setScalar(sc);
   return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.05, hipsY:1.62, legReach:1.4 };
+}
+
+// ================= ТИРАННОЗАВР: глыба-корпус, кубовая голова-таран, крошечные лапки =================
+// Силуэт сознательно против раптора: стоит выше и массивнее, шея толстая, голова огромная,
+// хвост толстый и короткий, лапки-руки едва заметны. Силуэт «бочки на столбах».
+function buildRex(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=2.05; g.add(hips);
+  // корпус-глыба: тяжёлый зад, глубокая грудь
+  const rump=box(1.55,1.4,1.8,P.body); rump.position.set(0,.02,.55); hips.add(rump);
+  const mid=box(1.45,1.3,1.6,P.body); mid.position.set(0,0,-.7); hips.add(mid);
+  const chest=box(1.3,1.2,1.4,P.body); chest.position.set(0,-.02,-1.9); hips.add(chest);
+  const belly=box(1.35,.55,3.6,P.belly); belly.position.set(0,-.6,-.6); hips.add(belly);
+  // спинные бугры (не гребень, как у раптора) и широкие полосы на боках
+  for(let i=0;i<5;i++){ const b=box(.52,.22,.55,P.dark); b.position.set(0,.78,.7-i*.62); hips.add(b); }
+  for(const s of [-1,1]) for(let i=0;i<3;i++){
+    const st=box(.14,1.05,.45,P.stripe); st.position.set(s*.66,.05,.5-i*.85); hips.add(st);
+  }
+  // крошечные двупалые лапки у груди
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.66,-.28,-1.85); hips.add(arm);
+    const up=box(.2,.42,.22,P.body); up.position.y=-.16; up.rotation.x=-.9; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.34,-.05); arm.add(fore);
+    const fm=box(.15,.34,.17,P.dark); fm.position.set(0,-.12,.1); fm.rotation.x=-.5; fore.add(fm);
+    for(let c2=0;c2<2;c2++){ const cl=box(.07,.18,.07,P.claw); cl.position.set(c2?-.06:.06,-.3,.18); fore.add(cl); }
+    arms.push(arm);
+  }
+  // мощная короткая шея
+  const neck=new THREE.Group(); neck.position.set(0,.5,-2.45); hips.add(neck);
+  const neckM=box(1.0,.95,1.1,P.body); neckM.rotation.x=.32; neckM.position.set(0,.14,-.4); neck.add(neckM);
+  // голова-таран: кубовая, тяжёлые надбровья, крупные зубы
+  const head=new THREE.Group(); head.position.set(0,.52,-.9); neck.add(head);
+  const skull=box(1.1,.9,1.05,P.head); skull.position.set(0,.05,-.35); head.add(skull);
+  const brow=box(1.2,.24,.55,P.dark); brow.position.set(0,.5,-.6); head.add(brow);
+  const snout=box(.92,.66,1.15,P.head); snout.position.set(0,-.04,-1.3); head.add(snout);
+  const nose=box(.74,.42,.55,P.head); nose.position.set(0,.1,-1.98); head.add(nose);
+  const bump=box(.3,.16,.3,P.dark); bump.position.set(0,.34,-1.9); head.add(bump);
+  const lip=box(.8,.14,1.6,P.dark); lip.position.set(0,-.32,-1.15); head.add(lip);
+  for(const s of [-1,1]) for(let i=0;i<7;i++){
+    const t=box(.08,.22,.09,P.claw); t.position.set(s*.38,-.36,-.75-i*.18); head.add(t);
+  }
+  // нижняя челюсть — глубокая, с зубами (pivot укуса)
+  const jaw=new THREE.Group(); jaw.position.set(0,-.36,-.35); head.add(jaw);
+  const jawM=box(.78,.24,1.6,P.dark); jawM.position.set(0,-.08,-.62); jaw.add(jawM);
+  const jawTip=box(.62,.2,.5,P.dark); jawTip.position.set(0,-.06,-1.55); jaw.add(jawTip);
+  for(const s of [-1,1]) for(let i=0;i<5;i++){
+    const t=box(.07,.18,.08,P.claw); t.position.set(s*.3,.06,-.45-i*.2); jaw.add(t);
+  }
+  // глаза под надбровьем
+  for(const s of [-1,1]){
+    const ew=box(.16,.18,.16,0xf5f2e0); ew.position.set(s*.52,.3,-.55); head.add(ew);
+    const ep=box(.08,.13,.1,P.eye); ep.position.set(s*.57,.29,-.58); head.add(ep);
+  }
+  // толстый хвост: 5 сегментов с тёмными кольцами
+  const tail=[]; let prev=hips;
+  const tw=[1.2,.95,.7,.46,.26];
+  for(let i=0;i<5;i++){
+    const seg=new THREE.Group(); seg.position.set(0,.05,i?1.0:.95); prev.add(seg);
+    const tm=box(tw[i],Math.max(.16,tw[i]-.22),1.05,i<2?P.body:P.dark); tm.position.z=.52; seg.add(tm);
+    if(i===1||i===3){ const ring=box(tw[i]+.06,.15,1.07,P.stripe); ring.position.set(0,.02,.52); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  // столбы-ноги с крупными ступнями
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.62,-.05,.5); hips.add(hip);
+    const thigh=box(.9,1.2,1.1,P.body); thigh.position.set(0,-.52,.08); hip.add(thigh);
+    const knee=box(.66,.62,.8,P.body); knee.position.set(0,-1.02,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-1.05,-.05); hip.add(shin);
+    const shinM=box(.44,.95,.56,P.dark); shinM.position.set(0,-.36,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.8,-.06); shin.add(foot);
+    const footM=box(.62,.22,1.1,P.body); footM.position.set(0,-.07,-.24); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.13,.13,.42,P.claw); cl.position.set((t-1)*.2,-.12,-.88); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.45, hipsY:2.05, legReach:2.05 };
 }
 
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
@@ -1116,6 +1306,7 @@ const SFX={
   die(){ this.tone('sawtooth',260,50,.5,.2); },
   growl(){ this.tone('sawtooth',85,60,.35,.16); this.tone('sawtooth',60,45,.4,.13,.05); },
   jump(){ this.tone('sine',240,420,.12,.08); },
+  coin(){ this.tone('triangle',880,1560,.14,.18); this.tone('triangle',1320,2100,.18,.14,.08); },
   hurt(){ this.tone('square',90,60,.15,.25); }
 };
 addEventListener('pointerdown',()=>{ SFX.init(); SFX.resume(); });
@@ -1246,7 +1437,7 @@ function applyDamage(target,dmg,src,heavy){
     if(target.pinTarget) releasePin(target);   // умер, удерживая жертву
     burst(target.pos,0xc22f22,14,8);
     SFX.die();
-    if(src&&src.isLocal){ addCoins(15); toast('+'+15+' DinoCoins — '+target.name+' повержен','coin'); }
+    if(src&&src.isLocal){ const rw=target.def.coin||15; addCoins(rw); toast('+'+rw+' DinoCoins — '+target.name+' повержен','coin'); }
     if(target.kind==='npc') target.respawnT=15;
     if(target.isLocal) setTimeout(()=>{ if(G.state==='play') toast('Ты повержен... возрождение в лагере','coin'); },400);
   }
@@ -1452,6 +1643,7 @@ function updNpc(n,dt){
   if(n.attackT>0) n.attackT=Math.max(0,n.attackT-dt);
   n.pos.y=terrainH(n.pos.x,n.pos.z);
   if(n.pos.y<WATER_Y-1.1) n.pos.y=WATER_Y-.85+Math.sin(G.t*2.2+n.walkPhase)*.08; // плывёт
+  resolveObs(n);                                       // NPC тоже не проходят сквозь камни и деревья
   edgePush(n);
 }
 function edgePush(e){ // край мира: мягкая стена
@@ -1592,6 +1784,7 @@ function updPlayer(dt){
       e.pos.y=Math.max(e.pos.y,WATER_Y-.85+Math.sin(ambT*2.2)*.08);
       e.vel.y=0; e.grounded=true;
     }
+    resolveObs(e);                                       // камни/деревья/кости — непроходимы
     edgePush(e);
     // кулдауны
     e.biteCd=Math.max(0,e.biteCd-dt);
@@ -1617,7 +1810,7 @@ function toast(t,cls){
   const d=document.createElement('div'); d.className='toast'+(cls?' '+cls:''); d.textContent=t;
   $('toasts').appendChild(d); setTimeout(()=>d.remove(),2600);
 }
-function addCoins(n){ G.coins+=n; $('coins-num').textContent=G.coins; }
+function addCoins(n){ G.coins+=n; $('coins-num').textContent=G.coins; saveProfile(); }
 function updComboHud(){ $('combo-cnt').textContent=G.comboT>0?(G.comboIdx+1)+' из 3':'—'; }
 const dmgPool=[];
 function spawnDmgNum(t,dmg,heavy){
@@ -1704,6 +1897,7 @@ function toMenu(){
 // ---------- выбор динозавра в меню ----------
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
+const MENU_TIP_DEFAULT='Охота на диких динозавров приносит DinoCoins — на них открываются Трицератопс (100) и Тираннозавр (180)';
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
@@ -1719,9 +1913,26 @@ function renderDinoCard(){
   $('dc-stats').innerHTML=rows.map(r=>
     '<div class="stat-row"><div class="sn">'+r[0]+'</div><div class="sb"><div style="width:'+clamp(r[1]/r[2]*100,8,100)+'%;background:'+r[3]+'"></div></div><div class="sv">'+r[4]+'</div></div>'
   ).join('');
+  // магазин: куплено / цена / хватает ли монет
+  const has=!!G.owned[d.id];
+  $('dc-cost').textContent=has?'КУПЛЕНО':(d.cost?'ЗА '+d.cost+' DC':'БЕСПЛАТНО');
+  $('dc-cost').style.color=has?'var(--grn)':'var(--amb)';
+  const buy=$('dc-buy');
+  buy.style.display=has?'none':'inline-block';
+  if(!has){ buy.textContent='КУПИТЬ · '+d.cost+' DC'; buy.disabled=!!d.cost&&G.coins<d.cost; }
+  $('menu-coins').textContent=G.coins+' DinoCoins';
+  $('menu-tip').textContent=MENU_TIP_DEFAULT; $('menu-tip').style.color='';
 }
 $('dc-prev').addEventListener('click',()=>{ G.selIdx=(G.selIdx+PLAYABLE.length-1)%PLAYABLE.length; renderDinoCard(); });
 $('dc-next').addEventListener('click',()=>{ G.selIdx=(G.selIdx+1)%PLAYABLE.length; renderDinoCard(); });
+$('dc-buy').addEventListener('click',()=>{
+  const d=PLAYABLE[G.selIdx];
+  if(!d.cost||G.owned[d.id]||G.coins<d.cost) return;
+  G.coins-=d.cost; G.owned[d.id]=true; saveProfile();
+  $('coins-num').textContent=G.coins;
+  SFX.init(); SFX.resume(); SFX.coin();
+  renderDinoCard();
+});
 renderDinoCard();
 function applyPlayerDino(id){
   const d=dinoDef(id);
@@ -1739,12 +1950,18 @@ function applyPlayerDino(id){
   $('ab-pounce').querySelector('span').textContent=d.qLabel||'Приём';
 }
 $('btn-play').addEventListener('click',()=>{
-  applyPlayerDino(PLAYABLE[G.selIdx].id);
+  const d=PLAYABLE[G.selIdx];
+  if(d.cost&&!G.owned[d.id]){                       // не куплен — играть нельзя
+    $('menu-tip').textContent='«'+d.name+'» ещё не куплен: охоться на диких динозавров и копи DinoCoins';
+    $('menu-tip').style.color='#ffb0a0';
+    return;
+  }
+  applyPlayerDino(d.id);
   G.state='play';
   $('ov-menu').classList.add('hidden');
   $('hud').classList.add('on');
   tryLock();
-  toast('ЛКМ — укусы, Q — '+(PLAYABLE[G.selIdx].qLabel||'приём')+', R — отдых. Стадо помнит обиды!');
+  toast('ЛКМ — укусы, Q — '+(d.qLabel||'приём')+', R — отдых. Стадо помнит обиды!');
 });
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
@@ -1780,7 +1997,7 @@ function frame(now){
     b.wl.rotation.z=.2+fl; b.wr.rotation.z=-.2-fl;
   }
   for(let i=0;i<foam.length;i++){
-    foam[i].position.y=13-((now*.004+i*5)%15);
+    foam[i].position.y=13.8-((now*.004+i*5)%15.4);
   }
   for(let i=0;i<flames.length;i++){
     flames[i].scale.y=1+Math.sin(now*.011+i*2.1)*.22;
@@ -1801,7 +2018,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,updNpc,get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,get myMesh(){return myMesh;}}; // отладка/тесты
 requestAnimationFrame(frame);
 })();
 </script>
