@@ -110,16 +110,16 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 4: прыжок на жертву и месть стада</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 4.1: захват жертвы и месть стада</div>
     <div id="dino-card">
       <div id="dc-name">ВЕЛОЦИРАПТОР <span id="dc-cost">БЕСПЛАТНО</span></div>
-      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — прыжок-атака: напрыгни на жертву и сбей её с ног. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
+      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — захват: напрыгни на жертву, прижми её и, удерживая Q, рви на части; отпустишь — слезешь. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
       <div class="stat-row"><div class="sn">Здоровье</div><div class="sb"><div style="width:64%;background:#ff7a4a"></div></div><div class="sv">900</div></div>
       <div class="stat-row"><div class="sn">Силы</div><div class="sb"><div style="width:47%;background:#a3e635"></div></div><div class="sv">70</div></div>
       <div class="stat-row"><div class="sn">Бег</div><div class="sb"><div style="width:56%;background:#5ad0ff"></div></div><div class="sv">50</div></div>
       <div class="stat-row"><div class="sn">Укус</div><div class="sb"><div style="width:65%;background:#ffd24a"></div></div><div class="sv">65·50·100</div></div>
       <div class="stat-row"><div class="sn">Тяжёлый</div><div class="sb"><div style="width:73%;background:#ff5a4a"></div></div><div class="sv">110</div></div>
-      <div class="stat-row"><div class="sn">Прыжок-атака</div><div class="sb"><div style="width:58%;background:#7dd3fc"></div></div><div class="sv">80</div></div>
+      <div class="stat-row"><div class="sn">Прыжок-атака</div><div class="sb"><div style="width:24%;background:#7dd3fc"></div></div><div class="sv">35×7</div></div>
     </div>
     <div id="ctrl-grid">
       <div class="ctrl"><b>WASD</b><span>движение</span></div>
@@ -128,7 +128,7 @@
       <div class="ctrl"><b>SPACE</b><span>прыжок</span></div>
       <div class="ctrl"><b>ЛКМ</b><span>укус / серия</span></div>
       <div class="ctrl"><b>E</b><span>тяжёлый</span></div>
-      <div class="ctrl"><b>Q</b><span>прыжок-атака</span></div>
+      <div class="ctrl"><b>Q</b><span>напрыг + держи</span></div>
       <div class="ctrl"><b>КОЛЕСО</b><span>зум</span></div>
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
       <div class="ctrl"><b>P</b><span>пауза</span></div>
@@ -166,7 +166,7 @@ const UP=V3(0,1,0);
 // ================= ДИНОЗАВРЫ (данные — будущий сервер отдаст этот же список) =================
 const DINOS=[
   { id:'raptor', name:'Велоцираптор', cost:0, hp:900, sta:70, walk:5.6, run:14,
-    bite:[65,50,100], heavy:110, pounce:80, jumpV:8.5, scale:.95, turn:2.6,
+    bite:[65,50,100], heavy:110, maul:35, pinTime:3.2, jumpV:8.5, scale:.95, turn:2.6,
     pal:{body:0x8d99a6, belly:0xe7e0c9, dark:0x39434e, head:0x99a4ae, stripe:0x2c3540, eye:0xffc23d, claw:0x35302a, accent:0xd07a35},
     desc:'Засадный хищник: комбо укусов, рывки и прыжок на жертву.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
@@ -189,6 +189,7 @@ function makeEnt(id,kind,dinoId,team){
     hp:def.hp, hpMax:def.hp, sta:def.sta, staMax:def.sta, alive:true,
     walkPhase:rand(0,6.28), attackT:0, heavyT:0, heavyCd:0, biteCd:0, stunT:0, deathT:0, respawnT:0,
     flinchT:0, deathDir:1, growlCd:0, anim:null, landT:0, pounceT:0, pounceCd:0, pDx:0, pDz:0, pounced:false, aggroT:0,
+    pinTarget:null, pinnedBy:null, pinT:0, maulT:0,
     moveMode:0, // 0 стоит · 1 идёт · 2 бежит
     isLocal:false, name:'' };
 }
@@ -915,6 +916,9 @@ function animDino(e,md,dt){
     hipsY-=k*.34; hrx+=k*.18;
     for(let i=0;i<2;i++){ const L=md.legs[i]; L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
   }
+  if(e.pinTarget){                     // навалился на прижатую жертву
+    hrx=Math.max(hrx,.32); reach+=.18;
+  }
   if(e.pounceT>0){                                  // прыжок-атака: тело стрелой, пасть раскрыта
     hrx=.45; reach+=.3; jawX=.5; armX=-1.2;
   } else if(e.heavyT>0){
@@ -1146,6 +1150,7 @@ function applyDamage(target,dmg,src,heavy){
     target.alive=false; target.hp=0; target.deathT=0;
     target.deathDir=Math.random()<.5?1:-1;
     target.moveMode=0; target.speed=0;
+    if(target.pinTarget) releasePin(target);   // умер, удерживая жертву
     burst(target.pos,0xc22f22,14,8);
     SFX.die();
     if(src&&src.isLocal){ addCoins(15); toast('+'+15+' DinoCoins — '+target.name+' повержен','coin'); }
@@ -1190,10 +1195,20 @@ function tryHeavy(){
     shake=Math.max(shake,.55); SFX.heavy();
   },550);
 }
+function releasePin(e){           // слез с жертвы: отпустил Q / время / стан / смерть
+  const t=e.pinTarget;
+  if(t&&t.pinnedBy===e){
+    t.pinnedBy=null;
+    t.stunT=Math.max(t.stunT,.4);            // жертва оглушена — поднимается
+    const dx=t.pos.x-e.pos.x, dz=t.pos.z-e.pos.z, dl=Math.max(.001,Math.hypot(dx,dz));
+    t.vel.x+=dx/dl*5; t.vel.z+=dz/dl*5;
+  }
+  e.pinTarget=null; e.maulT=0;
+}
 function tryPounce(){
   const e=my;
   if(!e.alive||e.pounceCd>0||e.stunT>0||e.sta<20||!e.grounded||e.pounceT>0) return;
-  e.sta-=20; e.pounceCd=4; e.pounceT=.62; e.grounded=false; e.pounced=false;
+  e.sta-=20; e.pounceCd=5; e.pounceT=.62; e.grounded=false; e.pounced=false;
   const f=fwdOf(e);
   e.pDx=f.x*17; e.pDz=f.z*17;      // бросок вперёд
   e.vel.y=7.5;                      // и немного вверх
@@ -1217,14 +1232,18 @@ function updNpc(n,dt){
   if(!n.alive){
     n.respawnT-=dt;
     if(n.respawnT<=0){
-      n.alive=true; n.hp=n.hpMax; n.sta=n.staMax; n.deathT=0; n.leanV=0; n.aggroT=0; n.vel.set(0,0,0);
+      n.alive=true; n.hp=n.hpMax; n.sta=n.staMax; n.deathT=0; n.leanV=0; n.aggroT=0; n.vel.set(0,0,0); n.pinnedBy=null;
       const a=Math.random()*6.283, d=rand(70,190);
       placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
       n.home.set(n.pos.x,0,n.pos.z); n.wp=null; n.wanderT=0;
     }
     return;
   }
+  if(n.pinnedBy&&(!n.pinnedBy.alive||n.pinnedBy.pinTarget!==n)) n.pinnedBy=null; // захват сорвался
   if(n.stunT>0){ n.stunT-=dt; n.speed=0; n.moveMode=0; }
+  else if(n.pinnedBy){
+    n.speed=0; n.moveMode=0;    // прижата хищником — только вздрагивает от укусов
+  }
   else{
     n.wanderT-=dt;
     const dp=n.pos.distanceTo(my.pos);
@@ -1352,7 +1371,7 @@ function updPlayer(dt){
     let ix=0,iz=0;
     if(keys.KeyW)iz-=1; if(keys.KeyS)iz+=1; if(keys.KeyA)ix-=1; if(keys.KeyD)ix+=1;
     const wantRun=(keys.ShiftLeft||keys.ShiftRight)&&e.sta>1&&e.moveMode!==0;
-    const moving=(ix||iz)&&e.stunT<=0&&e.pounceT<=0;
+    const moving=(ix||iz)&&e.stunT<=0&&e.pounceT<=0&&!e.pinTarget;
     e.moveMode=moving?(wantRun?2:1):0;
     const water=gy<WATER_Y; // на мелководье вдвое медленнее — как в JB
     const spd=(e.moveMode===2?e.def.run:e.moveMode===1?e.def.walk:0)*(water?.55:1);
@@ -1370,10 +1389,10 @@ function updPlayer(dt){
     const regen=e.moveMode===0?14:12;
     e.sta=clamp(e.sta+(regen-drain)*dt,0,e.staMax);
     // прыжок
-    if(keys.Space&&e.grounded&&e.sta>=12&&e.stunT<=0&&e.pounceT<=0){
+    if(keys.Space&&e.grounded&&e.sta>=12&&e.stunT<=0&&e.pounceT<=0&&!e.pinTarget){
       e.vel.y=e.def.jumpV; e.grounded=false; e.sta-=12; SFX.jump();
     }
-    // прыжок-атака (Q): полёт вперёд; попадание сбивает жертву с ног
+    // прыжок-атака (Q): полёт вперёд; попал — захватил жертву
     if(e.pounceT>0){
       e.pounceT-=dt;
       e.pos.x+=e.pDx*dt; e.pos.z+=e.pDz*dt;
@@ -1385,14 +1404,39 @@ function updPlayer(dt){
           const rr=2.4+t.def.scale*1.7;
           if(dx*dx+dz*dz<rr*rr&&Math.abs(t.pos.y-e.pos.y)<3.2){
             e.pounced=true; e.pounceT=0;
-            applyDamage(t,Math.round(e.def.pounce*rand(.92,1.1)),e,true);
-            const dd=Math.max(.001,Math.hypot(dx,dz));
-            t.vel.x+=dx/dd*7; t.vel.z+=dz/dd*7;    // отброс (гасится в updNpc)
-            t.stunT=Math.max(t.stunT,1.15);        // жертва на земле
-            burst(t.pos,0xc22f22,10,8);
-            shake=Math.max(shake,.45);
+            // ЗАХВАТ: прижали жертву — дальше держим Q и грызём
+            e.pinTarget=t; t.pinnedBy=e;
+            e.pinT=e.def.pinTime; e.maulT=0;          // первый укус сразу
+            e.vel.y=0; e.grounded=true;
+            burst(t.pos,0xc22f22,8,7);
+            shake=Math.max(shake,.35);
+            SFX.growl();
+            if(!G.pinTip){ G.pinTip=1; toast('Держи Q — грызёшь жертву, отпустишь — слезешь','coin'); }
+            NET.emitIntent('pin',{tid:null});
             break;
           }
+        }
+      }
+    }
+    // ЗАХВАТ: держим Q — прижатая жертва получает укусы; отпустил/время/стан — слез
+    // (грация 0.9 c: короткий тап Q всё равно удерживает жертву на пару укусов)
+    if(e.pinTarget){
+      const t=e.pinTarget;
+      if(e.pinT<=0||!t.alive||!e.alive||e.stunT>0||(!keys.KeyQ&&e.pinT<e.def.pinTime-.9)) releasePin(e);
+      else{
+        e.pinT-=dt;
+        const off=e.def.scale+t.def.scale+.4;          // держимся сбоку жертвы
+        const dx=e.pos.x-t.pos.x, dz=e.pos.z-t.pos.z;
+        const dl=Math.max(.001,Math.hypot(dx,dz));
+        e.pos.x=t.pos.x+dx/dl*off; e.pos.z=t.pos.z+dz/dl*off;
+        e.pos.y=t.pos.y;
+        e.yaw=Math.atan2(-(t.pos.x-e.pos.x),-(t.pos.z-e.pos.z)); e.prevYaw=e.yaw;
+        e.moveMode=0; e.speed=0; e.vel.y=0; e.grounded=true;
+        e.maulT-=dt;
+        if(e.maulT<=0){
+          e.maulT=.5; e.attackT=.26;                   // укус по прижатой
+          applyDamage(t,Math.round(e.def.maul*rand(.9,1.12)),e,false);
+          SFX.bite();
         }
       }
     }
@@ -1496,8 +1540,8 @@ function updHud(){
   abBite.querySelector('.cd').style.height=(my.biteCd/.45*100)+'%';
   abHeavy.classList.toggle('cool',my.heavyCd>0||my.sta<22);
   abHeavy.querySelector('.cd').style.height=(my.heavyCd/6*100)+'%';
-  abPounce.classList.toggle('cool',my.pounceCd>0||my.sta<20||!my.grounded);
-  abPounce.querySelector('.cd').style.height=(my.pounceCd/4*100)+'%';
+  abPounce.classList.toggle('cool',my.pounceCd>0||my.sta<20||(!my.grounded&&!my.pinTarget));
+  abPounce.querySelector('.cd').style.height=(my.pinTarget?my.pinT/(my.def.pinTime||3.2)*100:my.pounceCd/5*100)+'%';
   abRun.classList.toggle('cool',my.sta<=1);
   $('ab-jump').classList.toggle('cool',!my.grounded||my.sta<12);
 }
@@ -1516,7 +1560,7 @@ $('btn-play').addEventListener('click',()=>{
   $('ov-menu').classList.add('hidden');
   $('hud').classList.add('on');
   tryLock();
-  toast('Атакуй стадо — но учти: они отвечают! ЛКМ — укус, Q — прыжок на жертву, E — тяжёлый');
+  toast('Атакуй стадо — но учти: они отвечают! ЛКМ — укус, Q — напрыгни и держи, E — тяжёлый');
 });
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
@@ -1573,7 +1617,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,myMesh,keys,tryBite,tryHeavy,tryPounce,enragePack}; // отладка/тесты (и хук для будущих тестов мультиплеера)
+window.JB={my,ENT,camera,scene,renderer,G,myMesh,keys,tryBite,tryHeavy,tryPounce,releasePin,enragePack}; // отладка/тесты (и хук для будущих тестов мультиплеера)
 requestAnimationFrame(frame);
 })();
 </script>
