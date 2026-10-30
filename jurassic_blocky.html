@@ -1381,42 +1381,53 @@ function buildBrachi(def){
   const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
   const g=new THREE.Group();
   const hips=new THREE.Group(); hips.position.y=3.05; g.add(hips);
-  const rump=box(2.0,1.65,2.0,P.body); rump.position.set(0,.1,.95); hips.add(rump);
-  const mid=box(1.9,1.55,2.0,P.body); mid.position.set(0,.06,-.65); hips.add(mid);
-  const chest=box(1.7,1.45,1.5,P.body); chest.position.set(0,0,-1.95); hips.add(chest);
-  const belly=box(1.8,.5,4.2,P.belly); belly.position.set(0,-.72,-.45); hips.add(belly);
-  for(let i=0;i<5;i++){ const b=box(.5,.24,.55,P.dark); b.position.set(0,.92,.8-i*.68); hips.add(b); }
-  // хвост
+  // корпус: косой саванновый силуэт — грудь и плечи высоко, спуск к хвосту
+  const chest=box(1.9,1.85,1.7,P.body); chest.position.set(0,.3,-1.75); hips.add(chest);
+  const mid=box(1.95,1.6,2.0,P.body); mid.position.set(0,.16,-.5); hips.add(mid);
+  const rump=box(1.78,1.4,1.9,P.body); rump.position.set(0,0,.95); hips.add(rump);
+  const belly=box(1.85,.5,4.5,P.belly); belly.position.set(0,-.68,-.38); hips.add(belly);
+  // низкий гребень по спине — повторяет профиль корпуса (круп ниже, холка выше)
+  const RY=[.78,.9,1.03,1.05,1.3,1.3];
+  for(let i=0;i<6;i++){ const b=box(.4,.15,.5,P.dark); b.position.set(0,RY[i],.95-i*.57); hips.add(b); }
+  // плечевой клин: плавный вход шеи в корпус
+  const sh=box(1.55,.95,1.25,P.body); sh.position.set(0,.72,-2.25); sh.rotation.x=.5; hips.add(sh);
+  // хвост: толстое основание, длинное сужение, мягкий прогиб вниз
   const tail=[]; let prev=hips;
-  const tw=[.9,.7,.5,.34,.2];
+  const tw=[1.05,.85,.62,.42,.24];
   for(let i=0;i<5;i++){
-    const seg=new THREE.Group(); seg.position.set(0,.1,i?1.0:.95); prev.add(seg);
-    const tm=box(tw[i],Math.max(.18,tw[i]-.2),1.05,i<2?P.body:P.dark); tm.position.z=.52; seg.add(tm);
+    const seg=new THREE.Group(); seg.position.set(0,.12,i?1.0:.95); prev.add(seg);
+    const inner=new THREE.Group(); inner.rotation.x=-.045; seg.add(inner);
+    const tm=box(tw[i],Math.max(.2,tw[i]-.18),1.06,i<2?P.body:P.dark); tm.position.z=.53; inner.add(tm);
     tail.push(seg); prev=seg;
   }
-  // шея: цепочка из 5 сегментов с плавным S-изгибом — тянется вверх и вперёд, как у жирафа
-  const neck=new THREE.Group(); neck.position.set(0,.72,-2.5); hips.add(neck);
-  const NB=[.14,.26,.3,.24,.06];                 // изгиб каждого сегмента (рад)
+  // ШЕЯ: 6 сегментов — мощная колонна, выходящая из плеч под 35° и поднимающаяся
+  // к почти вертикали у головы; глубокое перекрытие сегментов = гладкий силуэт
+  const neck=new THREE.Group(); neck.position.set(0,.9,-2.3); hips.add(neck);
+  const NB=[.62,.3,.22,.15,.09,.05];
   let pn=neck; const neckSegs=[];
-  for(let i=0;i<5;i++){
+  for(let i=0;i<6;i++){
     const seg=new THREE.Group();
-    seg.position.set(0,0,i?-.64:0);              // следующий сегмент — на конце предыдущего
+    seg.position.set(0,0,i?-.56:0);              // следующий сегмент — внутри предыдущего
     seg.rotation.x=NB[i];
     pn.add(seg);
-    const w=.82-i*.09;
-    const nm=box(w,w*.94,.8,i<3?P.body:P.head); nm.position.z=-.34; seg.add(nm);
-    const fill=box(w*.66,w*.62,.34,i<2?P.body:P.head); fill.position.set(0,0,-.58); seg.add(fill); // «кожная складка» на стыке
+    const w=1.12-i*.108;
+    const nm=box(w,w*.9,.86,i<4?P.body:P.head); nm.position.z=-.36; seg.add(nm);
+    const rb=box(w*.3,.13,.42,P.dark); rb.position.set(0,w*.43,-.36); seg.add(rb); // позвонки-гребень
     neckSegs.push(seg); pn=seg;
   }
-  const head=new THREE.Group(); head.position.set(0,.02,-.62); head.rotation.x=.42; pn.add(head);
-  const skull=box(.5,.44,.7,P.head); skull.position.set(0,.02,-.2); head.add(skull);
-  const snout=box(.32,.28,.52,P.head); snout.position.set(0,-.04,-.68); head.add(snout);
+  // голова: удлинённая, с гребнем и ноздрями на бугре, смотрит вперёд-вверх
+  const head=new THREE.Group(); head.position.set(0,.04,-.6); head.rotation.x=-.5; pn.add(head);
+  const skull=box(.6,.52,.8,P.head); skull.position.set(0,.02,-.2); head.add(skull);
+  const snout=box(.42,.3,.62,P.head); snout.position.set(0,-.04,-.72); head.add(snout);
+  const nosetip=box(.3,.22,.34,P.head); nosetip.position.set(0,-.08,-1.1); head.add(nosetip);
+  const crest=box(.22,.12,.5,AC); crest.position.set(0,.3,-.4); head.add(crest);
+  const nostr=box(.14,.1,.16,P.dark); nostr.position.set(0,.26,-.9); head.add(nostr);
   for(const s of [-1,1]){
-    const ew=box(.1,.11,.1,0xf5f2e0); ew.position.set(s*.22,.14,-.3); head.add(ew);
-    const ep=box(.05,.07,.06,P.eye); ep.position.set(s*.27,.13,-.32); head.add(ep);
+    const ew=box(.12,.13,.12,0xf5f2e0); ew.position.set(s*.32,.12,-.32); head.add(ew);
+    const ep=box(.06,.08,.07,P.eye); ep.position.set(s*.38,.11,-.34); head.add(ep);
   }
-  const jaw=new THREE.Group(); jaw.position.set(0,-.18,-.15); head.add(jaw);
-  const jawM=box(.28,.09,.58,P.dark); jawM.position.set(0,-.04,-.3); jaw.add(jawM);
+  const jaw=new THREE.Group(); jaw.position.set(0,-.24,-.18); head.add(jaw);
+  const jawM=box(.36,.1,.66,P.dark); jawM.position.set(0,-.05,-.3); jaw.add(jawM);
   // 4 колонны-ноги
   const legs=[];
   for(const s of [-1,1]) for(const zf of [1,-1]){
@@ -1431,7 +1442,7 @@ function buildBrachi(def){
     legs.push({hip,shin,foot});
   }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.5, hipsY:3.05, legReach:3.0, neckSegs, neckBase:NB };
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.3, hipsY:3.05, legReach:3.0, neckSegs, neckBase:NB, headBaseX:-.5, tagY:7.4 };
 }
 
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
@@ -1566,14 +1577,34 @@ const SPEC={
       if(L3) L3.hip.rotation.x=lerp(.5,0,r);
     }
   },
-  neckslam(e,md,ph,Q,late){                           // брахиозавр Q: шея заводится назад и бьёт вперёд
-    if(late) return;
-    if(ph<.32){ const w=smoothT(ph/.32);
-      Q.neckRx=-.55*w; Q.reach=-.15*w; Q.jawX=.4*w; Q.hrx=-.08*w;
-    } else if(ph<.5){ const s2=smoothT((ph-.32)/.18);
-      Q.neckRx=lerp(-.55,.72,s2); Q.reach=lerp(-.15,.85,s2); Q.jawX=lerp(.4,-.1,s2); Q.hrx=lerp(-.08,.2,s2);
-    } else { const r=smoothT((ph-.5)/.5);
-      Q.neckRx=lerp(.72,.04,r); Q.reach=lerp(.85,0,r); Q.jawX=lerp(-.1,0,r); Q.hrx=lerp(.2,.02,r); }
+  neckslam(e,md,ph,Q,late){                           // брахиозавр Q: шея-лук — назад, потом хлёст вниз
+    if(!late){                                        // корпус: привстал в замахе — подался вперёд в ударе
+      const b=Q.hipsY;
+      if(ph<.32){ const w=smoothT(ph/.32);
+        Q.hipsY=b+.16*w; Q.hrx=-.16*w; Q.jawX=.5*w; Q.reach=-.22*w; Q.neckRx=.08*w;
+      } else if(ph<.5){ const s2=smoothT((ph-.32)/.18);
+        Q.hipsY=lerp(b+.16,b-.3,s2); Q.hrx=lerp(-.16,.32,s2); Q.jawX=lerp(.5,-.08,s2);
+        Q.reach=lerp(-.22,.55,s2); Q.neckRx=lerp(.08,-.06,s2);
+      } else { const r=smoothT((ph-.5)/.5);
+        Q.hipsY=lerp(b-.3,b,r); Q.hrx=lerp(.32,.02,r); Q.jawX=lerp(-.08,0,r);
+        Q.reach=lerp(.55,0,r); Q.neckRx=lerp(-.06,0,r); }
+      return;
+    }
+    if(!md.neckSegs||!md.neckBase) return;            // шея: изгиб дугой через сегменты
+    const B1=[.06,.14,.24,.36,.5,.6], B2=[-.1,-.24,-.4,-.52,-.6,-.62];
+    for(let i=0;i<md.neckSegs.length;i++){
+      const j=Math.min(i,B1.length-1);
+      let bd;
+      if(ph<.32) bd=B1[j]*smoothT(ph/.32);            // заводится назад дугой
+      else if(ph<.5) bd=lerp(B1[j],B2[j],smoothT((ph-.32)/.18));   // хлёст вперёд-вниз
+      else bd=lerp(B2[j],0,smoothT((ph-.5)/.5));      // возврат
+      md.neckSegs[i].rotation.x=md.neckBase[i]+bd;
+    }
+    let hd;
+    if(ph<.32) hd=-.5-.4*smoothT(ph/.32);
+    else if(ph<.5) hd=lerp(-.9,.55,smoothT((ph-.32)/.18));
+    else hd=lerp(.55,-.5,smoothT((ph-.5)/.5));
+    md.head.rotation.x=hd;
   }
 };
 function animDino(e,md,dt){
@@ -1587,7 +1618,8 @@ function animDino(e,md,dt){
     md.hips.rotation.x=.12*k;
     md.jaw.rotation.x=.45*k;
     md.neck.rotation.x=.3*k; md.neck.position.z=md.neckZ;
-    if(md.neckSegs&&md.neckBase) for(let i=0;i<md.neckSegs.length;i++) md.neckSegs[i].rotation.x=md.neckBase[i];
+    if(md.neckSegs&&md.neckBase){ const DP=[-.24,-.36,-.44,-.46,-.44,-.38];   // шея складывается вперёд-вниз
+      for(let i=0;i<md.neckSegs.length;i++) md.neckSegs[i].rotation.x=md.neckBase[i]+(DP[i]||0)*k; }
     md.head.rotation.x=0; md.head.rotation.y=0;
     for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
     for(const L of md.legs){
@@ -1699,7 +1731,7 @@ function animDino(e,md,dt){
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
   else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
   md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
-  md.head.rotation.x=lerp(md.head.rotation.x,-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
+  md.head.rotation.x=lerp(md.head.rotation.x,(md.headBaseX||0)-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
   // наклон в поворот
   const dy=wrapA(e.yaw-e.prevYaw); e.prevYaw=e.yaw;
   e.leanV=lerp(e.leanV,clamp(-dy/Math.max(dt,.001)*.05,-.22,.22),.18);
@@ -2759,7 +2791,7 @@ function updPlates(){
       pl.innerHTML='<div class="pn"></div><div class="phb"><div></div></div>';
       document.body.appendChild(pl); plates.set(e.id,pl);
     }
-    const v=_v5.set(e.pos.x,e.pos.y+3.1*e.def.scale,e.pos.z).project(camera);
+    const v=_v5.set(e.pos.x,e.pos.y+((e.mesh&&e.mesh.tagY)||3.1)*e.def.scale,e.pos.z).project(camera);
     if(v.z>1||e.pos.distanceTo(my.pos)>90){ pl.style.opacity=0; continue; }
     pl.style.opacity=1;
     pl.style.left=((v.x+1)/2*innerWidth)+'px';
