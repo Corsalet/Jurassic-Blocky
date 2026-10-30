@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurassic Blocky — блочный мир динозавров</title>
+<style>
+  /* ============ JURASSIC BLOCKY · блочный PvP-мир динозавров ============ */
+  :root{ --grn:#8ee05a; --grn-d:#3fae4a; --grn-ink:#1c4a1e; --amb:#ffd24a; --red:#ff5a4a;
+         --panel:rgba(9,20,12,.88); --line:rgba(142,224,90,.32); --ink:#e8f5d8; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0d1a10}
+  body{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;user-select:none;-webkit-user-select:none;cursor:crosshair;color:var(--ink)}
+  canvas{display:block}
+  /* ---------- меню ---------- */
+  .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}
+  .ov.hidden{display:none}
+  #menu-box{width:min(560px,94vw);background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:26px 30px 22px;box-shadow:0 18px 60px rgba(0,0,0,.6);text-align:center}
+  #jb-title{font-size:44px;font-weight:900;letter-spacing:2px;line-height:1;text-shadow:0 3px 0 #143a18,0 6px 18px rgba(0,0,0,.7)}
+  #jb-title .t1{color:var(--amb)} #jb-title .t2{color:var(--grn)}
+  #jb-sub{font-size:12px;letter-spacing:3px;color:rgba(232,245,216,.6);margin:8px 0 18px;text-transform:uppercase}
+  /* карточка динозавра */
+  #dino-card{border:2px solid var(--line);border-radius:12px;background:rgba(20,40,22,.5);padding:14px 16px;text-align:left;margin-bottom:16px}
+  #dc-name{font-size:20px;font-weight:900;color:var(--grn);letter-spacing:1px}
+  #dc-cost{float:right;font-size:13px;font-weight:800;color:var(--amb)}
+  #dc-desc{font-size:12.5px;color:rgba(232,245,216,.78);margin:5px 0 10px;line-height:1.45}
+  .stat-row{display:flex;align-items:center;gap:8px;font-size:11px;margin:4px 0}
+  .stat-row .sn{width:92px;letter-spacing:1px;color:rgba(232,245,216,.6);text-transform:uppercase;font-weight:700}
+  .stat-row .sb{flex:1;height:9px;border:1px solid var(--line);border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden}
+  .stat-row .sb>div{height:100%;border-radius:3px}
+  .stat-row .sv{width:56px;text-align:right;font-family:monospace;font-weight:700;font-size:11.5px}
+  /* кнопки */
+  .jb-btn{display:inline-block;font-family:inherit;font-size:19px;font-weight:900;letter-spacing:1px;color:#fff;cursor:pointer;
+    background:linear-gradient(#57c455,#2f9e3d);border:0;border-bottom:4px solid #1c6b28;border-radius:12px;padding:13px 46px;
+    text-shadow:0 2px 3px rgba(0,0,0,.45);transition:transform .08s,filter .15s}
+  .jb-btn:hover{filter:brightness(1.12)} .jb-btn:active{transform:translateY(2px);border-bottom-width:2px}
+  .jb-btn.gray{background:linear-gradient(#8a9a8a,#5d6f5e);border-bottom-color:#414f42;font-size:14px;padding:10px 24px}
+  #menu-tip{margin-top:14px;font-size:11.5px;color:rgba(232,245,216,.55);letter-spacing:.5px}
+  #net-status{font-size:11px;color:rgba(142,224,90,.75);margin-top:6px;font-family:monospace}
+  /* управление в меню */
+  #ctrl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 16px}
+  .ctrl{border:1px solid var(--line);border-radius:9px;padding:7px 4px;background:rgba(20,40,22,.45)}
+  .ctrl b{display:block;font-family:monospace;font-size:13px;color:var(--amb)}
+  .ctrl span{font-size:10px;color:rgba(232,245,216,.65);letter-spacing:.5px}
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .4s}
+  #hud.on{opacity:1}
+  #vitals{position:absolute;left:20px;bottom:20px;width:240px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+  .vrow{display:flex;align-items:center;gap:8px;margin:5px 0}
+  .vlab{font-size:9.5px;font-weight:900;letter-spacing:2px;width:34px;color:rgba(232,245,216,.6)}
+  .vbar{flex:1;height:12px;border:1px solid var(--line);border-radius:5px;background:rgba(0,0,0,.45);overflow:hidden}
+  .vbar>div{height:100%;width:100%;transition:width .12s linear}
+  #hp-fill{background:linear-gradient(90deg,#c8452f,#ff7a4a)}
+  #sta-fill{background:linear-gradient(90deg,#3fae4a,#a3e635)}
+  #hp-num,#sta-num{font-family:monospace;font-size:11px;width:44px;text-align:right;color:rgba(232,245,216,.85)}
+  #dino-tag{font-size:12px;font-weight:900;letter-spacing:1.5px;color:var(--grn);margin-bottom:2px;text-transform:uppercase}
+  /* способности */
+  #abilities{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:9px}
+  .ab{width:74px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:7px 4px;text-align:center;position:relative;overflow:hidden}
+  .ab b{display:block;font-family:monospace;font-size:13px;color:var(--amb)}
+  .ab span{font-size:9.5px;letter-spacing:.5px;color:rgba(232,245,216,.7);white-space:nowrap}
+  .ab .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);height:0%}
+  .ab.cool{filter:grayscale(.7) brightness(.75)}
+  /* монеты / инфо */
+  #coins{position:absolute;top:16px;right:18px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:8px 14px;font-weight:900;font-size:16px;color:var(--amb);letter-spacing:1px;font-family:monospace}
+  #coins small{display:block;font-size:9px;letter-spacing:2px;color:rgba(232,245,216,.55);font-weight:700}
+  #npc-info{position:absolute;top:16px;left:18px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:8px 14px;font-size:11px;font-family:monospace;color:rgba(232,245,216,.8);line-height:1.6}
+  /* цели npc — таблички */
+  .plate{position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,-100%);text-align:center;transition:opacity .3s}
+  .plate .pn{font-size:11px;font-weight:900;letter-spacing:1px;color:#ffe9c9;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.6);white-space:nowrap}
+  .plate .phb{width:64px;height:6px;border:1px solid rgba(255,120,90,.7);border-radius:3px;background:rgba(0,0,0,.55);margin:2px auto 0;overflow:hidden}
+  .plate .phb>div{height:100%;background:linear-gradient(90deg,#c8452f,#ff8a5a)}
+  /* всплывающий урон */
+  .dmg{position:fixed;z-index:6;pointer-events:none;font-family:monospace;font-weight:900;font-size:17px;color:#ffd24a;text-shadow:0 2px 4px #000;transform:translate(-50%,-50%)}
+  .dmg.heavy{color:#ff7a4a;font-size:21px}
+  /* хитмаркер */
+  #hitm{position:fixed;left:50%;top:46%;z-index:6;pointer-events:none;font:900 30px/1 'Trebuchet MS',Arial;color:#fff;opacity:0;
+    transform:translate(-50%,-50%) scale(.7);text-shadow:0 2px 6px #000;transition:opacity .12s,transform .12s}
+  #hitm.on{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+  #hitm.heavy{color:var(--amb)}
+  /* тосты */
+  #toasts{position:fixed;top:16%;left:50%;transform:translateX(-50%);z-index:7;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
+  .toast{font-size:15px;font-weight:800;color:#fffbe8;letter-spacing:.5px;white-space:nowrap;text-shadow:0 2px 5px #000;animation:tst 2.6s forwards}
+  .toast.coin{color:var(--amb)}
+  @keyframes tst{0%{opacity:0;transform:translateY(-10px)}12%{opacity:1;transform:none}78%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+  #err-net{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,14,9,.94);color:#ffb0a0;font-size:15px;letter-spacing:1px;text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<!-- ================= HUD ================= -->
+<div id="hud">
+  <div id="vitals">
+    <div id="dino-tag">ВЕЛОЦИРАПТОР</div>
+    <div class="vrow"><div class="vlab">HP</div><div class="vbar"><div id="hp-fill"></div></div><div id="hp-num">900</div></div>
+    <div class="vrow"><div class="vlab">СИЛЫ</div><div class="vbar"><div id="sta-fill"></div></div><div id="sta-num">70</div></div>
+  </div>
+  <div id="abilities">
+    <div class="ab" id="ab-bite"><b>ЛКМ</b><span>Укус ×3</span><div class="cd"></div></div>
+    <div class="ab" id="ab-heavy"><b>E</b><span>Тяжёлый</span><div class="cd"></div></div>
+    <div class="ab" id="ab-run"><b>SHIFT</b><span>Бег</span><div class="cd"></div></div>
+    <div class="ab" id="ab-jump"><b>SPACE</b><span>Прыжок</span><div class="cd"></div></div>
+  </div>
+  <div id="coins"><small>DINOCOINS</small><span id="coins-num">0</span></div>
+  <div id="npc-info">Динозавры в мире: <b id="npc-cnt">0</b><br>Серия укусов: <b id="combo-cnt">—</b></div>
+  <div id="toasts"></div>
+</div>
+<div id="hitm">✕</div>
+<!-- ================= МЕНЮ ================= -->
+<div id="ov-menu" class="ov">
+  <div id="menu-box">
+    <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
+    <div id="jb-sub">блочный мир динозавров · итерация 3: остров как в Jurassic Blocky</div>
+    <div id="dino-card">
+      <div id="dc-name">ВЕЛОЦИРАПТОР <span id="dc-cost">БЕСПЛАТНО</span></div>
+      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
+      <div class="stat-row"><div class="sn">Здоровье</div><div class="sb"><div style="width:64%;background:#ff7a4a"></div></div><div class="sv">900</div></div>
+      <div class="stat-row"><div class="sn">Силы</div><div class="sb"><div style="width:47%;background:#a3e635"></div></div><div class="sv">70</div></div>
+      <div class="stat-row"><div class="sn">Бег</div><div class="sb"><div style="width:56%;background:#5ad0ff"></div></div><div class="sv">50</div></div>
+      <div class="stat-row"><div class="sn">Укус</div><div class="sb"><div style="width:65%;background:#ffd24a"></div></div><div class="sv">65·50·100</div></div>
+      <div class="stat-row"><div class="sn">Тяжёлый</div><div class="sb"><div style="width:73%;background:#ff5a4a"></div></div><div class="sv">110</div></div>
+    </div>
+    <div id="ctrl-grid">
+      <div class="ctrl"><b>WASD</b><span>движение</span></div>
+      <div class="ctrl"><b>МЫШЬ</b><span>камера</span></div>
+      <div class="ctrl"><b>SHIFT</b><span>бег</span></div>
+      <div class="ctrl"><b>SPACE</b><span>прыжок</span></div>
+      <div class="ctrl"><b>ЛКМ</b><span>укус / серия</span></div>
+      <div class="ctrl"><b>E</b><span>тяжёлый</span></div>
+      <div class="ctrl"><b>КОЛЕСО</b><span>зум</span></div>
+      <div class="ctrl"><b>ESC</b><span>меню</span></div>
+    </div>
+    <button id="btn-play" class="jb-btn">ИГРАТЬ</button>
+    <div id="menu-tip">Мультиплеер 30 игроков, DinoCoins за PvP, скины и мировые боссы — в следующих итерациях</div>
+    <div id="net-status">одиночный режим · локальная симуляция</div>
+  </div>
+</div>
+<div id="err-net">Не загрузился Three.js с CDN — нужна сеть.<br>Обнови страницу при подключении к интернету.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>/* фолбэк: если CDN недоступен — локальная копия рядом с файлом (THREE в r128 — объект) */
+if(typeof THREE==='undefined') document.write('<script src="three.r128.min.js"><\/script>');
+</script>
+<script>
+(function(){
+'use strict';
+if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
+
+// ================= ХЕЛПЕРЫ =================
+const V3=(x,y,z)=>new THREE.Vector3(x||0,y||0,z||0);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smoothT=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+const wrapA=a=>{ while(a>Math.PI)a-=6.28318; while(a<-Math.PI)a+=6.28318; return a; };
+const $=id=>document.getElementById(id);
+// детерминированный ПСЧ (seed) — карта одинаковая при каждом запуске; сервер потом сгенерирует её по тому же seed
+function mulberry32(seed){ let a=seed>>>0; return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const SEED=20251124;
+const srng=mulberry32(SEED);
+const srand=(a,b)=>a+srng()*(b-a);
+const UP=V3(0,1,0);
+
+// ================= ДИНОЗАВРЫ (данные — будущий сервер отдаст этот же список) =================
+const DINOS=[
+  { id:'raptor', name:'Велоцираптор', cost:0, hp:900, sta:70, walk:5.6, run:14,
+    bite:[65,50,100], heavy:110, jumpV:8.5, scale:.95, turn:2.6,
+    pal:{body:0x8d99a6, belly:0xe7e0c9, dark:0x39434e, head:0x99a4ae, stripe:0x2c3540, eye:0xffc23d, claw:0x35302a, accent:0xd07a35},
+    desc:'Засадный хищник: комбо укусов и рывки.' },
+  { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
+    bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, npc:true,
+    pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
+    desc:'Дикий раптор джунглей.' }
+];
+const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
+
+// ================= СОСТОЯНИЕ (сущности — как на сервере: id, kind, hp, позиция) =================
+// Мультиплеер-задел: ENT — единый формат для локального игрока, NPC и будущих сетевых игроков.
+// Симуляция идёт фиксированным шагом SIM_DT; рендер читает то же состояние.
+const SIM_DT=1/30;
+const G={ state:'menu', myId:'p1', coins:0, t:0, comboIdx:0, comboT:0 };
+const ENT=[];
+function makeEnt(id,kind,dinoId,team){
+  const def=dinoDef(dinoId);
+  return { id, kind, team:team||'wild', dinoId, def,
+    pos:V3(), vel:V3(), yaw:0, pitch:0, speed:0, grounded:true, leanV:0, prevYaw:0,
+    hp:def.hp, hpMax:def.hp, sta:def.sta, staMax:def.sta, alive:true,
+    walkPhase:rand(0,6.28), attackT:0, heavyT:0, heavyCd:0, biteCd:0, stunT:0, deathT:0, respawnT:0,
+    flinchT:0, deathDir:1, growlCd:0, anim:null, landT:0,
+    moveMode:0, // 0 стоит · 1 идёт · 2 бежит
+    isLocal:false, name:'' };
+}
+const my=makeEnt(G.myId,'human','raptor','blue'); my.isLocal=true; my.name='Ты';
+ENT.push(my);
+
+// ================= СЦЕНА =================
+const scene=new THREE.Scene();
+const SKY=0x8ec8e8;
+scene.background=new THREE.Color(SKY);
+scene.fog=new THREE.Fog(SKY,180,720);
+const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,1600);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+
+// свет: тёплое утро в джунглях
+const hemi=new THREE.HemisphereLight(0xcfe8ff,0x3a5a2e,.85); scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff2d8,1.15);
+sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-90; sun.shadow.camera.right=90; sun.shadow.camera.top=90; sun.shadow.camera.bottom=-90;
+sun.shadow.camera.far=420; sun.shadow.bias=-0.0004;
+scene.add(sun); scene.add(sun.target);
+
+// ================= МИР v3: остров как в Jurassic Blocky =================
+// Гладкий low-poly рельеф (без майнкрафт-кубиков): лагерь с частоколом в центре,
+// озеро с пляжем и палмами на западе · меса с водопадом на СВ, из пруда река к озеру,
+// арена из гигантских костей на ЮВ · саванна и джунгли по шуму · грунтовые тропы.
+const MAP_R=460;              // радиус острова
+const WATER_Y=-2;
+// value-noise 2 октавы от seed
+const _perm=(()=>{ const p=new Uint8Array(512); const r=mulberry32(SEED^0x9e37); for(let i=0;i<256;i++)p[i]=i;
+  for(let i=255;i>0;i--){ const j=(r()*(i+1))|0; const t=p[i]; p[i]=p[j]; p[j]=t; } for(let i=0;i<256;i++)p[256+i]=p[i]; return p; })();
+function vhash(ix,iz){ return _perm[(_perm[ix&255]+iz)&255]/255; }
+function vnoise(x,z){ const ix=Math.floor(x), iz=Math.floor(z), fx=x-ix, fz=z-iz;
+  const u=fx*fx*(3-2*fx), v=fz*fz*(3-2*fz);
+  return lerp(lerp(vhash(ix,iz),vhash(ix+1,iz),u), lerp(vhash(ix,iz+1),vhash(ix+1,iz+1),u), v); }
+const bioAt=(x,z)=>vnoise(x*.008+200,z*.008+50); // 0 саванна · 1 джунгли
+// русло реки: полилиния от пруда под водопадом к озеру
+const RIVER=[[106,-96],[56,-64],[0,-36],[-58,-8],[-120,60]];
+// грунтовые тропы: лагерь → водопад / озеро / арена костей
+const PATHS=[
+  [[0,0],[78,-58]],
+  [[0,0],[-86,30]],
+  [[0,0],[50,74]]
+];
+function pathAt(x,z){
+  let best=1e9;
+  for(const path of PATHS) for(let i=0;i<path.length-1;i++){
+    const ax=path[i][0], az=path[i][1], bx=path[i+1][0], bz=path[i+1][1];
+    const dx=bx-ax, dz=bz-az, L2=dx*dx+dz*dz;
+    let t=L2?((x-ax)*dx+(z-az)*dz)/L2:0; t=clamp(t,0,1);
+    best=Math.min(best,Math.hypot(x-(ax+dx*t), z-(az+dz*t)));
+  }
+  return clamp(1-best/4.8,0,1);
+}
+function riverCarve(x,z){
+  let best=1e9, bt=0;
+  for(let i=0;i<RIVER.length-1;i++){
+    const ax=RIVER[i][0], az=RIVER[i][1], bx=RIVER[i+1][0], bz=RIVER[i+1][1];
+    const dx=bx-ax, dz=bz-az, L2=dx*dx+dz*dz;
+    let t=L2?((x-ax)*dx+(z-az)*dz)/L2:0; t=clamp(t,0,1);
+    const d=Math.hypot(x-(ax+dx*t), z-(az+dz*t));
+    if(d<best){ best=d; bt=(i+t)/(RIVER.length-1); }
+  }
+  const w=10; if(best>=w) return 0;
+  const k=1-best/w;
+  return smoothT(k)*lerp(5.2,7.5,bt); // глубже к озеру
+}
+function rawHeight(x,z){
+  const d=Math.sqrt(x*x+z*z);
+  let h=vnoise(x*.011+40,z*.011+40)*9+vnoise(x*.027+9,z*.027+9)*3.6-4.2;
+  const off=Math.max(0,(d-392)/68);                    // остров тонет в океане
+  h-=Math.pow(off,1.6)*17;
+  const lake=Math.max(0,1-Math.hypot(x+120,z-60)/95);  // озеро на западе
+  h-=lake*lake*9;
+  const mdist=Math.hypot(x-150,z+140);                 // меса на СВ: плоский верх и обрыв
+  const mesa=smoothT(clamp((58-mdist)/16,0,1));
+  h=lerp(h,13.5+vnoise(x*.05+7,z*.05+3)*2.5,mesa);
+  const pond=Math.max(0,1-Math.hypot(x-106,z+96)/30);  // пруд под водопадом
+  h-=pond*pond*10;
+  h-=riverCarve(x,z);
+  const clear=Math.max(0,1-d/70);                      // поляна лагеря
+  h=lerp(h,1.2,clear*.88);
+  const ar=Math.max(0,1-Math.hypot(x-60,z-95)/26);     // арена костей
+  h=lerp(h,2.0,ar*.92);
+  return h;
+}
+function terrainH(x,z){ return rawHeight(x,z); }       // гладкий рельеф, как в JB
+
+// земля: гладкий low-poly меш с раскраской по фасеткам (трава, земля, песок, скалы) — как в JB
+(function buildGround(){
+  const S=(MAP_R+70)*2, SEG=148;
+  let geo=new THREE.PlaneGeometry(S,S,SEG,SEG);
+  geo.rotateX(-Math.PI/2);
+  const p0=geo.attributes.position;
+  for(let i=0;i<p0.count;i++) p0.setY(i,rawHeight(p0.getX(i),p0.getZ(i)));
+  geo=geo.toNonIndexed();
+  geo.computeVertexNormals();
+  const pos=geo.attributes.position, nrm=geo.attributes.normal;
+  const colors=new Float32Array(pos.count*3), c=new THREE.Color(), c2=new THREE.Color();
+  for(let f=0;f<pos.count;f+=3){
+    const cx=(pos.getX(f)+pos.getX(f+1)+pos.getX(f+2))/3,
+          cy=(pos.getY(f)+pos.getY(f+1)+pos.getY(f+2))/3,
+          cz=(pos.getZ(f)+pos.getZ(f+1)+pos.getZ(f+2))/3;
+    const ny=(nrm.getY(f)+nrm.getY(f+1)+nrm.getY(f+2))/3;   // крутизна фасетки
+    const t=vnoise(cx*.05,cz*.05);
+    if(cy<WATER_Y-3) c.setHex(0x867a52).multiplyScalar(.85+t*.2);        // дно
+    else if(cy<WATER_Y+1.1) c.setHex(0xd9c47e).multiplyScalar(.86+t*.2); // песок пляжа/отмели
+    else if(ny<.6||cy>16.5) c.setHex(0x8d8a80).multiplyScalar(.85+t*.22);// скалы на обрывах
+    else{
+      c.setHex(0x55963c).multiplyScalar(.86+t*.24);
+      const dry=clamp((0.42-bioAt(cx,cz))/.32,0,1);
+      const jung=clamp((bioAt(cx,cz)-.58)/.32,0,1);
+      if(dry>0) c.lerp(c2.setHex(0xa89a4e),dry*.7);                      // саванна
+      if(jung>0) c.lerp(c2.setHex(0x2d6b27),jung*.62);                   // чаща
+      const dirt=clamp((vnoise(cx*.09+31,cz*.09+7)-.6)/.15,0,1);         // проплешины земли
+      if(dirt>0) c.lerp(c2.setHex(0x8a6b42),dirt*.8);
+    }
+    const pa=pathAt(cx,cz);
+    if(pa>0&&cy>WATER_Y+1.1) c.lerp(c2.setHex(0x96784a),pa*.82);         // тропы
+    const j=1+(((f*2654435761)>>>0)%1000-500)/500*.06;                   // лёгкая рябь фасеток
+    c.multiplyScalar(j);
+    for(let v=0;v<3;v++){ colors[(f+v)*3]=c.r; colors[(f+v)*3+1]=c.g; colors[(f+v)*3+2]=c.b; }
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  const mat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:0,specular:0x000000,flatShading:true});
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.receiveShadow=true;
+  scene.add(mesh);
+})();
+// вода: полупрозрачный океан (заливает озеро, реку, пруд и океан вокруг)
+(function buildWater(){
+  const g=new THREE.PlaneGeometry(MAP_R*2.7,MAP_R*2.7);
+  const m=new THREE.MeshPhongMaterial({color:0x3f9edb,shininess:70,specular:0x335577,transparent:true,opacity:.6});
+  const w=new THREE.Mesh(g,m); w.rotation.x=-Math.PI/2; w.position.y=WATER_Y+.4;
+  w.receiveShadow=false; scene.add(w);
+})();
+// водопад с месы: колонна + пена у подножия + падающие брызги (анимация в кадре)
+const foam=[];
+(function buildFalls(){
+  const wm=new THREE.MeshLambertMaterial({color:0xbfe6ff,transparent:true,opacity:.75});
+  const col=new THREE.Mesh(new THREE.BoxGeometry(6,17,2.6),wm);
+  col.position.set(115.4,5.8,-105.4); col.rotation.y=-Math.PI/4; scene.add(col);
+  const fm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.85});
+  const splash=new THREE.Mesh(new THREE.BoxGeometry(10,.9,6),fm);
+  splash.position.set(112,-1.5,-102); splash.rotation.y=-Math.PI/4; scene.add(splash);
+  for(let i=0;i<3;i++){
+    const b=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),fm);
+    b.position.set(115.4+rand(-1.5,1.5),0,-105.4+rand(-.8,.8));
+    scene.add(b); foam.push(b);
+  }
+})();
+// лагерь-спавн как в JB: частокол с воротами в стороны троп, палатки, ящики, костёр
+const flames=[];
+(function buildCamp(){
+  const wood=new THREE.MeshLambertMaterial({color:0x7a5230});
+  const woodD=new THREE.MeshLambertMaterial({color:0x5c3c20});
+  const cloth=new THREE.MeshLambertMaterial({color:0xd9cca6});
+  const stone=new THREE.MeshLambertMaterial({color:0x8d8a80});
+  const GATES=[-0.66,0.98,2.79], R=20;
+  for(let i=0;i<46;i++){                                   // столбы частокола
+    const a=i/46*6.283;
+    let gate=false; for(const gt of GATES) if(Math.abs(wrapA(a-gt))<.14) gate=true;
+    if(gate) continue;
+    const x=Math.cos(a)*R, z=Math.sin(a)*R, y=terrainH(x,z);
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.55,2.7,.55),wood);
+    post.position.set(x,y+1.25,z); post.rotation.y=a; post.castShadow=true; scene.add(post);
+    const tip=new THREE.Mesh(new THREE.BoxGeometry(.75,.4,.75),woodD);
+    tip.position.set(x,y+2.75,z); tip.rotation.y=a; scene.add(tip);
+  }
+  for(let i=0;i<46;i++){                                   // перекладины (в воротах — проём)
+    const a0=i/46*6.283, a1=(i+1)/46*6.283, am=(a0+a1)/2;
+    let gate=false; for(const gt of GATES) if(Math.abs(wrapA(am-gt))<.26) gate=true;
+    if(gate) continue;
+    const x0=Math.cos(a0)*R, z0=Math.sin(a0)*R, x1=Math.cos(a1)*R, z1=Math.sin(a1)*R;
+    const mx=(x0+x1)/2, mz=(z0+z1)/2, len=Math.hypot(x1-x0,z1-z0);
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(len,.3,.24),woodD);
+    rail.position.set(mx,terrainH(mx,mz)+1.9,mz);
+    rail.rotation.y=-Math.atan2(z1-z0,x1-x0); rail.castShadow=true; scene.add(rail);
+  }
+  function tent(x,z,ry){                                   // палатка из двух полотнищ
+    const gp=new THREE.Group(); gp.position.set(x,terrainH(x,z),z); gp.rotation.y=ry;
+    const s1=new THREE.Mesh(new THREE.BoxGeometry(3,.32,4.6),cloth); s1.position.set(-1.05,1.35,0); s1.rotation.z=.6;
+    const s2=new THREE.Mesh(new THREE.BoxGeometry(3,.32,4.6),cloth); s2.position.set(1.05,1.35,0); s2.rotation.z=-.6;
+    const back=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.4,.3),cloth); back.position.set(0,1,2.05); back.rotation.x=.5;
+    gp.add(s1); gp.add(s2); gp.add(back);
+    gp.traverse(o=>{ if(o.isMesh) o.castShadow=true; });
+    scene.add(gp);
+  }
+  tent(-7.5,5.5,.5); tent(8,6.5,-2.2);
+  const crate=(x,z,s,ry)=>{ const c2=new THREE.Mesh(new THREE.BoxGeometry(s,s,s),wood);
+    c2.position.set(x,terrainH(x,z)+s/2,z); c2.rotation.y=ry; c2.castShadow=true; scene.add(c2); };
+  crate(6.5,2.5,1.4,.4); crate(8,3.4,1.1,.9); crate(7.2,1.2,.9,.2);
+  const fx=-3, fz=-4, fy=terrainH(fx,fz);                  // костёр с каменным кольцом
+  for(let i=0;i<7;i++){ const a=i/7*6.283;
+    const st=new THREE.Mesh(new THREE.BoxGeometry(.5,.4,.5),stone);
+    st.position.set(fx+Math.cos(a)*1.5,fy+.2,fz+Math.sin(a)*1.5); st.rotation.y=a; scene.add(st); }
+  const l1=new THREE.Mesh(new THREE.BoxGeometry(.4,.4,2.2),woodD); l1.position.set(fx,fy+.3,fz); l1.rotation.y=.5; scene.add(l1);
+  const l2=l1.clone(); l2.rotation.y=-.6; scene.add(l2);
+  const fl1=new THREE.Mesh(new THREE.BoxGeometry(.9,1.4,.9),new THREE.MeshBasicMaterial({color:0xff8a2a}));
+  fl1.position.set(fx,fy+1.1,fz); scene.add(fl1);
+  const fl2=new THREE.Mesh(new THREE.BoxGeometry(.5,1,.5),new THREE.MeshBasicMaterial({color:0xffd24a}));
+  fl2.position.set(fx,fy+1.3,fz); scene.add(fl2);
+  flames.push(fl1,fl2);
+})();
+// джунгли: высокие деревья с двухъярусной кроной
+(function buildTrees(){
+  const spots=[];
+  for(let i=0;i<1500&&spots.length<230;i++){
+    const a=srng()*6.283, d=42+srng()*(MAP_R-70);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4||h>10) continue;
+    if(Math.hypot(x,z)<40) continue;                   // поляна лагеря
+    if(Math.hypot(x-60,z-95)<27) continue;             // арена
+    if(pathAt(x,z)>.3) continue;                       // не на тропе
+    if(bioAt(x,z)<.56) continue;                       // только чаща
+    let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<7.5&&Math.abs(s[1]-z)<7.5){ ok=false; break; }
+    if(ok) spots.push([x,z,h,srng()]);
+  }
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const trunkG=new THREE.BoxGeometry(1.4,6.4,1.4), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026});
+  const crownG=new THREE.BoxGeometry(4.8,2.9,4.8), crownM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
+  const crown=new THREE.InstancedMesh(crownG,crownM,spots.length*2);
+  trunk.castShadow=true; crown.castShadow=true;
+  let k2=0;
+  spots.forEach((s,i)=>{
+    const sc=.85+s[3]*.85, th=6.4*sc;
+    dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.setScalar(sc);
+    dummy.position.set(s[0],s[2]+th/2,s[1]); dummy.updateMatrix(); trunk.setMatrixAt(i,dummy.matrix);
+    dummy.scale.set(1,1,1);
+    dummy.position.set(s[0],s[2]+th+1.2,s[1]); dummy.updateMatrix(); crown.setMatrixAt(k2,dummy.matrix);
+    c.setHex(0x2f7a2e).multiplyScalar(.8+s[3]*.4); crown.setColorAt(k2++,c);
+    dummy.position.set(s[0]+srand(-1.4,1.4),s[2]+th+3.2,s[1]+srand(-1.4,1.4));
+    dummy.scale.setScalar(.72); dummy.updateMatrix(); crown.setMatrixAt(k2,dummy.matrix);
+    c.multiplyScalar(.88); crown.setColorAt(k2++,c);
+  });
+  crown.count=k2;
+  crown.instanceMatrix.needsUpdate=true;
+  if(crown.instanceColor) crown.instanceColor.needsUpdate=true;
+  scene.add(trunk); scene.add(crown);
+})();
+// саванна: акации с плоскими кронами
+(function buildAcacia(){
+  const spots=[];
+  for(let i=0;i<700&&spots.length<55;i++){
+    const a=srng()*6.283, d=55+srng()*(MAP_R-80);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4||h>9) continue;
+    if(Math.hypot(x,z)<45||Math.hypot(x-60,z-95)<27) continue;
+    if(pathAt(x,z)>.3) continue;
+    if(bioAt(x,z)>.4) continue;
+    let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<16&&Math.abs(s[1]-z)<16){ ok=false; break; }
+    if(ok) spots.push([x,z,h,srng()]);
+  }
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const trunkG=new THREE.BoxGeometry(1,5,1), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30});
+  const topG=new THREE.BoxGeometry(7,.9,7), topM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const t2G=new THREE.BoxGeometry(4.4,.8,4.4);
+  const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
+  const top=new THREE.InstancedMesh(topG,topM,spots.length);
+  const top2=new THREE.InstancedMesh(t2G,topM,spots.length);
+  trunk.castShadow=true; top.castShadow=true;
+  spots.forEach((s,i)=>{
+    const sc=.8+s[3]*.7;
+    dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.setScalar(sc);
+    dummy.position.set(s[0],s[2]+2.5*sc,s[1]); dummy.updateMatrix(); trunk.setMatrixAt(i,dummy.matrix);
+    dummy.scale.set(1,1,1);
+    dummy.position.set(s[0],s[2]+5.2*sc,s[1]); dummy.updateMatrix(); top.setMatrixAt(i,dummy.matrix);
+    c.setHex(0x6da344).multiplyScalar(.85+s[3]*.3); top.setColorAt(i,c);
+    dummy.position.set(s[0]+srand(-.6,.6),s[2]+6*sc,s[1]+srand(-.6,.6));
+    dummy.updateMatrix(); top2.setMatrixAt(i,dummy.matrix); top2.setColorAt(i,c);
+  });
+  top.instanceMatrix.needsUpdate=true; top2.instanceMatrix.needsUpdate=true;
+  if(top.instanceColor) top.instanceColor.needsUpdate=true;
+  if(top2.instanceColor) top2.instanceColor.needsUpdate=true;
+  scene.add(trunk); scene.add(top); scene.add(top2);
+})();
+// палмы на пляже у озера: наклонный ствол + веер листьев
+(function buildPalms(){
+  const spots=[];
+  for(let i=0;i<400&&spots.length<42;i++){
+    const a=srng()*6.283, d=32+srng()*60;
+    const x=-120+Math.cos(a)*d, z=60+Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+1.2||h>WATER_Y+3.6) continue;        // полоса пляжа
+    let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<6&&Math.abs(s[1]-z)<6){ ok=false; break; }
+    if(ok) spots.push([x,z,h,srng()]);
+  }
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const segG=new THREE.BoxGeometry(1.1,2.2,1.1), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a});
+  const leafG=new THREE.BoxGeometry(.9,.14,4.2), leafM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const seg=new THREE.InstancedMesh(segG,segM,spots.length*3);
+  const leaf=new THREE.InstancedMesh(leafG,leafM,spots.length*12);
+  seg.castShadow=true; leaf.castShadow=true;
+  let ks=0, kl=0;
+  spots.forEach((s)=>{
+    const lean=s[3]*6.28, lx=Math.cos(lean)*.55, lz=Math.sin(lean)*.55;
+    let px=s[0], py=s[2], pz=s[1];
+    for(let j=0;j<3;j++){
+      dummy.rotation.set(0,0,0); dummy.scale.setScalar(1-j*.14);
+      dummy.position.set(px+lx*j*.5,py+1.1,pz+lz*j*.5); dummy.updateMatrix();
+      seg.setMatrixAt(ks++,dummy.matrix);
+      py+=2.1-j*.25;
+    }
+    const topX=px+lx*1.1, topZ=pz+lz*1.1;
+    for(let j=0;j<6;j++){
+      const aa=j/6*6.283+s[3];
+      // верхний ярус листьев
+      dummy.position.set(topX+Math.cos(aa)*1.5,py+.75,topZ+Math.sin(aa)*1.5);
+      dummy.rotation.set(-.28,0,0); dummy.rotation.y=-aa+Math.PI/2; dummy.scale.set(1,1,1);
+      dummy.updateMatrix(); leaf.setMatrixAt(kl,dummy.matrix);
+      c.setHex(0x3f9c3a).multiplyScalar(.8+(j%3)*.12); leaf.setColorAt(kl++,c);
+      // нижний ярус — свисает
+      const ab=aa+.5;
+      dummy.position.set(topX+Math.cos(ab)*2.1,py+.05,topZ+Math.sin(ab)*2.1);
+      dummy.rotation.set(-.7,0,0); dummy.rotation.y=-ab+Math.PI/2; dummy.scale.set(.85,.85,.95);
+      dummy.updateMatrix(); leaf.setMatrixAt(kl,dummy.matrix);
+      c.multiplyScalar(.92); leaf.setColorAt(kl++,c);
+    }
+  });
+  seg.count=ks; leaf.count=kl;
+  seg.instanceMatrix.needsUpdate=true; leaf.instanceMatrix.needsUpdate=true;
+  if(leaf.instanceColor) leaf.instanceColor.needsUpdate=true;
+  scene.add(seg); scene.add(leaf);
+})();
+// папоротники (3 лопасти), кустики травы, цветы, кусты, брёвна
+(function buildFlora(){
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const put=(inst,k,x,y,z,rx,ry,rz,sx,sy,sz,col)=>{
+    dummy.position.set(x,y,z); dummy.rotation.set(rx,ry,rz); dummy.scale.set(sx,sy,sz);
+    dummy.updateMatrix(); inst.setMatrixAt(k,dummy.matrix);
+    if(col!==undefined){ c.setHex(col); inst.setColorAt(k,c); }
+  };
+  // папоротники в чаще
+  const ferns=[];
+  for(let i=0;i<900&&ferns.length<330;i++){
+    const a=srng()*6.283, d=35+srng()*(MAP_R-60);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4||h>10||Math.hypot(x,z)<34) continue;
+    if(pathAt(x,z)>.3) continue;
+    if(bioAt(x,z)<.5) continue;
+    ferns.push([x,z,h,srng()]);
+  }
+  const fG=new THREE.BoxGeometry(.16,.1,2.1), fM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const fern=new THREE.InstancedMesh(fG,fM,ferns.length*3);
+  let kf=0;
+  ferns.forEach(s=>{ for(let j=0;j<3;j++)
+    put(fern,kf++,s[0],s[2]+.45,s[1],-.55,j/3*6.283+s[3]*6,0,1,1,1,new THREE.Color().setHex(0x2f8f36).multiplyScalar(.8+s[3]*.4).getHex()); });
+  fern.count=kf; fern.instanceMatrix.needsUpdate=true;
+  if(fern.instanceColor) fern.instanceColor.needsUpdate=true;
+  scene.add(fern);
+  // трава на равнине/саванне
+  const gr=[];
+  for(let i=0;i<1200&&gr.length<650;i++){
+    const a=srng()*6.283, d=28+srng()*(MAP_R-50);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4||h>10.5) continue;
+    if(Math.hypot(x,z)<30||Math.hypot(x-60,z-95)<24) continue;
+    if(pathAt(x,z)>.25) continue;
+    gr.push([x,z,h,srng()]);
+  }
+  const gG=new THREE.BoxGeometry(.55,.6,.55), gM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const grass=new THREE.InstancedMesh(gG,gM,gr.length);
+  gr.forEach((s,i)=>put(grass,i,s[0],s[2]+.25,s[1],0,s[3]*6.28,0,1,.7+s[3]*.8,1,
+    new THREE.Color().setHex(s[3]>.55?0x8fae44:0x5fa040).multiplyScalar(.8+s[3]*.35).getHex()));
+  grass.count=gr.length; grass.instanceMatrix.needsUpdate=true;
+  if(grass.instanceColor) grass.instanceColor.needsUpdate=true;
+  scene.add(grass);
+  // цветы — акценты на равнине
+  const fl=[];
+  const FC=[0xe86a6a,0xf0d05a,0xdd8ae8,0xf0f0f0];
+  for(let i=0;i<500&&fl.length<190;i++){
+    const a=srng()*6.283, d=25+srng()*(MAP_R-60);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.6||h>9||bioAt(x,z)>.62) continue;
+    if(pathAt(x,z)>.25) continue;
+    fl.push([x,z,h,srng()]);
+  }
+  const cG=new THREE.BoxGeometry(.34,.34,.34), cM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const flow=new THREE.InstancedMesh(cG,cM,fl.length);
+  fl.forEach((s,i)=>put(flow,i,s[0],s[2]+.55,s[1],0,0,0,1,1,1,FC[(s[3]*4)|0]));
+  flow.count=fl.length; flow.instanceMatrix.needsUpdate=true;
+  if(flow.instanceColor) flow.instanceColor.needsUpdate=true;
+  scene.add(flow);
+  // кусты
+  const bu=[];
+  for(let i=0;i<400&&bu.length<120;i++){
+    const a=srng()*6.283, d=32+srng()*(MAP_R-55);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4||h>10||Math.hypot(x,z)<32) continue;
+    if(pathAt(x,z)>.3) continue;
+    bu.push([x,z,h,srng()]);
+  }
+  const bG=new THREE.BoxGeometry(1.8,1.4,1.8), bM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const bush=new THREE.InstancedMesh(bG,bM,bu.length*2);
+  bush.castShadow=true;
+  let kb=0;
+  bu.forEach(s=>{
+    put(bush,kb++,s[0],s[2]+.6,s[1],0,s[3]*6,0,1,1,1,new THREE.Color().setHex(0x3a8a34).multiplyScalar(.8+s[3]*.35).getHex());
+    put(bush,kb++,s[0]+srand(-.7,.7),s[2]+1.3,s[1]+srand(-.7,.7),0,s[3]*3,0,.65,.65,.65,new THREE.Color().setHex(0x47a03c).multiplyScalar(.85+s[3]*.3).getHex());
+  });
+  bush.count=kb; bush.instanceMatrix.needsUpdate=true;
+  if(bush.instanceColor) bush.instanceColor.needsUpdate=true;
+  scene.add(bush);
+  // поваленные брёвна
+  const lo=[];
+  for(let i=0;i<200&&lo.length<34;i++){
+    const a=srng()*6.283, d=40+srng()*(MAP_R-70);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.6||h>10) continue;
+    if(pathAt(x,z)>.3) continue;
+    lo.push([x,z,h,srng()]);
+  }
+  const lG=new THREE.BoxGeometry(1.1,1.1,1), lM=new THREE.MeshLambertMaterial({color:0x63452a});
+  const log=new THREE.InstancedMesh(lG,lM,lo.length);
+  log.castShadow=true;
+  lo.forEach((s,i)=>{
+    dummy.position.set(s[0],s[2]+.5,s[1]);
+    dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.set(1,1,4.5+s[3]*3);
+    dummy.updateMatrix(); log.setMatrixAt(i,dummy.matrix);
+  });
+  log.count=lo.length; log.instanceMatrix.needsUpdate=true;
+  scene.add(log);
+})();
+// валуны и скальные шпили
+(function buildRocks(){
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const g=new THREE.BoxGeometry(2.4,2.4,2.4), mm=new THREE.MeshLambertMaterial({color:0xffffff});
+  const rocks=[];
+  for(let i=0;i<160&&rocks.length<70;i++){
+    const a=srng()*6.283, d=38+srng()*(MAP_R-60);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+1) continue;
+    if(pathAt(x,z)>.5) continue;
+    rocks.push([x,z,h,srng()]);
+  }
+  const inst=new THREE.InstancedMesh(g,mm,rocks.length*2);
+  inst.castShadow=true; inst.receiveShadow=true;
+  const q=new THREE.Quaternion();
+  rocks.forEach((s,i)=>{
+    const sc=1+s[3]*2.2;
+    q.setFromAxisAngle(UP,s[3]*6.28);
+    dummy.position.set(s[0],s[2]+sc*.35,s[1]);
+    dummy.quaternion.copy(q); dummy.scale.set(sc,sc*.8,sc);
+    dummy.updateMatrix(); inst.setMatrixAt(i*2,dummy.matrix);
+    dummy.position.set(s[0]+sc*.9,s[2]+sc*.25,s[1]-sc*.6);
+    dummy.scale.set(sc*.7,sc*.55,sc*.7);
+    dummy.updateMatrix(); inst.setMatrixAt(i*2+1,dummy.matrix);
+    c.setHex(0x9a9a92).multiplyScalar(.78+s[3]*.4);
+    inst.setColorAt(i*2,c); inst.setColorAt(i*2+1,c);
+  });
+  inst.instanceMatrix.needsUpdate=true;
+  if(inst.instanceColor) inst.instanceColor.needsUpdate=true;
+  scene.add(inst);
+  // шпили: стопки сужающихся блоков, ориентиры
+  const sp=[];
+  for(let i=0;i<120&&sp.length<7;i++){
+    const a=srng()*6.283, d=90+srng()*(MAP_R-140);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.4) continue;
+    let ok=true; for(const s of sp) if(Math.hypot(s[0]-x,s[1]-z)<70){ ok=false; break; }
+    if(ok) sp.push([x,z,h,srng()]);
+  }
+  const sG=new THREE.BoxGeometry(1,1,1), sM=new THREE.MeshLambertMaterial({color:0xffffff});
+  const spire=new THREE.InstancedMesh(sG,sM,sp.length*6);
+  spire.castShadow=true;
+  let ksp=0;
+  sp.forEach(s=>{
+    const n=4+((s[3]*3)|0);
+    for(let j=0;j<n;j++){
+      const w=3.4-j*.5;
+      dummy.position.set(s[0]+srand(-.4,.4)*j,s[2]+1.6+j*2.3,s[1]+srand(-.4,.4)*j);
+      dummy.rotation.set(0,s[3]*6.28+j*.3,0); dummy.scale.set(w,2.4,w);
+      dummy.updateMatrix(); spire.setMatrixAt(ksp,dummy.matrix);
+      c.setHex(0x8d8f8a).multiplyScalar(.8+((j%3)*.09));
+      spire.setColorAt(ksp++,c);
+    }
+  });
+  spire.count=ksp; spire.instanceMatrix.needsUpdate=true;
+  if(spire.instanceColor) spire.instanceColor.needsUpdate=true;
+  scene.add(spire);
+})();
+// арена из гигантских костей на ЮВ: арка рёбер + череп-врата + кости
+(function buildBones(){
+  const cx=60, cz=95;
+  const boneM=new THREE.MeshLambertMaterial({color:0xe8e1ca});
+  const darkM=new THREE.MeshLambertMaterial({color:0x2a2318});
+  const mk=(w,h,d,x,y,z,rx,ry,rz,parent)=>{
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),boneM);
+    b.position.set(x,y,z); b.rotation.set(rx||0,ry||0,rz||0); b.castShadow=true; b.receiveShadow=true;
+    (parent||scene).add(b); return b;
+  };
+  for(let i=0;i<8;i++){ // пары рёбер, сходятся к центру — арка
+    const a=i/8*6.283, rx=cx+Math.cos(a)*17, rz=cz+Math.sin(a)*17;
+    const rib=new THREE.Group(); rib.position.set(rx,terrainH(rx,rz),rz);
+    rib.rotation.y=Math.PI-a; scene.add(rib);
+    mk(.9,6.8,.9,0,3.2,0,0,0,.4,rib);
+    mk(.85,5.4,.85,1.9,6.4,0,0,0,.85,rib);
+    mk(.8,3.6,.8,3.6,8.4,0,0,0,1.25,rib);
+    mk(.9,6.8,.9,0,3.2,2.4,0,0,.4,rib);
+    mk(.85,5.4,.85,1.9,6.4,2.4,0,0,.85,rib);
+    mk(.8,3.6,.8,3.6,8.4,2.4,0,0,1.25,rib);
+  }
+  // череп-врата со стороны лагеря (морда смотрит на центр мира)
+  const vx=-cx, vz=-cz, vl=Math.hypot(vx,vz);
+  const gx=cx+vx/vl*19.5, gz=cz+vz/vl*19.5;
+  const skull=new THREE.Group(); skull.position.set(gx,terrainH(gx,gz),gz);
+  skull.rotation.y=Math.atan2(vx,vz); scene.add(skull);
+  mk(3.8,3.2,3.2,0,2.4,0,0,0,0,skull);            // черепная коробка
+  mk(2.3,1.7,2.4,0,1.2,2.6,0,0,0,skull);          // морда (к центру арены)
+  const e1=mk(.8,.9,.3,-.95,2.5,1.62,0,0,0,skull); e1.material=darkM;
+  const e2=mk(.8,.9,.3,.95,2.5,1.62,0,0,0,skull); e2.material=darkM;
+  mk(.5,.5,.3,0,1.9,3.75,0,0,0,skull).material=darkM; // ноздря
+  mk(.5,1.9,.6,-1.35,1.3,3.1,0,0,.25,skull);      // клыки
+  mk(.5,1.9,.6,1.35,1.3,3.1,0,0,-.25,skull);
+  // россыпь костей
+  for(let i=0;i<10;i++){
+    const a=srng()*6.283, d=srand(6,20);
+    const bx=cx+Math.cos(a)*d, bz=cz+Math.sin(a)*d;
+    mk(srand(1,2),.5,srand(1.2,2.4),bx,terrainH(bx,bz)+.25,bz,0,srng()*6.28,srand(-.15,.15));
+  }
+})();
+// облака — плывут всегда (и в меню)
+const clouds=[];
+(function buildClouds(){
+  const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x88929f,emissiveIntensity:.4});
+  for(let i=0;i<12;i++){
+    const g=new THREE.Group(); const n=3+((srng()*3)|0);
+    for(let j=0;j<n;j++){
+      const b=new THREE.Mesh(new THREE.BoxGeometry(srand(7,15),srand(1.8,3),srand(4,9)),m);
+      b.position.set(srand(-6,6),srand(-1,1),srand(-3,3)); g.add(b);
+    }
+    g.position.set(srand(-MAP_R,MAP_R),srand(58,92),srand(-MAP_R,MAP_R));
+    scene.add(g); clouds.push({g,sp:srand(1.2,3)});
+  }
+})();
+// птерозавры кружат над островом
+const birds=[];
+(function buildBirds(){
+  const bm=new THREE.MeshLambertMaterial({color:0x8a8f96});
+  const bm2=new THREE.MeshLambertMaterial({color:0xb23a2e});
+  for(let i=0;i<5;i++){
+    const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.55,.45,1.9),bm); g.add(body);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(.34,.34,.9),bm); head.position.set(0,.12,1.25); g.add(head);
+    const beak=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,.55),bm2); beak.position.set(0,.06,1.85); g.add(beak);
+    const crest=new THREE.Mesh(new THREE.BoxGeometry(.1,.32,.5),bm2); crest.position.set(0,.34,1.05); g.add(crest);
+    const wl=new THREE.Group(), wr=new THREE.Group();
+    wl.position.set(.25,.1,.2); wr.position.set(-.25,.1,.2);
+    const wlm=new THREE.Mesh(new THREE.BoxGeometry(2.7,.09,1.15),bm); wlm.position.x=1.35; wl.add(wlm);
+    const wrm=new THREE.Mesh(new THREE.BoxGeometry(2.7,.09,1.15),bm); wrm.position.x=-1.35; wr.add(wrm);
+    g.add(wl); g.add(wr);
+    scene.add(g);
+    birds.push({g,wl,wr,cx:srand(-220,220),cz:srand(-220,220),r:srand(40,85),h:srand(30,52),
+      sp:srand(.1,.2)*(srng()<.5?1:-1),ph:srng()*6.28});
+  }
+})();
+
+// ================= МОДЕЛЬ ДИНОЗАВРА v3: велоцираптор в стиле Jurassic Blocky =================
+// Горизонтальная посадка, зубчатый гребень на спине, крупная голова с зигзагом зубов,
+// мощные бёдра, полосатые бока и маленькие прижатые руки. Одна сборка — для игрока,
+// NPC и будущих сетевых игроков. Материалы кэшируются по цвету внутри одной сборки.
+function buildDino(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.74; g.add(hips);
+  // корпус: зад шире, грудь уже, живот светлый — спина почти горизонтальна
+  const rump=box(1.06,.92,1.5,P.body); rump.position.set(0,.08,.42); hips.add(rump);
+  const mid=box(.94,.84,1.35,P.body); mid.position.set(0,.03,-.66); hips.add(mid);
+  const chest=box(.78,.72,1.15,P.body); chest.position.set(0,-.03,-1.78); hips.add(chest);
+  const belly=box(.9,.4,2.8,P.belly); belly.position.set(0,-.38,-.6); hips.add(belly);
+  // зубчатый гребень из пластин вдоль спины — фирменный силуэт JB
+  for(let i=0;i<6;i++){
+    const pl=box(.36,.16,.4,P.stripe);
+    pl.position.set(0,.56-i*.035,.72-i*.6); pl.rotation.x=.2; hips.add(pl);
+  }
+  // полосы на боках
+  for(const s of [-1,1]) for(let i=0;i<3;i++){
+    const st=box(.1,.52,.3,P.stripe); st.position.set(s*.45,.1,.6-i*.82); hips.add(st);
+  }
+  // маленькие прижатые руки с двумя когтями
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.44,-.08,-1.58); hips.add(arm);
+    const up=box(.16,.46,.18,P.body); up.position.y=-.18; up.rotation.x=-.7; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.38,-.06); arm.add(fore);
+    const fm=box(.13,.4,.15,P.dark); fm.position.set(0,-.14,.12); fm.rotation.x=-.55; fore.add(fm);
+    for(let c2=0;c2<2;c2++){ const cl=box(.06,.16,.06,P.claw); cl.position.set(c2?-.05:.05,-.34,.2); fore.add(cl); }
+    arms.push(arm);
+  }
+  // шея (лёгкий S-изгиб) и крупная голова хищника
+  const neck=new THREE.Group(); neck.position.set(0,.36,-2.18); hips.add(neck);
+  const neckM=box(.6,.54,.95,P.body); neckM.rotation.x=.35; neckM.position.set(0,.14,-.34); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.42,-.78); neck.add(head);
+  const skull=box(.6,.48,.8,P.head); skull.position.set(0,.04,-.18); head.add(skull);
+  const brow=box(.64,.14,.32,P.dark); brow.position.set(0,.3,-.44); head.add(brow);
+  const snout=box(.5,.36,.74,P.head); snout.position.set(0,-.02,-.84); head.add(snout);
+  const nose=box(.38,.26,.44,P.head); nose.position.set(0,0,-1.36); head.add(nose);
+  const bump=box(.18,.12,.22,P.dark); bump.position.set(0,.16,-1.46); head.add(bump);
+  const lip=box(.42,.1,1.0,P.dark); lip.position.set(0,-.18,-1.0); head.add(lip);
+  // оранжевые метки над глазами + зигзаг зубов верхней челюсти
+  for(const s of [-1,1]){
+    const mk=box(.08,.14,.44,AC); mk.position.set(s*.26,.14,-.8); head.add(mk);
+    for(let i=0;i<6;i++){
+      const t=box(.05,.13,.06,P.claw); t.position.set(s*.2,-.24,-.6-i*.15); head.add(t);
+    }
+  }
+  // нижняя челюсть (pivot укуса) с зубами
+  const jaw=new THREE.Group(); jaw.position.set(0,-.2,-.28); head.add(jaw);
+  const jawM=box(.42,.14,1.2,P.dark); jawM.position.set(0,-.06,-.56); jaw.add(jawM);
+  const jawTip=box(.34,.12,.3,P.dark); jawTip.position.set(0,-.05,-1.24); jaw.add(jawTip);
+  for(const s of [-1,1]) for(let i=0;i<4;i++){
+    const t=box(.05,.11,.06,P.claw); t.position.set(s*.16,.04,-.4-i*.15); jaw.add(t);
+  }
+  // глаза
+  for(const s of [-1,1]){
+    const ew=box(.12,.14,.12,0xf5f2e0); ew.position.set(s*.31,.18,-.4); head.add(ew);
+    const ep=box(.06,.1,.07,P.eye); ep.position.set(s*.35,.17,-.42); head.add(ep);
+  }
+  // хохолок из трёх перьев
+  for(let i=0;i<3;i++){
+    const cr=box(.08,.36,.12,P.stripe); cr.position.set(0,.44,-.02-i*.12); cr.rotation.x=-.5-i*.2; head.add(cr);
+  }
+  // хвост: 6 сегментов, сужается, тёмные кольца
+  const tail=[]; let prev=hips;
+  const tw=[.78,.6,.46,.34,.24,.16];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?0.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.12,tw[i]-.16),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i===1||i===3){ const ring=box(tw[i]+.05,.13,.97,P.stripe); ring.position.set(0,.02,.48); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  // ноги: мощное бедро с коленом, голень, ступня с тремя когтями и серповидным
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.5,-.02,.4); hips.add(hip);
+    const thigh=box(.54,1.0,.74,P.body); thigh.position.set(0,-.46,.06); hip.add(thigh);
+    const knee=box(.42,.5,.52,P.body); knee.position.set(0,-.9,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.9,-.04); hip.add(shin);
+    const shinM=box(.3,.8,.38,P.dark); shinM.position.set(0,-.32,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.68,-.06); shin.add(foot);
+    const footM=box(.42,.16,.88,P.body); footM.position.set(0,-.06,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.1,.1,.32,P.claw); cl.position.set((t-1)*.14,-.11,-.72); foot.add(cl); }
+    const sic=box(.08,.2,.24,P.claw); sic.position.set(s*.24,.08,-.44); sic.rotation.x=.7; foot.add(sic);
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.18, hipsY:1.74, legReach:1.74 };
+}
+
+// ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
+function flash(e,md,dt){
+  if(e.flinchT>0){ e.flinchT-=dt;
+    const k=clamp(e.flinchT/.18,0,1);
+    for(const m of md.mats) m.emissive.setRGB(.55*k,.04*k,.04*k);
+  } else for(const m of md.mats) if(m.emissive.r) m.emissive.setRGB(0,0,0);
+}
+function animDino(e,md,dt){
+  md.g.position.copy(e.pos);
+  // ---- смерть: падение набок, расслабленная поза ----
+  if(!e.alive){
+    e.deathT+=dt;
+    const k=smoothT(clamp(e.deathT/.55,0,1));
+    md.g.rotation.set(0,e.yaw,e.deathDir*1.52*k);
+    md.hips.position.y=lerp(md.hipsY,.55,k);
+    md.hips.rotation.x=.12*k;
+    md.jaw.rotation.x=.45*k;
+    md.neck.rotation.x=.3*k; md.neck.position.z=md.neckZ;
+    md.head.rotation.x=0; md.head.rotation.y=0;
+    for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
+    for(let i=0;i<2;i++){ const L=md.legs[i];
+      L.hip.rotation.x=.3*k; L.shin.rotation.x=.25; L.foot.rotation.x=-.3*k; }
+    for(const a of md.arms) a.rotation.x=0;
+    md.g.visible=e.kind==='npc'?e.deathT<3.4:true;
+    flash(e,md,dt);
+    return;
+  }
+  md.g.visible=true;
+  const run=e.moveMode===2, walk=e.moveMode===1, moving=!!e.moveMode;
+  const a=e.anim||(e.anim={lkT:0,lkY:0,lkP:0,legA:0});
+  // ---- фаза шага привязана к пройденному пути — лапы не скользят ----
+  const sc=md.g.scale.x;
+  const spdM=e.speed/sc;                          // скорость в единицах модели
+  const stride=(run?3.1:1.7)*md.legReach/1.74;    // длина шага
+  if(spdM>.05) e.walkPhase+=Math.PI*spdM/stride*dt;
+  const p=e.walkPhase;
+  // амплитуда бедра — из длины шага и длины ноги (плавный разгон/торможение)
+  const targetA=moving?Math.asin(clamp(stride/(2*md.legReach),0,.95)):.04;
+  a.legA=lerp(a.legA,targetA,.16);
+  const A=a.legA;
+  // ---- ноги: мах (колено поднимает лапу) и опора (лапа под телом) ----
+  for(let i=0;i<2;i++){
+    const L=md.legs[i], ph=p+i*Math.PI;
+    const swing=Math.max(0,Math.cos(ph));         // лапа переносится вперёд
+    const stance=Math.max(0,-Math.cos(ph));       // лапа на земле
+    L.hip.rotation.x=Math.sin(ph)*A-(run?.14:walk?.05:0);
+    L.shin.rotation.x=Math.min(1.3,swing*swing*A*1.6)+.12+stance*.05;
+    L.foot.rotation.x=-(L.hip.rotation.x+L.shin.rotation.x)*.5-stance*.3+.06;
+  }
+  if(!e.grounded){ // в прыжке поджимаем лапы
+    for(let i=0;i<2;i++){ const L=md.legs[i];
+      L.hip.rotation.x=lerp(L.hip.rotation.x,-.55,.4);
+      L.shin.rotation.x=lerp(L.shin.rotation.x,1.15,.4);
+      L.foot.rotation.x=lerp(L.foot.rotation.x,.45,.4); }
+  }
+  // ---- корпус: вертикальный вычислитель ----
+  const bob=moving?(.5-.5*Math.cos(2*p))*(run?.26:.09):Math.sin(ambT*1.7)*.035;
+  let hipsY=md.hipsY+bob;
+  let hrx=run?.3:walk?.1:.02;                     // наклон: на бегу тело стелется вперёд
+  let jawX=null, neckRx=(run?-.3:walk?-.08:.04)+Math.sin(ambT*1.1)*.02,
+      reach=run?.2:0, armX=null;
+  if(e.landT>0){ // приземление: приседает, гасит удар
+    e.landT=Math.max(0,e.landT-dt);
+    const k=e.landT/.22;
+    hipsY-=k*.34; hrx+=k*.18;
+    for(let i=0;i<2;i++){ const L=md.legs[i]; L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
+  }
+  if(e.heavyT>0){
+    const he=.55-e.heavyT;
+    if(he<.38){ const w=smoothT(he/.38);
+      hrx=lerp(hrx,-.58,w); jawX=.75*w; armX=-1.1*w;
+    } else { const s2=smoothT(clamp((he-.38)/.14,0,1));
+      hrx=lerp(-.58,.2,s2); jawX=lerp(.75,-.12,s2); armX=lerp(-1.1,.3,s2); }
+  } else if(e.attackT>0){
+    // укус: пасть раскрывается и щёлкает, шея тянется вперёд
+    const et=.32-e.attackT;
+    const biteK=Math.sin(clamp(et/.32,0,1)*Math.PI);
+    if(et<.09) jawX=lerp(0,.88,et/.09);
+    else if(et<.16) jawX=lerp(.88,-.14,(et-.09)/.07);
+    else jawX=lerp(-.14,0,clamp((et-.16)/.16,0,1));
+    reach+=biteK*.3;
+    neckRx=Math.min(neckRx,-.2)-biteK*.45;
+  } else jawX=lerp(md.jaw.rotation.x,0,.25);
+  md.hips.position.y=hipsY;
+  md.hips.rotation.x=lerp(md.hips.rotation.x,hrx,.18);
+  md.jaw.rotation.x=jawX;
+  md.neck.position.z=md.neckZ-reach;
+  md.neck.rotation.x=lerp(md.neck.rotation.x,neckRx,.25);
+  if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
+  for(const a2 of md.arms) a2.rotation.x=lerp(a2.rotation.x,armX,.2);
+  // ---- хвост: баланс на шагу, поток на бегу, дрейф в прыжке ----
+  const twA=run?.12:walk?.22:.12;
+  for(let i=0;i<md.tail.length;i++){
+    md.tail[i].rotation.y=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
+    md.tail[i].rotation.x=Math.sin(p-i*.5+1.1)*(run?.05:.03)
+      +(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
+  }
+  // ---- голова: стабилизация + живой взгляд по сторонам, когда стоишь ----
+  if(!moving){ a.lkT-=dt;
+    if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
+  else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
+  md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
+  md.head.rotation.x=lerp(md.head.rotation.x,-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
+  // наклон в поворот
+  const dy=wrapA(e.yaw-e.prevYaw); e.prevYaw=e.yaw;
+  e.leanV=lerp(e.leanV,clamp(-dy/Math.max(dt,.001)*.05,-.22,.22),.18);
+  md.g.rotation.set(0,e.yaw,e.leanV);
+  flash(e,md,dt);
+}
+
+// ================= РАССТАНОВКА =================
+function placeOnGround(e,x,z){ e.pos.set(x,terrainH(x,z),z); }
+const spawnSpot=()=>[rand(9,15),rand(-14,-6)];            // внутри частокола, у ворот
+(function(){ const [sx,sz]=spawnSpot(); placeOnGround(my,sx,sz); })();
+my.yaw=Math.atan2(12,-10); my.prevYaw=my.yaw;             // лицом к костру и центру лагеря
+for(let i=0;i<5;i++){
+  const n=makeEnt('n'+(i+1),'npc','raptorJungle','wild');
+  n.name='Стадный раптор '+(i+1);
+  const a=srng()*6.283, d=srand(70,180);
+  placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
+  n.yaw=srng()*6.283; n.prevYaw=n.yaw; n.home=V3(n.pos.x,0,n.pos.z); n.wanderT=0; n.wp=null;
+  n.mesh=buildDino(n.def); scene.add(n.mesh.g);
+  ENT.push(n);
+}
+const myMesh=buildDino(my.def); scene.add(myMesh.g);
+
+// ================= СЕТЬ (заглушка под мультиплеер) =================
+// TODO(итерация «мультиплеер»): сюда встаёт socket.io + снапшоты, как в Wings of Glory.
+// Клиент шлёт ИНТЕНТЫ (bite/heavy/move-state), сервер применяет applyDamage и раздаёт снапшоты.
+const NET={
+  inRoom:false, sock:null,
+  intents:{ bite:null, heavy:null, move:null }, // очередь на отправку
+  connect(){ /* socket.io появится здесь */ },
+  emitIntent(type,payload){ /* NET.sock.emit('i',{t:type,...payload}) */ }
+};
+
+// ================= ЗВУК (WebAudio-синтез, без файлов) =================
+const SFX={
+  ctx:null, bad:false,
+  init(){ if(this.ctx||this.bad) return;
+    try{ const AC=window.AudioContext||window.webkitAudioContext; this.ctx=AC?new AC():null; }
+    catch(e){ this.bad=true; } },
+  resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
+  tone(type,f0,f1,dur,vol,delay){
+    if(!this.ctx) return;
+    const t=this.ctx.currentTime+(delay||0);
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type; o.frequency.setValueAtTime(Math.max(1,f0),t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t+dur+.02);
+  },
+  noise(dur,vol,delay,fc){
+    if(!this.ctx) return;
+    const t=this.ctx.currentTime+(delay||0);
+    const len=Math.max(1,(this.ctx.sampleRate*dur)|0);
+    const buf=this.ctx.createBuffer(1,len,this.ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+    const n=this.ctx.createBufferSource(); n.buffer=buf;
+    const f=this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=fc||900;
+    const g=this.ctx.createGain(); g.gain.value=vol;
+    n.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    n.start(t);
+  },
+  bite(){ this.noise(.09,.22,0,2400); this.tone('square',160,70,.08,.1); },
+  hit(){ this.tone('triangle',140,45,.14,.35); this.noise(.07,.28,0,700); },
+  heavy(){ this.tone('sine',75,28,.4,.5); this.noise(.25,.35,0,300); },
+  die(){ this.tone('sawtooth',260,50,.5,.2); },
+  growl(){ this.tone('sawtooth',85,60,.35,.16); this.tone('sawtooth',60,45,.4,.13,.05); },
+  jump(){ this.tone('sine',240,420,.12,.08); },
+  hurt(){ this.tone('square',90,60,.15,.25); }
+};
+addEventListener('pointerdown',()=>{ SFX.init(); SFX.resume(); });
+
+// ================= ЭФФЕКТЫ: частицы, хитмаркер =================
+const PARTS=[];
+(function initParts(){
+  const geo=new THREE.BoxGeometry(.24,.24,.24);
+  for(let i=0;i<40;i++){
+    const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xffffff}));
+    m.visible=false; scene.add(m);
+    PARTS.push({m,v:V3(),life:0,max:1});
+  }
+})();
+function burst(pos,color,n,pow){
+  let c=0;
+  for(const p of PARTS){
+    if(p.life>0) continue;
+    p.life=p.max=rand(.35,.7);
+    p.m.visible=true;
+    p.m.material.color.setHex(color);
+    p.m.position.set(pos.x+rand(-.4,.4),pos.y+rand(.2,1.4),pos.z+rand(-.4,.4));
+    p.v.set(rand(-1,1),rand(.5,1.5),rand(-1,1)).multiplyScalar(pow);
+    if(++c>=n) break;
+  }
+}
+function updParts(dt){
+  for(const p of PARTS){
+    if(p.life<=0) continue;
+    p.life-=dt;
+    if(p.life<=0){ p.m.visible=false; continue; }
+    p.v.y-=22*dt;
+    p.m.position.addScaledVector(p.v,dt);
+    p.m.scale.setScalar(.4+clamp(p.life/p.max,0,1));
+  }
+}
+function hitmark(heavy){
+  const el=$('hitm');
+  el.className='on'+(heavy?' heavy':'');
+  clearTimeout(hitmark.t);
+  hitmark.t=setTimeout(()=>{ el.className=heavy?'heavy':''; },160);
+}
+
+// ================= ВВОД =================
+// Укус больше НЕ зависит от захвата мыши: ЛКМ всегда бьёт (в iframe без pointer-lock тоже).
+// Если захват недоступен — камера следует за курсором (фолбэк).
+const keys={};
+let mouseDown=false, camYaw=Math.PI*.25, camPitch=.34, camDist=11, locked=false, plFailed=false;
+function plFail(){
+  if(plFailed) return;
+  plFailed=true;
+  toast('Захват мыши недоступен — камера следует за курсором','coin');
+}
+function tryLock(){
+  if(plFailed) return;
+  try{
+    const r=renderer.domElement.requestPointerLock();
+    if(r&&r.catch) r.catch(plFail);
+  }catch(e){ plFail(); }
+}
+document.addEventListener('pointerlockerror',plFail);
+document.addEventListener('pointerlockchange',()=>{
+  locked=document.pointerLockElement===renderer.domElement;
+  if(!locked&&G.state==='play'&&!plFailed) toMenu(); // Esc при захвате = выход в меню
+});
+addEventListener('keydown',e=>{
+  if(e.repeat) return;
+  keys[e.code]=true;
+  if(G.state!=='play') return;
+  if(e.code==='KeyE') tryHeavy();
+  if(e.code==='KeyP'||(e.code==='Escape'&&plFailed)) toMenu();
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+addEventListener('mousedown',e=>{
+  if(e.button!==0) return;
+  SFX.init(); SFX.resume();
+  if(G.state==='play'){
+    mouseDown=true;
+    tryBite();                    // бьём сразу — даже если клик ушёл на захват мыши
+    if(!locked&&!plFailed) tryLock();
+  }
+});
+addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
+addEventListener('mousemove',e=>{
+  if(G.state!=='play') return;
+  if(locked||plFailed){
+    const k=locked?1:.85;
+    camYaw-=e.movementX*.0026*k;
+    camPitch=clamp(camPitch+e.movementY*.0022*k,-.35,1.15);
+  }
+});
+addEventListener('wheel',e=>{ camDist=clamp(camDist+e.deltaY*.01,5.5,24); },{passive:true});
+addEventListener('contextmenu',e=>e.preventDefault());
+
+// ================= БОЙ: воронка урона (на сервере будет только она) =================
+function applyDamage(target,dmg,src,heavy){
+  if(!target.alive||G.state!=='play') return;
+  target.hp-=dmg;
+  target.flinchT=.18;
+  spawnDmgNum(target,dmg,heavy);
+  burst(target.pos,0xc22f22,heavy?12:7,heavy?9:6);
+  if(target.isLocal){ shake=Math.max(shake,heavy?.6:.32); SFX.hurt(); }
+  else if(src&&src.isLocal){ hitmark(heavy); SFX.hit(); }
+  if(target.hp<=0){
+    target.alive=false; target.hp=0; target.deathT=0;
+    target.deathDir=Math.random()<.5?1:-1;
+    target.moveMode=0; target.speed=0;
+    burst(target.pos,0xc22f22,14,8);
+    SFX.die();
+    if(src&&src.isLocal){ addCoins(15); toast('+'+15+' DinoCoins — '+target.name+' повержен','coin'); }
+    if(target.kind==='npc') target.respawnT=15;
+    if(target.isLocal) setTimeout(()=>{ if(G.state==='play') toast('Ты повержен... возрождение в лагере','coin'); },400);
+  }
+}
+const _f=V3();
+function fwdOf(e){ return _f.set(-Math.sin(e.yaw),0,-Math.cos(e.yaw)); }
+function tryBite(){
+  const e=my;
+  if(!e.alive||e.biteCd>0||e.stunT>0||e.sta<5) return;
+  G.comboT>0? G.comboIdx=(G.comboIdx+1)%3 : G.comboIdx=0;
+  G.comboT=1.15;
+  e.attackT=.32; e.biteCd=.45; e.sta-=5;
+  e.pos.addScaledVector(fwdOf(e),.9);            // рывок-выпад
+  edgePush(e);
+  NET.emitIntent('bite',{tid:null}); // TODO: tid выберет сервер по попаданию
+  meleeHit(e,e.def.bite[G.comboIdx],6.2,.38,false);
+  SFX.bite();
+  updComboHud();
+}
+function tryHeavy(){
+  const e=my;
+  if(!e.alive||e.heavyCd>0||e.stunT>0||e.sta<22) return;
+  e.heavyT=.55; e.heavyCd=6; e.sta-=22;
+  NET.emitIntent('heavy',{});
+  SFX.growl();
+  setTimeout(()=>{ // замах 0.55 c — удар после
+    if(!e.alive) return;
+    meleeHit(e,e.def.heavy,7.2,.3,true);
+    for(const t of ENT){
+      if(t===e||!t.alive) continue;
+      const d=t.pos.distanceTo(e.pos);
+      if(d<8){
+        const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+        t.vel.addScaledVector(dir,13);
+        t.stunT=.8;
+      }
+    }
+    burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,12,7);
+    shake=Math.max(shake,.55); SFX.heavy();
+  },550);
+}
+function meleeHit(e,dmg,range,arc,heavy){
+  for(const t of ENT){
+    if(t===e||!t.alive||t.team===e.team) continue;
+    const to=V3().copy(t.pos).sub(e.pos); const d=to.length();
+    if(d>range+t.def.scale*1.6) continue;
+    to.normalize();
+    if(fwdOf(e).dot(to)<arc) continue;
+    applyDamage(t,Math.round(dmg*rand(.92,1.1)),e,heavy);
+  }
+}
+
+// ================= AI NPC: бродят, настораживаются, убегают, контратакуют =================
+const _v2=V3();
+function updNpc(n,dt){
+  if(!n.alive){
+    n.respawnT-=dt;
+    if(n.respawnT<=0){
+      n.alive=true; n.hp=n.hpMax; n.sta=n.staMax; n.deathT=0; n.leanV=0;
+      const a=Math.random()*6.283, d=rand(70,190);
+      placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
+      n.home.set(n.pos.x,0,n.pos.z); n.wp=null; n.wanderT=0;
+    }
+    return;
+  }
+  if(n.stunT>0){ n.stunT-=dt; n.speed=0; n.moveMode=0; }
+  else{
+    n.wanderT-=dt;
+    const dp=n.pos.distanceTo(my.pos);
+    let flee=false;
+    if(my.alive){
+      if(n.hp<n.hpMax&&dp<30) flee=true;                       // раненая — прочь
+      else if(G.comboT>0&&dp<18) flee=true;                    // рядом кусают — прочь
+      else if(dp<14&&Math.random()<dt*.8) flee=true;           // заметили хищника
+    }
+    // контратака, если хищник прижал вплотную
+    if(!flee&&my.alive&&dp<5.2&&n.biteCd<=0&&(n.sta<18||Math.random()<dt*.4)){
+      n.attackT=.32; n.biteCd=1.2;
+      n.yaw=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z)); n.prevYaw=n.yaw;
+      const dmg=n.def.bite[(Math.random()*3)|0];
+      setTimeout(()=>{
+        if(n.alive&&my.alive&&G.state==='play'&&n.pos.distanceTo(my.pos)<6.4)
+          meleeHit(n,dmg,6.0,.15,false);
+      },160);
+      if(n.growlCd<=0){ SFX.growl(); n.growlCd=5; }
+    }
+    const dir=_v2;
+    if(flee){
+      dir.copy(n.pos).sub(my.pos).setY(0).normalize();
+      dir.applyAxisAngle(UP,Math.sin(G.t*3+n.walkPhase)*.28);  // зигзаг — не по прямой
+      n.moveMode=2; n.speed=n.def.run;
+      if(n.sta<10){ n.moveMode=1; n.speed=n.def.walk; }
+      if(n.growlCd<=0){ SFX.growl(); n.growlCd=6; }
+    } else if(dp<20&&my.alive){
+      // настороженность: замирает и смотрит на игрока
+      n.moveMode=0; n.speed=0;
+      const want=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z));
+      n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*dt,n.def.turn*dt);
+    } else {
+      if(n.wanderT<=0){ n.wanderT=rand(3,7);
+        n.wp=V3(n.home.x+rand(-55,55),0,n.home.z+rand(-55,55));
+        const wl=Math.hypot(n.wp.x,n.wp.z);
+        if(wl<38){ n.wp.x*=38/Math.max(wl,.01); n.wp.z*=38/Math.max(wl,.01); } // не заходят в лагерь
+      }
+      if(n.wp){
+        dir.copy(n.wp).sub(n.pos).setY(0); const dd=dir.length();
+        if(dd<3){ n.speed=0; n.moveMode=0; }
+        else { dir.normalize(); n.moveMode=1; n.speed=n.def.walk; }
+      } else { n.speed=0; n.moveMode=0; }
+    }
+    if(n.speed>0&&n.moveMode>0){
+      const want=Math.atan2(-dir.x,-dir.z);
+      const dy=wrapA(want-n.yaw);
+      n.yaw+=clamp(dy,-n.def.turn*dt,n.def.turn*dt);
+      const sp=n.speed*(terrainH(n.pos.x,n.pos.z)<WATER_Y?.55:1); // в воде вдвое медленнее
+      n.pos.addScaledVector(fwdOf(n),sp*dt);
+      n.speed=sp;
+    }
+  }
+  n.sta=clamp(n.sta+(n.moveMode===2?-7:9)*dt,0,n.staMax);
+  n.biteCd=Math.max(0,n.biteCd-dt); n.growlCd=Math.max(0,n.growlCd-dt);
+  if(n.attackT>0) n.attackT=Math.max(0,n.attackT-dt);
+  n.pos.y=terrainH(n.pos.x,n.pos.z);
+  if(n.pos.y<WATER_Y-1.1) n.pos.y=WATER_Y-.85+Math.sin(G.t*2.2+n.walkPhase)*.08; // плывёт
+  edgePush(n);
+}
+function edgePush(e){ // край мира: мягкая стена
+  const d=Math.hypot(e.pos.x,e.pos.z);
+  if(d>MAP_R-14){ const k=(d-(MAP_R-14))/14; e.pos.x*=(1-k*.06); e.pos.z*=(1-k*.06); }
+}
+
+// ================= ИГРОК: движение/стамина/камера =================
+let shake=0;
+const _camF=V3(), _v3=V3();
+function updCamera(){
+  const e=my;
+  const fy=e.pos.y+2.1*e.def.scale;
+  const cd=camDist*e.def.scale;
+  const cx=e.pos.x+Math.sin(camYaw)*Math.cos(camPitch)*cd;
+  const cz=e.pos.z+Math.cos(camYaw)*Math.cos(camPitch)*cd;
+  const cy=Math.max(fy+Math.sin(camPitch)*cd+1.1,terrainH(cx,cz)+1.2);
+  camera.position.set(cx,cy,cz);
+  if(shake>0){ camera.position.x+=rand(-1,1)*shake*.35; camera.position.y+=rand(-1,1)*shake*.35; }
+  _camF.set(e.pos.x,fy,e.pos.z);
+  camera.lookAt(_camF);
+  sun.position.set(e.pos.x+60,e.pos.y+95,e.pos.z+35);
+  sun.target.position.copy(e.pos);
+}
+function updPlayer(dt){
+  const e=my;
+  if(e.alive){
+    if(e.stunT>0) e.stunT-=dt;
+    const gy=terrainH(e.pos.x,e.pos.z);
+    // направление от камеры
+    let ix=0,iz=0;
+    if(keys.KeyW)iz-=1; if(keys.KeyS)iz+=1; if(keys.KeyA)ix-=1; if(keys.KeyD)ix+=1;
+    const wantRun=(keys.ShiftLeft||keys.ShiftRight)&&e.sta>1&&e.moveMode!==0;
+    const moving=(ix||iz)&&e.stunT<=0;
+    e.moveMode=moving?(wantRun?2:1):0;
+    const water=gy<WATER_Y; // на мелководье вдвое медленнее — как в JB
+    const spd=(e.moveMode===2?e.def.run:e.moveMode===1?e.def.walk:0)*(water?.55:1);
+    if(moving){
+      const ang=Math.atan2(ix,iz)+camYaw;
+      const dir=_v3.set(Math.sin(ang),0,Math.cos(ang));
+      const want=Math.atan2(-dir.x,-dir.z);
+      const dy=wrapA(want-e.yaw);
+      e.yaw+=clamp(dy,-e.def.turn*dt*2.2,e.def.turn*dt*2.2);
+      e.pos.addScaledVector(dir,spd*dt);
+      e.speed=spd;
+    } else e.speed=Math.max(0,e.speed-30*dt);
+    // стамина: бег жрёт, «Бегун» быстрее восстанавливает в движении
+    const drain=e.moveMode===2?12:0;
+    const regen=e.moveMode===0?14:12;
+    e.sta=clamp(e.sta+(regen-drain)*dt,0,e.staMax);
+    // прыжок
+    if(keys.Space&&e.grounded&&e.sta>=12&&e.stunT<=0){
+      e.vel.y=e.def.jumpV; e.grounded=false; e.sta-=12; SFX.jump();
+    }
+    // гравитация/земля
+    e.vel.y-=24*dt;
+    e.pos.y+=e.vel.y*dt;
+    if(e.pos.y<=gy){
+      if(!e.grounded&&e.vel.y<-9) e.landT=.22;          // присед при жёстком приземлении
+      e.pos.y=gy; e.vel.y=0; e.grounded=true;
+    }
+    if(gy<WATER_Y-1.1){                                  // глубоко: держимся на поверхности
+      e.pos.y=Math.max(e.pos.y,WATER_Y-.85+Math.sin(ambT*2.2)*.08);
+      e.vel.y=0; e.grounded=true;
+    }
+    edgePush(e);
+    // кулдауны
+    e.biteCd=Math.max(0,e.biteCd-dt);
+    e.heavyCd=Math.max(0,e.heavyCd-dt);
+    if(e.heavyT>0) e.heavyT=Math.max(0,e.heavyT-dt);
+    if(e.attackT>0) e.attackT=Math.max(0,e.attackT-dt);
+    if(G.comboT>0){ G.comboT-=dt; if(G.comboT<=0){ G.comboIdx=0; updComboHud(); } }
+  } else {
+    e.deathT+=dt;
+    if(e.deathT>4){
+      e.alive=true; e.hp=e.hpMax; e.sta=e.staMax; e.deathT=0; e.leanV=0; e.vel.set(0,0,0);
+      const [rx,rz]=spawnSpot(); placeOnGround(e,rx,rz);
+      toast('Возрождение!');
+    }
+  }
+  if(shake>0) shake=Math.max(0,shake-dt*2.4);
+  updCamera();
+}
+
+// ================= HUD / визуальные эффекты =================
+function toast(t,cls){
+  const d=document.createElement('div'); d.className='toast'+(cls?' '+cls:''); d.textContent=t;
+  $('toasts').appendChild(d); setTimeout(()=>d.remove(),2600);
+}
+function addCoins(n){ G.coins+=n; $('coins-num').textContent=G.coins; }
+function updComboHud(){ $('combo-cnt').textContent=G.comboT>0?(G.comboIdx+1)+' из 3':'—'; }
+const dmgPool=[];
+function spawnDmgNum(t,dmg,heavy){
+  let el=dmgPool.find(x=>!x.busy);
+  if(!el){
+    if(dmgPool.length>14) return;
+    el={div:document.createElement('div'),busy:false}; document.body.appendChild(el.div); dmgPool.push(el);
+  }
+  el.busy=true; el.t=0;
+  el.div.className='dmg'+(heavy?' heavy':''); el.div.textContent='-'+dmg;
+  el.div.style.display='block';
+  el.target=t; el.life=heavy?1.2:.9;
+}
+function updDmgNums(dt){
+  const v=_v4;
+  for(const el of dmgPool){
+    if(!el.busy) continue;
+    el.t+=dt;
+    if(el.t>=el.life){ el.busy=false; el.div.style.display='none'; continue; }
+    if(el.target&&el.target.alive){ v.set(el.target.pos.x,el.target.pos.y+2.6*el.target.def.scale,el.target.pos.z); }
+    else if(el.target){ v.copy(el.target.pos); v.y+=2; }
+    v.project(camera);
+    if(v.z>1){ el.div.style.display='none'; continue; }
+    el.div.style.display='block';
+    el.div.style.left=((v.x+1)/2*innerWidth)+'px';
+    el.div.style.top=((-v.y+1)/2*innerHeight - el.t*70)+'px';
+    el.div.style.opacity=1-el.t/el.life;
+  }
+}
+const _v4=V3();
+// таблички над NPC
+const plates=new Map();
+function updPlates(){
+  for(const e of ENT){
+    if(e.kind!=='npc') continue;
+    let pl=plates.get(e.id);
+    if(!e.alive){ if(pl) pl.style.opacity=0; continue; }
+    if(!pl){
+      pl=document.createElement('div'); pl.className='plate';
+      pl.innerHTML='<div class="pn"></div><div class="phb"><div></div></div>';
+      document.body.appendChild(pl); plates.set(e.id,pl);
+    }
+    const v=_v5.set(e.pos.x,e.pos.y+3.1*e.def.scale,e.pos.z).project(camera);
+    if(v.z>1||e.pos.distanceTo(my.pos)>90){ pl.style.opacity=0; continue; }
+    pl.style.opacity=1;
+    pl.style.left=((v.x+1)/2*innerWidth)+'px';
+    pl.style.top=((-v.y+1)/2*innerHeight)+'px';
+    pl.querySelector('.pn').textContent=e.name;
+    pl.querySelector('.phb>div').style.width=(e.hp/e.hpMax*100)+'%';
+  }
+}
+const _v5=V3();
+function updHud(){
+  $('hp-fill').style.width=(my.hp/my.hpMax*100)+'%';
+  $('hp-num').textContent=Math.ceil(my.hp);
+  $('sta-fill').style.width=(my.sta/my.staMax*100)+'%';
+  $('sta-num').textContent=Math.ceil(my.sta);
+  $('npc-cnt').textContent=ENT.filter(e=>e.kind==='npc'&&e.alive).length;
+  const abBite=$('ab-bite'), abHeavy=$('ab-heavy'), abRun=$('ab-run');
+  abBite.classList.toggle('cool',my.biteCd>0||my.sta<5);
+  abBite.querySelector('.cd').style.height=(my.biteCd/.45*100)+'%';
+  abHeavy.classList.toggle('cool',my.heavyCd>0||my.sta<22);
+  abHeavy.querySelector('.cd').style.height=(my.heavyCd/6*100)+'%';
+  abRun.classList.toggle('cool',my.sta<=1);
+  $('ab-jump').classList.toggle('cool',!my.grounded||my.sta<12);
+}
+
+// ================= МЕНЮ / СТАРТ =================
+function toMenu(){
+  if(G.state!=='play') return;
+  G.state='menu';
+  mouseDown=false;
+  $('hud').classList.remove('on');
+  $('ov-menu').classList.remove('hidden');
+  if(document.pointerLockElement) document.exitPointerLock();
+}
+$('btn-play').addEventListener('click',()=>{
+  G.state='play';
+  $('ov-menu').classList.add('hidden');
+  $('hud').classList.add('on');
+  tryLock();
+  toast('Найди стадо и атакуй! ЛКМ — укус (можно удерживать), E — тяжёлый удар');
+});
+
+// ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
+let acc=0, lastT=performance.now(), ambT=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  let dt=(now-lastT)/1000; lastT=now;
+  if(dt>.25) dt=.25;
+  ambT+=dt;
+  if(G.state==='play'){
+    acc+=dt;
+    while(acc>=SIM_DT){ step(SIM_DT); acc-=SIM_DT; }
+    updHud(); updDmgNums(dt); updPlates();
+  } else {
+    // меню: кинематографичный облёт лагеря, динозавры дышат и осматриваются
+    camYaw+=dt*.1;
+    for(const e of ENT){ const md=e===my?myMesh:e.mesh; if(md) animDino(e,md,dt); }
+  }
+  updCamera();
+  // живой фон: облака, птерозавры, брызги водопада
+  for(const c of clouds){
+    c.g.position.x+=c.sp*dt;
+    if(c.g.position.x>MAP_R+90) c.g.position.x=-MAP_R-90;
+  }
+  for(const b of birds){
+    b.ph+=b.sp*dt;
+    const x=b.cx+Math.cos(b.ph)*b.r, z=b.cz+Math.sin(b.ph)*b.r;
+    b.g.position.set(x,b.h+Math.sin(b.ph*2.3)*2.5,z);
+    const s2=Math.sign(b.sp)||1;
+    const x2=b.cx+Math.cos(b.ph+.06*s2)*b.r, z2=b.cz+Math.sin(b.ph+.06*s2)*b.r;
+    b.g.lookAt(x2,b.h,z2);
+    const fl=Math.sin(now*.006+b.ph*7)*.6;
+    b.wl.rotation.z=.2+fl; b.wr.rotation.z=-.2-fl;
+  }
+  for(let i=0;i<foam.length;i++){
+    foam[i].position.y=13-((now*.004+i*5)%15);
+  }
+  for(let i=0;i<flames.length;i++){
+    flames[i].scale.y=1+Math.sin(now*.011+i*2.1)*.22;
+    flames[i].rotation.y+=dt*2.2;
+  }
+  renderer.render(scene,camera);
+}
+function step(dt){
+  G.t+=dt;
+  updPlayer(dt);
+  if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
+  for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
+  updParts(dt);
+  for(const e of ENT){
+    const md=e===my?myMesh:e.mesh;
+    if(!md) continue;
+    animDino(e,md,dt);
+  }
+}
+updComboHud();
+window.JB={my,ENT,camera,scene,renderer,G,myMesh,keys}; // отладка/тесты (и хук для будущих тестов мультиплеера)
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
