@@ -38,7 +38,7 @@
   #menu-tip{margin-top:14px;font-size:11.5px;color:rgba(232,245,216,.55);letter-spacing:.5px}
   #net-status{font-size:11px;color:rgba(142,224,90,.75);margin-top:6px;font-family:monospace}
   /* управление в меню */
-  #ctrl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 16px}
+  #ctrl-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:0 0 16px}
   .ctrl{border:1px solid var(--line);border-radius:9px;padding:7px 4px;background:rgba(20,40,22,.45)}
   .ctrl b{display:block;font-family:monospace;font-size:13px;color:var(--amb)}
   .ctrl span{font-size:10px;color:rgba(232,245,216,.65);letter-spacing:.5px}
@@ -97,6 +97,7 @@
   <div id="abilities">
     <div class="ab" id="ab-bite"><b>ЛКМ</b><span>Укус ×3</span><div class="cd"></div></div>
     <div class="ab" id="ab-heavy"><b>E</b><span>Тяжёлый</span><div class="cd"></div></div>
+    <div class="ab" id="ab-pounce"><b>Q</b><span>Прыжок-атака</span><div class="cd"></div></div>
     <div class="ab" id="ab-run"><b>SHIFT</b><span>Бег</span><div class="cd"></div></div>
     <div class="ab" id="ab-jump"><b>SPACE</b><span>Прыжок</span><div class="cd"></div></div>
   </div>
@@ -109,15 +110,16 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 3: остров как в Jurassic Blocky</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 4: прыжок на жертву и месть стада</div>
     <div id="dino-card">
       <div id="dc-name">ВЕЛОЦИРАПТОР <span id="dc-cost">БЕСПЛАТНО</span></div>
-      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
+      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — прыжок-атака: напрыгни на жертву и сбей её с ног. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
       <div class="stat-row"><div class="sn">Здоровье</div><div class="sb"><div style="width:64%;background:#ff7a4a"></div></div><div class="sv">900</div></div>
       <div class="stat-row"><div class="sn">Силы</div><div class="sb"><div style="width:47%;background:#a3e635"></div></div><div class="sv">70</div></div>
       <div class="stat-row"><div class="sn">Бег</div><div class="sb"><div style="width:56%;background:#5ad0ff"></div></div><div class="sv">50</div></div>
       <div class="stat-row"><div class="sn">Укус</div><div class="sb"><div style="width:65%;background:#ffd24a"></div></div><div class="sv">65·50·100</div></div>
       <div class="stat-row"><div class="sn">Тяжёлый</div><div class="sb"><div style="width:73%;background:#ff5a4a"></div></div><div class="sv">110</div></div>
+      <div class="stat-row"><div class="sn">Прыжок-атака</div><div class="sb"><div style="width:58%;background:#7dd3fc"></div></div><div class="sv">80</div></div>
     </div>
     <div id="ctrl-grid">
       <div class="ctrl"><b>WASD</b><span>движение</span></div>
@@ -126,8 +128,10 @@
       <div class="ctrl"><b>SPACE</b><span>прыжок</span></div>
       <div class="ctrl"><b>ЛКМ</b><span>укус / серия</span></div>
       <div class="ctrl"><b>E</b><span>тяжёлый</span></div>
+      <div class="ctrl"><b>Q</b><span>прыжок-атака</span></div>
       <div class="ctrl"><b>КОЛЕСО</b><span>зум</span></div>
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
+      <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
     <button id="btn-play" class="jb-btn">ИГРАТЬ</button>
     <div id="menu-tip">Мультиплеер 30 игроков, DinoCoins за PvP, скины и мировые боссы — в следующих итерациях</div>
@@ -162,9 +166,9 @@ const UP=V3(0,1,0);
 // ================= ДИНОЗАВРЫ (данные — будущий сервер отдаст этот же список) =================
 const DINOS=[
   { id:'raptor', name:'Велоцираптор', cost:0, hp:900, sta:70, walk:5.6, run:14,
-    bite:[65,50,100], heavy:110, jumpV:8.5, scale:.95, turn:2.6,
+    bite:[65,50,100], heavy:110, pounce:80, jumpV:8.5, scale:.95, turn:2.6,
     pal:{body:0x8d99a6, belly:0xe7e0c9, dark:0x39434e, head:0x99a4ae, stripe:0x2c3540, eye:0xffc23d, claw:0x35302a, accent:0xd07a35},
-    desc:'Засадный хищник: комбо укусов и рывки.' },
+    desc:'Засадный хищник: комбо укусов, рывки и прыжок на жертву.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
     bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, npc:true,
     pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
@@ -184,7 +188,7 @@ function makeEnt(id,kind,dinoId,team){
     pos:V3(), vel:V3(), yaw:0, pitch:0, speed:0, grounded:true, leanV:0, prevYaw:0,
     hp:def.hp, hpMax:def.hp, sta:def.sta, staMax:def.sta, alive:true,
     walkPhase:rand(0,6.28), attackT:0, heavyT:0, heavyCd:0, biteCd:0, stunT:0, deathT:0, respawnT:0,
-    flinchT:0, deathDir:1, growlCd:0, anim:null, landT:0,
+    flinchT:0, deathDir:1, growlCd:0, anim:null, landT:0, pounceT:0, pounceCd:0, pDx:0, pDz:0, pounced:false, aggroT:0,
     moveMode:0, // 0 стоит · 1 идёт · 2 бежит
     isLocal:false, name:'' };
 }
@@ -911,7 +915,9 @@ function animDino(e,md,dt){
     hipsY-=k*.34; hrx+=k*.18;
     for(let i=0;i<2;i++){ const L=md.legs[i]; L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
   }
-  if(e.heavyT>0){
+  if(e.pounceT>0){                                  // прыжок-атака: тело стрелой, пасть раскрыта
+    hrx=.45; reach+=.3; jawX=.5; armX=-1.2;
+  } else if(e.heavyT>0){
     const he=.55-e.heavyT;
     if(he<.38){ const w=smoothT(he/.38);
       hrx=lerp(hrx,-.58,w); jawX=.75*w; armX=-1.1*w;
@@ -1086,6 +1092,7 @@ addEventListener('keydown',e=>{
   keys[e.code]=true;
   if(G.state!=='play') return;
   if(e.code==='KeyE') tryHeavy();
+  if(e.code==='KeyQ') tryPounce();
   if(e.code==='KeyP'||(e.code==='Escape'&&plFailed)) toMenu();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
@@ -1103,18 +1110,34 @@ addEventListener('mousemove',e=>{
   if(G.state!=='play') return;
   if(locked||plFailed){
     const k=locked?1:.85;
-    camYaw-=e.movementX*.0026*k;
-    camPitch=clamp(camPitch+e.movementY*.0022*k,-.35,1.15);
+    // обрезаем выбросы movementX/Y (браузер иногда шлёт скачки) — камера без рывков
+    const mx=clamp(e.movementX||0,-60,60), mv=clamp(e.movementY||0,-60,60);
+    camYaw-=mx*.0026*k;
+    camPitch=clamp(camPitch+mv*.0022*k,-.35,1.15);
   }
 });
 addEventListener('wheel',e=>{ camDist=clamp(camDist+e.deltaY*.01,5.5,24); },{passive:true});
 addEventListener('contextmenu',e=>e.preventDefault());
+
+// ================= МЕСТЬ СТАДА =================
+// Игрок напал на члена стада → все NPC рядом переключаются в погоню (заготовка: на сервере
+// aggroT хранится в состоянии NPC и раздаётся снапшотами).
+function enragePack(victim){
+  let was=0, joined=0;
+  for(const o of ENT){
+    if(o.kind!=='npc'||!o.alive) continue;
+    if(o.aggroT>0) was++;
+    if(o.pos.distanceTo(victim.pos)<75){ o.aggroT=Math.max(o.aggroT,rand(9,13)); joined++; }
+  }
+  if(joined>0&&was===0){ toast('Стадо в ярости — теперь они охотятся на тебя!','coin'); SFX.growl(); }
+}
 
 // ================= БОЙ: воронка урона (на сервере будет только она) =================
 function applyDamage(target,dmg,src,heavy){
   if(!target.alive||G.state!=='play') return;
   target.hp-=dmg;
   target.flinchT=.18;
+  if(src&&src.isLocal&&target.kind==='npc') enragePack(target);   // стадо мстит
   spawnDmgNum(target,dmg,heavy);
   burst(target.pos,0xc22f22,heavy?12:7,heavy?9:6);
   if(target.isLocal){ shake=Math.max(shake,heavy?.6:.32); SFX.hurt(); }
@@ -1167,6 +1190,16 @@ function tryHeavy(){
     shake=Math.max(shake,.55); SFX.heavy();
   },550);
 }
+function tryPounce(){
+  const e=my;
+  if(!e.alive||e.pounceCd>0||e.stunT>0||e.sta<20||!e.grounded||e.pounceT>0) return;
+  e.sta-=20; e.pounceCd=4; e.pounceT=.62; e.grounded=false; e.pounced=false;
+  const f=fwdOf(e);
+  e.pDx=f.x*17; e.pDz=f.z*17;      // бросок вперёд
+  e.vel.y=7.5;                      // и немного вверх
+  SFX.jump(); SFX.growl();
+  NET.emitIntent('pounce',{});      // мультиплеер: интент броска
+}
 function meleeHit(e,dmg,range,arc,heavy){
   for(const t of ENT){
     if(t===e||!t.alive||t.team===e.team) continue;
@@ -1184,7 +1217,7 @@ function updNpc(n,dt){
   if(!n.alive){
     n.respawnT-=dt;
     if(n.respawnT<=0){
-      n.alive=true; n.hp=n.hpMax; n.sta=n.staMax; n.deathT=0; n.leanV=0;
+      n.alive=true; n.hp=n.hpMax; n.sta=n.staMax; n.deathT=0; n.leanV=0; n.aggroT=0; n.vel.set(0,0,0);
       const a=Math.random()*6.283, d=rand(70,190);
       placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
       n.home.set(n.pos.x,0,n.pos.z); n.wp=null; n.wanderT=0;
@@ -1195,46 +1228,71 @@ function updNpc(n,dt){
   else{
     n.wanderT-=dt;
     const dp=n.pos.distanceTo(my.pos);
+    // МЕСТЬ СТАДА: после агрессии игрока NPC в радиусе 75 м гонится и атакует
+    const rage=n.aggroT>0&&my.alive&&n.hp>n.hpMax*.25&&dp<130;
     let flee=false;
-    if(my.alive){
+    if(my.alive&&!rage){
       if(n.hp<n.hpMax&&dp<30) flee=true;                       // раненая — прочь
       else if(G.comboT>0&&dp<18) flee=true;                    // рядом кусают — прочь
       else if(dp<14&&Math.random()<dt*.8) flee=true;           // заметили хищника
     }
-    // контратака, если хищник прижал вплотную
-    if(!flee&&my.alive&&dp<5.2&&n.biteCd<=0&&(n.sta<18||Math.random()<dt*.4)){
-      n.attackT=.32; n.biteCd=1.2;
-      n.yaw=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z)); n.prevYaw=n.yaw;
-      const dmg=n.def.bite[(Math.random()*3)|0];
-      setTimeout(()=>{
-        if(n.alive&&my.alive&&G.state==='play'&&n.pos.distanceTo(my.pos)<6.4)
-          meleeHit(n,dmg,6.0,.15,false);
-      },160);
-      if(n.growlCd<=0){ SFX.growl(); n.growlCd=5; }
-    }
     const dir=_v2;
-    if(flee){
-      dir.copy(n.pos).sub(my.pos).setY(0).normalize();
-      dir.applyAxisAngle(UP,Math.sin(G.t*3+n.walkPhase)*.28);  // зигзаг — не по прямой
-      n.moveMode=2; n.speed=n.def.run;
-      if(n.sta<10){ n.moveMode=1; n.speed=n.def.walk; }
-      if(n.growlCd<=0){ SFX.growl(); n.growlCd=6; }
-    } else if(dp<20&&my.alive){
-      // настороженность: замирает и смотрит на игрока
-      n.moveMode=0; n.speed=0;
+    if(rage){
+      if(n.growlCd<=0){ SFX.growl(); n.growlCd=4; }
       const want=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z));
-      n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*dt,n.def.turn*dt);
-    } else {
-      if(n.wanderT<=0){ n.wanderT=rand(3,7);
-        n.wp=V3(n.home.x+rand(-55,55),0,n.home.z+rand(-55,55));
-        const wl=Math.hypot(n.wp.x,n.wp.z);
-        if(wl<38){ n.wp.x*=38/Math.max(wl,.01); n.wp.z*=38/Math.max(wl,.01); } // не заходят в лагерь
+      if(dp<4.6){                          // догнала: стоит и кусает
+        n.moveMode=0; n.speed=0;
+        n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*2*dt,n.def.turn*2*dt);
+        if(n.biteCd<=0){
+          n.attackT=.32; n.biteCd=1.05;
+          n.yaw=want; n.prevYaw=n.yaw;
+          const dmg=n.def.bite[(Math.random()*3)|0];
+          setTimeout(()=>{
+            if(n.alive&&my.alive&&G.state==='play'&&n.pos.distanceTo(my.pos)<6.4)
+              meleeHit(n,dmg,6.0,.15,false);
+          },160);
+          SFX.bite();
+        }
+      } else {                             // погоня
+        dir.copy(my.pos).sub(n.pos).setY(0).normalize();
+        n.moveMode=2; n.speed=n.def.run;
+        if(n.sta<10){ n.moveMode=1; n.speed=n.def.walk; }
       }
-      if(n.wp){
-        dir.copy(n.wp).sub(n.pos).setY(0); const dd=dir.length();
-        if(dd<3){ n.speed=0; n.moveMode=0; }
-        else { dir.normalize(); n.moveMode=1; n.speed=n.def.walk; }
-      } else { n.speed=0; n.moveMode=0; }
+    } else {
+      // контратака, если хищник прижал вплотную
+      if(!flee&&my.alive&&dp<5.2&&n.biteCd<=0&&(n.sta<18||Math.random()<dt*.4)){
+        n.attackT=.32; n.biteCd=1.2;
+        n.yaw=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z)); n.prevYaw=n.yaw;
+        const dmg=n.def.bite[(Math.random()*3)|0];
+        setTimeout(()=>{
+          if(n.alive&&my.alive&&G.state==='play'&&n.pos.distanceTo(my.pos)<6.4)
+            meleeHit(n,dmg,6.0,.15,false);
+        },160);
+        if(n.growlCd<=0){ SFX.growl(); n.growlCd=5; }
+      }
+      if(flee){
+        dir.copy(n.pos).sub(my.pos).setY(0).normalize();
+        dir.applyAxisAngle(UP,Math.sin(G.t*3+n.walkPhase)*.28);  // зигзаг — не по прямой
+        n.moveMode=2; n.speed=n.def.run;
+        if(n.sta<10){ n.moveMode=1; n.speed=n.def.walk; }
+        if(n.growlCd<=0){ SFX.growl(); n.growlCd=6; }
+      } else if(dp<20&&my.alive){
+        // настороженность: замирает и смотрит на игрока
+        n.moveMode=0; n.speed=0;
+        const want=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z));
+        n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*dt,n.def.turn*dt);
+      } else {
+        if(n.wanderT<=0){ n.wanderT=rand(3,7);
+          n.wp=V3(n.home.x+rand(-55,55),0,n.home.z+rand(-55,55));
+          const wl=Math.hypot(n.wp.x,n.wp.z);
+          if(wl<38){ n.wp.x*=38/Math.max(wl,.01); n.wp.z*=38/Math.max(wl,.01); } // не заходят в лагерь
+        }
+        if(n.wp){
+          dir.copy(n.wp).sub(n.pos).setY(0); const dd=dir.length();
+          if(dd<3){ n.speed=0; n.moveMode=0; }
+          else { dir.normalize(); n.moveMode=1; n.speed=n.def.walk; }
+        } else { n.speed=0; n.moveMode=0; }
+      }
     }
     if(n.speed>0&&n.moveMode>0){
       const want=Math.atan2(-dir.x,-dir.z);
@@ -1245,8 +1303,14 @@ function updNpc(n,dt){
       n.speed=sp;
     }
   }
+  // отброс от прыжка-атаки/тяжёлого удара (vel.x/z гасятся)
+  if(Math.abs(n.vel.x)>.05||Math.abs(n.vel.z)>.05){
+    n.pos.x+=n.vel.x*dt; n.pos.z+=n.vel.z*dt;
+    const kdec=Math.pow(.02,dt); n.vel.x*=kdec; n.vel.z*=kdec;
+  }
   n.sta=clamp(n.sta+(n.moveMode===2?-7:9)*dt,0,n.staMax);
   n.biteCd=Math.max(0,n.biteCd-dt); n.growlCd=Math.max(0,n.growlCd-dt);
+  n.aggroT=Math.max(0,n.aggroT-dt);
   if(n.attackT>0) n.attackT=Math.max(0,n.attackT-dt);
   n.pos.y=terrainH(n.pos.x,n.pos.z);
   if(n.pos.y<WATER_Y-1.1) n.pos.y=WATER_Y-.85+Math.sin(G.t*2.2+n.walkPhase)*.08; // плывёт
@@ -1258,18 +1322,23 @@ function edgePush(e){ // край мира: мягкая стена
 }
 
 // ================= ИГРОК: движение/стамина/камера =================
-let shake=0;
+let shake=0, camClrSm=null, camTYm=null;   // сглаживание: клиренс рельефа и цель взгляда
 const _camF=V3(), _v3=V3();
-function updCamera(){
+function updCamera(dt){
   const e=my;
   const fy=e.pos.y+2.1*e.def.scale;
   const cd=camDist*e.def.scale;
   const cx=e.pos.x+Math.sin(camYaw)*Math.cos(camPitch)*cd;
   const cz=e.pos.z+Math.cos(camYaw)*Math.cos(camPitch)*cd;
-  const cy=Math.max(fy+Math.sin(camPitch)*cd+1.1,terrainH(cx,cz)+1.2);
+  // «прилипание» к рельефу сглажено: на стыках фасеток камера больше не дёргает при повороте
+  const k1=1-Math.exp(-(dt||.016)*10);
+  const clr=terrainH(cx,cz)+1.2;
+  camClrSm=camClrSm===null?clr:lerp(camClrSm,clr,k1);
+  camTYm=camTYm===null?fy:lerp(camTYm,fy,1-Math.exp(-(dt||.016)*16));
+  const cy=Math.max(fy+Math.sin(camPitch)*cd+1.1,camClrSm);
   camera.position.set(cx,cy,cz);
   if(shake>0){ camera.position.x+=rand(-1,1)*shake*.35; camera.position.y+=rand(-1,1)*shake*.35; }
-  _camF.set(e.pos.x,fy,e.pos.z);
+  _camF.set(e.pos.x,camTYm,e.pos.z);
   camera.lookAt(_camF);
   sun.position.set(e.pos.x+60,e.pos.y+95,e.pos.z+35);
   sun.target.position.copy(e.pos);
@@ -1283,7 +1352,7 @@ function updPlayer(dt){
     let ix=0,iz=0;
     if(keys.KeyW)iz-=1; if(keys.KeyS)iz+=1; if(keys.KeyA)ix-=1; if(keys.KeyD)ix+=1;
     const wantRun=(keys.ShiftLeft||keys.ShiftRight)&&e.sta>1&&e.moveMode!==0;
-    const moving=(ix||iz)&&e.stunT<=0;
+    const moving=(ix||iz)&&e.stunT<=0&&e.pounceT<=0;
     e.moveMode=moving?(wantRun?2:1):0;
     const water=gy<WATER_Y; // на мелководье вдвое медленнее — как в JB
     const spd=(e.moveMode===2?e.def.run:e.moveMode===1?e.def.walk:0)*(water?.55:1);
@@ -1301,14 +1370,38 @@ function updPlayer(dt){
     const regen=e.moveMode===0?14:12;
     e.sta=clamp(e.sta+(regen-drain)*dt,0,e.staMax);
     // прыжок
-    if(keys.Space&&e.grounded&&e.sta>=12&&e.stunT<=0){
+    if(keys.Space&&e.grounded&&e.sta>=12&&e.stunT<=0&&e.pounceT<=0){
       e.vel.y=e.def.jumpV; e.grounded=false; e.sta-=12; SFX.jump();
+    }
+    // прыжок-атака (Q): полёт вперёд; попадание сбивает жертву с ног
+    if(e.pounceT>0){
+      e.pounceT-=dt;
+      e.pos.x+=e.pDx*dt; e.pos.z+=e.pDz*dt;
+      const pdec=Math.pow(.5,dt); e.pDx*=pdec; e.pDz*=pdec;
+      if(!e.pounced){
+        for(const t of ENT){
+          if(t===e||!t.alive||t.team===e.team) continue;
+          const dx=t.pos.x-e.pos.x, dz=t.pos.z-e.pos.z;
+          const rr=2.4+t.def.scale*1.7;
+          if(dx*dx+dz*dz<rr*rr&&Math.abs(t.pos.y-e.pos.y)<3.2){
+            e.pounced=true; e.pounceT=0;
+            applyDamage(t,Math.round(e.def.pounce*rand(.92,1.1)),e,true);
+            const dd=Math.max(.001,Math.hypot(dx,dz));
+            t.vel.x+=dx/dd*7; t.vel.z+=dz/dd*7;    // отброс (гасится в updNpc)
+            t.stunT=Math.max(t.stunT,1.15);        // жертва на земле
+            burst(t.pos,0xc22f22,10,8);
+            shake=Math.max(shake,.45);
+            break;
+          }
+        }
+      }
     }
     // гравитация/земля
     e.vel.y-=24*dt;
     e.pos.y+=e.vel.y*dt;
     if(e.pos.y<=gy){
       if(!e.grounded&&e.vel.y<-9) e.landT=.22;          // присед при жёстком приземлении
+      if(e.pounceT>0){ e.landT=.26; e.pounceT=0; }      // приземление после броска
       e.pos.y=gy; e.vel.y=0; e.grounded=true;
     }
     if(gy<WATER_Y-1.1){                                  // глубоко: держимся на поверхности
@@ -1318,6 +1411,7 @@ function updPlayer(dt){
     edgePush(e);
     // кулдауны
     e.biteCd=Math.max(0,e.biteCd-dt);
+    e.pounceCd=Math.max(0,e.pounceCd-dt);
     e.heavyCd=Math.max(0,e.heavyCd-dt);
     if(e.heavyT>0) e.heavyT=Math.max(0,e.heavyT-dt);
     if(e.attackT>0) e.attackT=Math.max(0,e.attackT-dt);
@@ -1331,7 +1425,6 @@ function updPlayer(dt){
     }
   }
   if(shake>0) shake=Math.max(0,shake-dt*2.4);
-  updCamera();
 }
 
 // ================= HUD / визуальные эффекты =================
@@ -1387,7 +1480,7 @@ function updPlates(){
     pl.style.opacity=1;
     pl.style.left=((v.x+1)/2*innerWidth)+'px';
     pl.style.top=((-v.y+1)/2*innerHeight)+'px';
-    pl.querySelector('.pn').textContent=e.name;
+    pl.querySelector('.pn').textContent=(e.aggroT>0?'⚠ ':'')+e.name;
     pl.querySelector('.phb>div').style.width=(e.hp/e.hpMax*100)+'%';
   }
 }
@@ -1398,11 +1491,13 @@ function updHud(){
   $('sta-fill').style.width=(my.sta/my.staMax*100)+'%';
   $('sta-num').textContent=Math.ceil(my.sta);
   $('npc-cnt').textContent=ENT.filter(e=>e.kind==='npc'&&e.alive).length;
-  const abBite=$('ab-bite'), abHeavy=$('ab-heavy'), abRun=$('ab-run');
+  const abBite=$('ab-bite'), abHeavy=$('ab-heavy'), abRun=$('ab-run'), abPounce=$('ab-pounce');
   abBite.classList.toggle('cool',my.biteCd>0||my.sta<5);
   abBite.querySelector('.cd').style.height=(my.biteCd/.45*100)+'%';
   abHeavy.classList.toggle('cool',my.heavyCd>0||my.sta<22);
   abHeavy.querySelector('.cd').style.height=(my.heavyCd/6*100)+'%';
+  abPounce.classList.toggle('cool',my.pounceCd>0||my.sta<20||!my.grounded);
+  abPounce.querySelector('.cd').style.height=(my.pounceCd/4*100)+'%';
   abRun.classList.toggle('cool',my.sta<=1);
   $('ab-jump').classList.toggle('cool',!my.grounded||my.sta<12);
 }
@@ -1421,7 +1516,7 @@ $('btn-play').addEventListener('click',()=>{
   $('ov-menu').classList.add('hidden');
   $('hud').classList.add('on');
   tryLock();
-  toast('Найди стадо и атакуй! ЛКМ — укус (можно удерживать), E — тяжёлый удар');
+  toast('Атакуй стадо — но учти: они отвечают! ЛКМ — укус, Q — прыжок на жертву, E — тяжёлый');
 });
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
@@ -1440,7 +1535,7 @@ function frame(now){
     camYaw+=dt*.1;
     for(const e of ENT){ const md=e===my?myMesh:e.mesh; if(md) animDino(e,md,dt); }
   }
-  updCamera();
+  updCamera(dt);
   // живой фон: облака, птерозавры, брызги водопада
   for(const c of clouds){
     c.g.position.x+=c.sp*dt;
@@ -1478,7 +1573,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,myMesh,keys}; // отладка/тесты (и хук для будущих тестов мультиплеера)
+window.JB={my,ENT,camera,scene,renderer,G,myMesh,keys,tryBite,tryHeavy,tryPounce,enragePack}; // отладка/тесты (и хук для будущих тестов мультиплеера)
 requestAnimationFrame(frame);
 })();
 </script>
