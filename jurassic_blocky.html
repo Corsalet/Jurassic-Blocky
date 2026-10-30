@@ -56,9 +56,9 @@
   #dino-tag{font-size:12px;font-weight:900;letter-spacing:1.5px;color:var(--grn);margin-bottom:2px;text-transform:uppercase}
   /* способности */
   #abilities{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:9px}
-  .ab{width:74px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:7px 4px;text-align:center;position:relative;overflow:hidden}
+  .ab{width:88px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:7px 4px;text-align:center;position:relative;overflow:hidden}
   .ab b{display:block;font-family:monospace;font-size:13px;color:var(--amb)}
-  .ab span{font-size:9.5px;letter-spacing:.5px;color:rgba(232,245,216,.7);white-space:nowrap}
+  .ab span{font-size:9px;letter-spacing:.3px;color:rgba(232,245,216,.7);white-space:nowrap}
   .ab .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);height:0%}
   .ab.cool{filter:grayscale(.7) brightness(.75)}
   .ab.rest{border-color:#7dff8d;box-shadow:0 0 14px rgba(126,255,150,.5)}
@@ -120,7 +120,7 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 6: магазин, текстуры и преграды</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 7: 6 видов и супер-приёмы</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — захват: напрыгни на жертву, прижми её и, удерживая Q, рви на части; отпустишь — слезешь. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
@@ -141,7 +141,7 @@
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
     <button id="btn-play" class="jb-btn">ИГРАТЬ</button>
-    <div id="menu-tip">Охота на диких динозавров приносит DinoCoins — на них открываются Трицератопс (100) и Тираннозавр (180)</div>
+    <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -175,30 +175,59 @@ const DINOS=[
   { id:'raptor', name:'Велоцираптор', cost:0, hp:900, sta:70, walk:5.6, run:14,
     bite:[65,50,100], heavy:110, maul:35, pinTime:3.2, jumpV:8.5, scale:.95, turn:2.6, model:'raptor',
     q:'pounce', qLabel:'Захват', qStat:'35×7', qDmg:35, qSta:20, qCd:5, heavySta:22, heavyCd:6,
+    heavyLabel:'Вихрь когтей',
     pal:{body:0x8d99a6, belly:0xe7e0c9, dark:0x39434e, head:0x99a4ae, stripe:0x2c3540, eye:0xffc23d, claw:0x35302a, accent:0xd07a35},
-    desc:'Засадный хищник: комбо укусов и рывки. Приём Q — прыжок: прижми жертву и грызи, пока держишь Q.' },
+    desc:'Засадный хищник. E — вихрь когтей: два оборота на 360° со ударом по всем вокруг. Q — прыжок: прижми жертву и грызи, пока держишь Q.' },
+  { id:'trike', name:'Трицератопс', cost:100, hp:2100, sta:85, walk:4.8, run:12,
+    bite:[90,70,130], heavy:200, jumpV:6.5, scale:1.28, turn:2.0, model:'trike',
+    q:'charge', qLabel:'Таран', qStat:'160 + отброс', qDmg:160, qSta:30, qCd:6, heavySta:40, heavyCd:7,
+    heavyLabel:'Бодание',
+    pal:{body:0x9a7d54, belly:0xe8dcc0, dark:0x5c452a, head:0xa98a5e, stripe:0x7a5f38, eye:0x2b2013, claw:0x4a3a26, accent:0xe0b25c},
+    desc:'Живой танк. E — бодание: скребёт землю и подбрасывает рогами в воздух. Q — таран: разгон с пылью, отбрасывает и оглушает всех на пути.' },
+  { id:'stego', name:'Стегозавр', cost:120, hp:1900, sta:80, walk:4.4, run:10.5,
+    bite:[75,60,110], heavy:150, jumpV:5.5, scale:1.22, turn:1.9, model:'stego',
+    q:'thago', qLabel:'Вихрь шипов', qStat:'170 по кругу', qDmg:170, qSta:32, qCd:6.5, heavySta:30, heavyCd:6,
+    heavyLabel:'Хвост-хлыст',
+    pal:{body:0x5f7a4a, belly:0xd8d2b0, dark:0x3a4a2c, head:0x6a8552, stripe:0x4a5c38, eye:0xffc23d, claw:0x3a352a, accent:0xd8a84a},
+    desc:'Ходячая крепость с гребнем пластин. E — хвост-хлыст: широкая дуга с отбросом. Q — вихрь шипов: полный оборот хвостом, бьёт вокруг.' },
+  { id:'anky', name:'Анкилозавр', cost:150, hp:2400, sta:75, walk:4.0, run:9.0,
+    bite:[60,50,85], heavy:130, jumpV:4.5, scale:1.12, turn:1.8, model:'anky',
+    q:'club', qLabel:'Дубина', qStat:'140 + стан 1.5с', qDmg:140, qSta:30, qCd:6, heavySta:26, heavyCd:5.5,
+    heavyLabel:'Панцирный таран',
+    pal:{body:0x7a6a50, belly:0xcfc3a0, dark:0x4a3f2c, head:0x85745a, stripe:0x5a4c36, eye:0xffb02e, claw:0x33302a, accent:0xd8c9a0},
+    desc:'Бронированный танк. E — панцирный таран: сбивает с ног корпусом. Q — дубина: хвост-булава обрушивается и оглушает на 1.5 с.' },
+  { id:'rex', name:'Тираннозавр', cost:180, hp:2600, sta:90, walk:4.2, run:11,
+    bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
+    q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
+    heavyLabel:'Челюсти',
+    pal:{body:0x5d6b46, belly:0xcfc39a, dark:0x333d26, head:0x67754e, stripe:0x27301c, eye:0xffb02e, claw:0x2e2a20, accent:0x9c7c3c},
+    desc:'Царь ящеров. E — челюсти судного дня: замах, рывок и хруст костей. Q — попрание: нога обрушивается, земля идёт волной.' },
+  { id:'spino', name:'Спинозавр', cost:220, hp:2200, sta:95, walk:5.4, run:13.5,
+    bite:[110,85,150], heavy:180, jumpV:8, scale:1.35, turn:2.2, model:'spino',
+    q:'dash', qLabel:'Косой рывок', qStat:'90×3', qDmg:90, qSta:28, qCd:5.5, heavySta:36, heavyCd:7,
+    heavyLabel:'Двойной укус',
+    pal:{body:0x4a6a7a, belly:0xd0d8c8, dark:0x2c3e48, head:0x557888, stripe:0x243842, eye:0xffd24a, claw:0x2e3438, accent:0xe06a3a},
+    desc:'Речной охотник с парусом. E — двойной щелчок пасти. Q — косой рывок: проносится сквозь бой и косит до трёх жертв.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
     bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', coin:15, npc:true, ai:'pack',
     pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
     desc:'Дикий раптор джунглей.' },
-  { id:'trike', name:'Трицератопс', cost:100, hp:2100, sta:85, walk:4.8, run:12,
-    bite:[90,70,130], heavy:200, jumpV:6.5, scale:1.28, turn:2.0, model:'trike',
-    q:'charge', qLabel:'Таран', qStat:'160 + отброс', qDmg:160, qSta:30, qCd:6, heavySta:40, heavyCd:7,
-    pal:{body:0x9a7d54, belly:0xe8dcc0, dark:0x5c452a, head:0xa98a5e, stripe:0x7a5f38, eye:0x2b2013, claw:0x4a3a26, accent:0xe0b25c},
-    desc:'Живой танк: комбо рогов и приём Q — таран: разгон, отбрасывает и оглушает всех на пути.' },
+  { id:'dilo', name:'Дилофозавр', cost:0, hp:380, sta:65, walk:5.0, run:12.5,
+    bite:[26,20,38], heavy:55, jumpV:8.5, scale:.62, turn:2.9, model:'dilo', coin:20, npc:true, ai:'spitter',
+    pal:{body:0x6a8a3a, belly:0xd8e0b0, dark:0x3c5222, head:0x77964a, stripe:0x2e4218, eye:0xffe14a, claw:0x2e2a20, accent:0xd84a2a},
+    desc:'Дерзкий вояка: плюёт кислотой издалека и пятится, если подойти вплотную.' },
   { id:'trikeWild', name:'Дикий трицератопс', cost:0, hp:1500, sta:70, walk:4.4, run:11.5,
     bite:[70,55,95], heavy:150, jumpV:6, scale:1.15, turn:1.9, model:'trike', coin:35, npc:true, ai:'herb',
     pal:{body:0x8a6f4a, belly:0xdccfae, dark:0x4f3b22, head:0x97794f, stripe:0x6b5230, eye:0x241a0e, claw:0x40311f, accent:0xc79a48},
     desc:'Пасущийся травоядный гигант.' },
-  { id:'rex', name:'Тираннозавр', cost:180, hp:2600, sta:90, walk:4.2, run:11,
-    bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
-    q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
-    pal:{body:0x5d6b46, belly:0xcfc39a, dark:0x333d26, head:0x67754e, stripe:0x27301c, eye:0xffb02e, claw:0x2e2a20, accent:0x9c7c3c},
-    desc:'Царь ящеров: челюсти ломают кости, а приём Q — попрание, сотрясающее землю вокруг.' },
   { id:'rexWild', name:'Дикий тираннозавр', cost:0, hp:2400, sta:80, walk:4.2, run:10.5,
     bite:[170,130,230], heavy:300, jumpV:7, scale:1.5, turn:1.6, model:'rex', coin:70, npc:true, ai:'apex',
     pal:{body:0x515f3e, belly:0xc4b78e, dark:0x2b331f, head:0x5a6845, stripe:0x222a17, eye:0xff8a2e, claw:0x292418, accent:0x8d6f34},
-    desc:'Верхушка пищевой цепи. Сам не отступает.' }
+    desc:'Верхушка пищевой цепи. Сам не отступает.' },
+  { id:'brachi', name:'Брахиозавр', cost:0, hp:5200, sta:60, walk:2.4, run:4.0,
+    bite:[90,75,110], heavy:260, jumpV:0, scale:2.5, turn:.8, model:'brachi', coin:120, npc:true, ai:'titan',
+    pal:{body:0x8a7a5a, belly:0xd8ccb0, dark:0x544836, head:0x96865f, stripe:0x6a5a42, eye:0x33291a, claw:0x4a4234, accent:0xb09a6a},
+    desc:'Ходячая гора. Не трогай — затопчет.' }
 ];
 const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
 
@@ -223,6 +252,7 @@ function makeEnt(id,kind,dinoId,team){
     flinchT:0, deathDir:1, growlCd:0, anim:null, landT:0, pounceT:0, pounceCd:0, pDx:0, pDz:0, pounced:false, aggroT:0,
     pinTarget:null, pinnedBy:null, pinT:0, maulT:0, combatT:99, resting:false, restLockT:0,
     moveMode:0, // 0 стоит · 1 идёт · 2 бежит
+    specId:null, specT:-1, specDur:0, spinY:0, slowT:0, spitCd:0, atkCd:0, dashHits:0,
     isLocal:false, name:'' };
 }
 const my=makeEnt(G.myId,'human','raptor','blue'); my.isLocal=true; my.name='Ты';
@@ -884,7 +914,9 @@ obsIndex();   // все преграды расставлены — строим
 // Горизонтальная посадка, зубчатый гребень на спине, крупная голова с зигзагом зубов,
 // мощные бёдра, полосатые бока и маленькие прижатые руки. Одна сборка — для игрока,
 // NPC и будущих сетевых игроков. Материалы кэшируются по цвету внутри одной сборки.
-function buildDino(def){ const m=def.model||'raptor'; return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):buildRaptor(def); }
+function buildDino(def){ const m=def.model||'raptor';
+  return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):m==='stego'?buildStego(def):m==='anky'?buildAnky(def):
+    m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):buildRaptor(def); }
 function buildRaptor(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye, KG=def.rig||{}, bulk=KG.bulk||1, hd=KG.head||1;
   const mats=[], cache={};
@@ -1124,6 +1156,265 @@ function buildRex(def){
   return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.45, hipsY:2.05, legReach:2.05 };
 }
 
+// ================= СТЕГОЗАВР: пластинчатый гребень и шипастый хвост-тагомайзер =================
+function buildStego(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.55; g.add(hips);
+  const rump=box(1.6,1.2,1.7,P.body); rump.position.set(0,.1,.8); hips.add(rump);
+  const mid=box(1.5,1.15,1.7,P.body); mid.position.set(0,.05,-.55); hips.add(mid);
+  const chest=box(1.3,.95,1.15,P.body); chest.position.set(0,0,-1.62); hips.add(chest);
+  const belly=box(1.35,.45,3.2,P.belly); belly.position.set(0,-.42,-.4); hips.add(belly);
+  // два ряда пластин-ромбов: к середине выше
+  for(let i=0;i<8;i++){
+    const t=i/7, h=.45+Math.sin(t*Math.PI)*.95, w=.5+Math.sin(t*Math.PI)*.45;
+    for(const s of [-1,1]){
+      const pl=box(.12,h,w,AC); pl.position.set(s*.3,.6+h/2,1.25-t*3.0); pl.rotation.y=s*.06; hips.add(pl);
+    }
+  }
+  // короткая шея и маленькая голова
+  const neck=new THREE.Group(); neck.position.set(0,.3,-2.02); hips.add(neck);
+  const neckM=box(.85,.7,.62,P.body); neckM.rotation.x=.2; neckM.position.set(0,.08,-.24); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.2,-.55); neck.add(head);
+  const skull=box(.52,.44,.6,P.head); skull.position.set(0,.04,-.15); head.add(skull);
+  const snout=box(.38,.28,.55,P.head); snout.position.set(0,-.02,-.62); head.add(snout);
+  const beak=box(.3,.2,.24,P.claw); beak.position.set(0,-.06,-.95); head.add(beak);
+  for(const s of [-1,1]){
+    const ew=box(.12,.13,.12,0xf5f2e0); ew.position.set(s*.24,.16,-.28); head.add(ew);
+    const ep=box(.06,.09,.08,P.eye); ep.position.set(s*.29,.15,-.3); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.22,-.2); head.add(jaw);
+  const jawM=box(.34,.11,.7,P.dark); jawM.position.set(0,-.05,-.4); jaw.add(jawM);
+  // хвост: на двух последних сегментах — пары длинных шипов
+  const tail=[]; let prev=hips;
+  const tw=[.95,.7,.5,.36,.24];
+  for(let i=0;i<5;i++){
+    const seg=new THREE.Group(); seg.position.set(0,.1,i?0.95:.9); prev.add(seg);
+    const tm=box(tw[i],Math.max(.16,tw[i]-.2),1.0,i<2?P.body:P.dark); tm.position.z=.5; seg.add(tm);
+    if(i>=3) for(const s of [-1,1]){
+      const sp=box(.11,.8,.11,P.claw); sp.position.set(s*.34,.28,.35); sp.rotation.z=-s*.65; seg.add(sp);
+    }
+    tail.push(seg); prev=seg;
+  }
+  const legs=[];
+  for(const s of [-1,1]) for(const zf of [1,-1]){
+    const hip=new THREE.Group(); hip.position.set(s*.62,-.28,zf*.95); hips.add(hip);
+    const thigh=box(.56,.75,.66,P.body); thigh.position.set(0,-.34,0); hip.add(thigh);
+    const knee=box(.44,.36,.52,P.body); knee.position.set(0,-.64,-.04); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.66,-.02); hip.add(shin);
+    const shinM=box(.34,.46,.4,P.dark); shinM.position.set(0,-.2,.05); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.44,-.04); shin.add(foot);
+    const footM=box(.46,.18,.6,P.body); footM.position.set(0,-.07,-.12); foot.add(footM);
+    for(let t2=0;t2<3;t2++){ const cl=box(.1,.1,.26,P.claw); cl.position.set((t2-1)*.15,-.12,-.4); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.02, hipsY:1.55, legReach:1.38 };
+}
+
+// ================= АНКИЛОЗАВР: низкая бронированная бочка с булавой на хвосте =================
+function buildAnky(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.08; g.add(hips);
+  const rump=box(1.9,1.05,1.75,P.body); rump.position.set(0,.1,.8); hips.add(rump);
+  const mid=box(1.8,1.0,1.75,P.body); mid.position.set(0,.08,-.55); hips.add(mid);
+  const chest=box(1.55,.9,1.2,P.body); chest.position.set(0,.02,-1.6); hips.add(chest);
+  const belly=box(1.7,.42,3.4,P.belly); belly.position.set(0,-.4,-.35); hips.add(belly);
+  // броня: ряды щитков на спине и боковые шипы
+  for(let i=0;i<5;i++) for(let j=-1;j<=1;j++){
+    const scute=box(.44,.2,.44,i%2?P.dark:AC); scute.position.set(j*.52,.62,1.0-i*.72); hips.add(scute);
+  }
+  for(let i=0;i<4;i++) for(const s of [-1,1]){
+    const spk=box(.14,.42,.14,AC); spk.position.set(s*.92,.42,1.1-i*.78); spk.rotation.z=-s*.5; hips.add(spk);
+  }
+  // маленькая голова с рожками за глазами
+  const neck=new THREE.Group(); neck.position.set(0,.12,-1.98); hips.add(neck);
+  const neckM=box(.8,.6,.55,P.body); neckM.position.set(0,.04,-.22); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.02,-.5); neck.add(head);
+  const skull=box(.62,.42,.6,P.head); skull.position.set(0,.03,-.12); head.add(skull);
+  const snout=box(.42,.3,.55,P.head); snout.position.set(0,-.02,-.6); head.add(snout);
+  for(const s of [-1,1]){
+    const hw=box(.16,.14,.2,P.claw); hw.position.set(s*.36,.2,-.25); head.add(hw);
+    const ew=box(.11,.12,.11,0xf5f2e0); ew.position.set(s*.26,.1,-.32); head.add(ew);
+    const ep=box(.05,.08,.07,P.eye); ep.position.set(s*.31,.09,-.34); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.2,-.15); head.add(jaw);
+  const jawM=box(.36,.1,.6,P.dark); jawM.position.set(0,-.05,-.35); jaw.add(jawM);
+  // хвост, последний сегмент — булава из трёх глыб
+  const tail=[]; let prev=hips;
+  const tw=[.85,.62,.44,.32];
+  for(let i=0;i<4;i++){
+    const seg=new THREE.Group(); seg.position.set(0,.08,i?0.9:.85); prev.add(seg);
+    const tm=box(tw[i],Math.max(.16,tw[i]-.18),.95,i<2?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    tail.push(seg); prev=seg;
+  }
+  const club=new THREE.Group(); club.position.set(0,.02,.9); prev.add(club);
+  const clubC=box(.5,.44,.6,P.dark); clubC.position.z=.3; club.add(clubC);
+  for(const s of [-1,1]){ const kn=box(.42,.4,.42,P.claw); kn.position.set(s*.42,.02,.3); club.add(kn); }
+  tail.push(club);
+  const legs=[];
+  for(const s of [-1,1]) for(const zf of [1,-1]){
+    const hip=new THREE.Group(); hip.position.set(s*.72,-.18,zf*.95); hips.add(hip);
+    const thigh=box(.6,.6,.7,P.body); thigh.position.set(0,-.26,0); hip.add(thigh);
+    const shin=new THREE.Group(); shin.position.set(0,-.5,-.02); hip.add(shin);
+    const shinM=box(.4,.34,.46,P.dark); shinM.position.set(0,-.14,.04); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.32,-.04); shin.add(foot);
+    const footM=box(.5,.18,.62,P.body); footM.position.set(0,-.07,-.12); foot.add(footM);
+    for(let t2=0;t2<3;t2++){ const cl=box(.1,.1,.26,P.claw); cl.position.set((t2-1)*.16,-.12,-.42); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-1.98, hipsY:1.08, legReach:1.0 };
+}
+
+// ================= СПИНОЗАВР: крокодилья пасть, парус, хвост-плавник =================
+function buildSpino(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.9; g.add(hips);
+  const rump=box(1.2,1.05,1.6,P.body); rump.position.set(0,.06,.45); hips.add(rump);
+  const mid=box(1.1,.95,1.4,P.body); mid.position.set(0,.02,-.68); hips.add(mid);
+  const chest=box(.92,.85,1.2,P.body); chest.position.set(0,-.04,-1.82); hips.add(chest);
+  const belly=box(1.05,.42,2.9,P.belly); belly.position.set(0,-.36,-.62); hips.add(belly);
+  // ПАРУС: два ряда высоких пластин + тёмная мембрана
+  for(let i=0;i<8;i++){
+    const t=i/7, h=.5+Math.sin(t*Math.PI)*1.45;
+    for(const s of [-1,1]){
+      const pl=box(.1,h,.34,i%2?AC:P.stripe); pl.position.set(s*.13,.62+h/2,.85-t*2.5); hips.add(pl);
+    }
+  }
+  const memb=box(.05,.9,2.6,P.dark); memb.position.set(0,1.6,-.4); hips.add(memb);
+  // длинные руки с тройными когтями
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.52,-.06,-1.6); hips.add(arm);
+    const up=box(.2,.55,.22,P.body); up.position.y=-.22; up.rotation.x=-.75; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.46,-.07); arm.add(fore);
+    const fm=box(.16,.46,.18,P.dark); fm.position.set(0,-.16,.14); fm.rotation.x=-.5; fore.add(fm);
+    for(let c2=0;c2<3;c2++){ const cl=box(.07,.24,.07,P.claw); cl.position.set((c2-1)*.08,-.42,.26); fore.add(cl); }
+    arms.push(arm);
+  }
+  // шея и узкая крокодилья голова
+  const neck=new THREE.Group(); neck.position.set(0,.42,-2.28); hips.add(neck);
+  const neckM=box(.68,.6,1.0,P.body); neckM.rotation.x=.3; neckM.position.set(0,.12,-.36); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.4,-.82); neck.add(head);
+  const skull=box(.62,.5,.85,P.head); skull.position.set(0,.04,-.2); head.add(skull);
+  const snout=box(.44,.38,1.3,P.head); snout.position.set(0,-.04,-1.2); head.add(snout);
+  const snout2=box(.34,.26,.7,P.head); snout2.position.set(0,-.1,-2.0); head.add(snout2);
+  const tip=box(.24,.2,.3,P.dark); tip.position.set(0,-.14,-2.4); head.add(tip);
+  const crest=box(.12,.16,.5,AC); crest.position.set(0,.32,-.55); head.add(crest);
+  for(const s of [-1,1]){
+    for(let i=0;i<6;i++){
+      const t=box(.05,.16,.06,P.claw); t.position.set(s*.18,-.24,-.7-i*.26); head.add(t);
+    }
+    const ew=box(.12,.14,.12,0xf5f2e0); ew.position.set(s*.3,.2,-.45); head.add(ew);
+    const ep=box(.06,.1,.07,P.eye); ep.position.set(s*.35,.19,-.47); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.26,-.3); head.add(jaw);
+  const jawM=box(.38,.13,1.7,P.dark); jawM.position.set(0,-.06,-.72); jaw.add(jawM);
+  const jawTip=box(.3,.1,.4,P.dark); jawTip.position.set(0,-.04,-1.75); jaw.add(jawTip);
+  // хвост-плавник: высокий и плоский
+  const tail=[]; let prev=hips;
+  const tw=[.72,.56,.42,.3,.2,.13];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?0.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.16,tw[i]*1.5),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i<4){ const fin=box(.06,tw[i]*1.9,.8,AC); fin.position.set(0,.1,.48); seg.add(fin); }
+    tail.push(seg); prev=seg;
+  }
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.56,-.02,.42); hips.add(hip);
+    const thigh=box(.6,1.05,.8,P.body); thigh.position.set(0,-.48,.06); hip.add(thigh);
+    const knee=box(.46,.54,.56,P.body); knee.position.set(0,-.94,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.95,-.04); hip.add(shin);
+    const shinM=box(.34,.85,.42,P.dark); shinM.position.set(0,-.34,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.72,-.06); shin.add(foot);
+    const footM=box(.46,.17,.95,P.body); footM.position.set(0,-.06,-.24); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.11,.11,.34,P.claw); cl.position.set((t-1)*.15,-.11,-.78); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.28, hipsY:1.9, legReach:1.9 };
+}
+
+// ================= ДИЛОФОЗАВР: мелкий раптор с парой алых гребней =================
+function buildDilo(def){
+  const md=buildRaptor(def);
+  const mat=new THREE.MeshLambertMaterial({color:def.pal.accent||0xd84a2a});
+  for(const s of [-1,1]){
+    const cr=new THREE.Mesh(new THREE.BoxGeometry(.07,.42,.55),mat);
+    cr.position.set(s*.15,.4,-.22); cr.rotation.z=s*.55; cr.castShadow=true;
+    md.head.add(cr);
+  }
+  return md;
+}
+
+// ================= БРАХИОЗАВР: ходячая гора с длинной шеей-цепочкой =================
+function buildBrachi(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=3.05; g.add(hips);
+  const rump=box(2.0,1.65,2.0,P.body); rump.position.set(0,.1,.95); hips.add(rump);
+  const mid=box(1.9,1.55,2.0,P.body); mid.position.set(0,.06,-.65); hips.add(mid);
+  const chest=box(1.7,1.45,1.5,P.body); chest.position.set(0,0,-1.95); hips.add(chest);
+  const belly=box(1.8,.5,4.2,P.belly); belly.position.set(0,-.72,-.45); hips.add(belly);
+  for(let i=0;i<5;i++){ const b=box(.5,.24,.55,P.dark); b.position.set(0,.92,.8-i*.68); hips.add(b); }
+  // хвост
+  const tail=[]; let prev=hips;
+  const tw=[.9,.7,.5,.34,.2];
+  for(let i=0;i<5;i++){
+    const seg=new THREE.Group(); seg.position.set(0,.1,i?1.0:.95); prev.add(seg);
+    const tm=box(tw[i],Math.max(.18,tw[i]-.2),1.05,i<2?P.body:P.dark); tm.position.z=.52; seg.add(tm);
+    tail.push(seg); prev=seg;
+  }
+  // шея: цепочка из 4 сегментов, тянется вверх и вперёд
+  const neck=new THREE.Group(); neck.position.set(0,.75,-2.55); hips.add(neck);
+  let pn=neck;
+  for(let i=0;i<4;i++){
+    const seg=new THREE.Group(); seg.position.set(0,i?.62:.3,i?-.78:-.3); pn.add(seg);
+    const nm=box(.78-i*.09,.78-i*.09,.92,i<2?P.body:P.head); nm.position.z=-.42; seg.add(nm);
+    pn=seg;
+  }
+  const head=new THREE.Group(); head.position.set(0,.3,-.7); pn.add(head);
+  const skull=box(.46,.4,.66,P.head); skull.position.set(0,.02,-.2); head.add(skull);
+  const snout=box(.3,.26,.5,P.head); snout.position.set(0,-.04,-.65); head.add(snout);
+  for(const s of [-1,1]){
+    const ew=box(.1,.11,.1,0xf5f2e0); ew.position.set(s*.2,.12,-.3); head.add(ew);
+    const ep=box(.05,.07,.06,P.eye); ep.position.set(s*.25,.11,-.32); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.18,-.15); head.add(jaw);
+  const jawM=box(.26,.09,.55,P.dark); jawM.position.set(0,-.04,-.3); jaw.add(jawM);
+  // 4 колонны-ноги
+  const legs=[];
+  for(const s of [-1,1]) for(const zf of [1,-1]){
+    const hip=new THREE.Group(); hip.position.set(s*.78,-.15,zf*1.05); hips.add(hip);
+    const thigh=box(.95,1.75,1.05,P.body); thigh.position.set(0,-.8,.06); hip.add(thigh);
+    const knee=box(.72,.7,.85,P.body); knee.position.set(0,-1.55,-.06); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-1.6,-.04); hip.add(shin);
+    const shinM=box(.55,1.2,.65,P.dark); shinM.position.set(0,-.5,.06); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-1.1,-.05); shin.add(foot);
+    const footM=box(.85,.3,1.3,P.body); footM.position.set(0,-.1,-.28); foot.add(footM);
+    for(let t=0;t<4;t++){ const cl=box(.16,.16,.4,P.claw); cl.position.set((t-1.5)*.2,-.16,-.98); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.55, hipsY:3.05, legReach:3.0 };
+}
+
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
 function flash(e,md,dt){
   if(e.flinchT>0){ e.flinchT-=dt;
@@ -1131,6 +1422,106 @@ function flash(e,md,dt){
     for(const m of md.mats) m.emissive.setRGB(.55*k,.04*k,.04*k);
   } else for(const m of md.mats) if(m.emissive.r) m.emissive.setRGB(0,0,0);
 }
+
+// ================= ФИРМЕННЫЕ ПРИЁМЫ: у каждого вида своя хореография E и Q =================
+// Вызывается дважды: до применения позы (late=false — корпус/шея/пасть/руки)
+// и после петли хвоста (late=true — хвост/лапы/дополнительный поворот корпуса).
+function startSpec(e,id,dur){ e.specId=id; e.specT=0; e.specDur=dur; e.spinY=0; }
+const SPEC={
+  whirl(e,md,ph,Q,late){                              // раптор E: вихрь когтей — два оборота
+    if(!late){ const k=Math.sin(ph*Math.PI);
+      Q.hipsY-=.2*k; Q.hrx=.3; Q.armX=-1.55*k; Q.reach=.12; Q.jawX=.35*k; }
+    e.spinY=smoothT(clamp(ph/.85,0,1))*Math.PI*4;
+    const out=Math.sin(ph*Math.PI);
+    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=1.15*(1-i/md.tail.length)*out;
+  },
+  gore(e,md,ph,Q,late){                               // трицератопс E: скребёт землю и бодает с подбросом
+    if(!late){
+      if(ph<.4){ const w=smoothT(ph/.4);
+        Q.neckRx=.6*w; Q.jawX=.35*w; Q.hrx=.16*w;
+      } else if(ph<.62){ const s2=smoothT((ph-.4)/.22);
+        Q.neckRx=lerp(.6,-.8,s2); Q.jawX=lerp(.35,.95,s2); Q.hrx=lerp(.16,.32,s2);
+      } else { const r=smoothT((ph-.62)/.38);
+        Q.neckRx=lerp(-.8,.08,r); Q.jawX=lerp(.95,0,r); Q.hrx=lerp(.32,.05,r); }
+    } else if(ph<.4){                                 // передние лапы скребут землю
+      const paw=Math.sin(ph*26);
+      if(md.legs[2]) md.legs[2].hip.rotation.x=-.45-Math.max(0,paw)*.6;
+      if(md.legs[3]) md.legs[3].hip.rotation.x=-.45-Math.max(0,-paw)*.6;
+    }
+  },
+  gcharge(e,md,ph,Q,late){                            // трицератопс Q: таран понизу
+    if(!late){ Q.hrx=.32; Q.neckRx=.62; Q.jawX=.55; Q.hipsY-=.12; }
+    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.x=-.12;
+  },
+  jaws(e,md,ph,Q,late){                               // тирекс E: пасть судного дня
+    if(late) return;
+    const b=Q.hipsY;
+    if(ph<.3){ const w=smoothT(ph/.3);
+      Q.hipsY=b+.35*w; Q.hrx=-.42*w; Q.jawX=1.15*w; Q.armX=-.9*w; Q.neckRx=-.3*w;
+    } else if(ph<.5){ const s2=smoothT((ph-.3)/.2);
+      Q.hipsY=lerp(b+.35,b-.28,s2); Q.hrx=lerp(-.42,.5,s2); Q.jawX=lerp(1.15,-.12,s2);
+      Q.armX=lerp(-.9,.4,s2); Q.neckRx=lerp(-.3,-.55,s2); Q.reach=.45*s2;
+    } else { const r=smoothT((ph-.5)/.5);
+      Q.hipsY=lerp(b-.28,b,r); Q.hrx=lerp(.5,.05,r); Q.jawX=lerp(-.12,0,r);
+      Q.armX=lerp(.4,0,r); Q.neckRx=lerp(-.55,.05,r); Q.reach=.45*(1-r); }
+  },
+  stomp(e,md,ph,Q,late){                              // тирекс Q: нога взлетает и обрушивается
+    if(late) return;
+    const b=Q.hipsY, L=md.legs[1];
+    if(ph<.38){ const w=smoothT(ph/.38);
+      Q.hipsY=b+.3*w; Q.hrx=-.22*w;
+      if(L){ L.hip.rotation.x=-1.2*w; L.shin.rotation.x=1.25*w; L.foot.rotation.x=-.2; }
+    } else if(ph<.52){ const s2=smoothT((ph-.38)/.14);
+      Q.hipsY=lerp(b+.3,b-.42,s2); Q.hrx=lerp(-.22,.35,s2);
+      if(L){ L.hip.rotation.x=lerp(-1.2,.55,s2); L.shin.rotation.x=lerp(1.25,.25,s2); L.foot.rotation.x=0; }
+    } else { const r=smoothT((ph-.52)/.48);
+      Q.hipsY=lerp(b-.42,b,r); Q.hrx=lerp(.35,.04,r); }
+  },
+  tailwhip(e,md,ph,Q,late){                           // стегозавр E: хлыст через весь фронт
+    if(!late){ Q.hrx=.1; Q.hipsY-=.06*Math.sin(ph*Math.PI); }
+    const sw=ph<.62?smoothT(ph/.62):1;
+    const damp=ph<.62?1:1-smoothT((ph-.62)/.38);
+    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=lerp(1.35,-1.35,sw)*(1-i*.14)*damp;
+    e.spinY=Math.sin(ph*Math.PI)*-.4;
+  },
+  thago(e,md,ph,Q,late){                              // стегозавр Q: вихрь шипов 360°
+    if(!late){ Q.hipsY-=.18*Math.sin(ph*Math.PI); Q.hrx=.2; }
+    e.spinY=smoothT(clamp(ph/.75,0,1))*Math.PI*2;
+    const out=Math.sin(ph*Math.PI);
+    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=1.2*(1-i*.12)*out;
+  },
+  bash(e,md,ph,Q,late){                               // анкилозавр E: таран корпусом
+    if(!late){ const k=Math.sin(ph*Math.PI);
+      Q.hipsY-=.14*k; Q.hrx=.3*k; Q.neckRx=.35*k; Q.jawX=.4*k; }
+    e.spinY=Math.sin(ph*Math.PI*2)*.22;
+  },
+  snap(e,md,ph,Q,late){                               // спинозавр E: двойной щелчок пасти
+    if(late) return;
+    const k=Math.sin(ph*Math.PI);
+    Q.jawX=ph<.12?smoothT(ph/.12)*.95:.95*Math.abs(Math.sin(ph*Math.PI*2));
+    Q.reach=.25*k; Q.neckRx=.12-.3*k;
+  },
+  saildash(e,md,ph,Q,late){                           // спинозавр Q: стрела с парусом
+    if(!late){ Q.hrx=.5; Q.neckRx=-.15; Q.reach=.35; Q.armX=-1.5; Q.hipsY-=.08; }
+    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=Math.sin(ambT*30-i*.6)*.25;
+  },
+  club(e,md,ph,Q,late){                               // анкилозавр Q: булава сверху вниз
+    if(late){
+      const n2=md.tail.length;
+      if(ph<.45){ const w=smoothT(ph/.45);
+        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=-1.1*w*t; }
+      } else if(ph<.6){ const s2=smoothT((ph-.45)/.15);
+        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(-1.1*t,.9*t,s2); }
+      } else { const r=smoothT((ph-.6)/.4);
+        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(.9*t,0,r); } }
+    } else {
+      const b=Q.hipsY;
+      if(ph<.45){ const w=smoothT(ph/.45); Q.hipsY=b+.12*w; Q.hrx=-.16*w; }
+      else if(ph<.6){ const s2=smoothT((ph-.45)/.15); Q.hipsY=lerp(b+.12,b-.2,s2); Q.hrx=lerp(-.16,.28,s2); }
+      else { const r=smoothT((ph-.6)/.4); Q.hipsY=lerp(b-.2,b,r); Q.hrx=lerp(.28,.03,r); }
+    }
+  }
+};
 function animDino(e,md,dt){
   md.g.position.copy(e.pos);
   // ---- смерть: падение набок, расслабленная поза ----
@@ -1199,12 +1590,6 @@ function animDino(e,md,dt){
   }
   if(e.pounceT>0){                                  // прыжок-атака: тело стрелой, пасть раскрыта
     hrx=.45; reach+=.3; jawX=.5; armX=-1.2;
-  } else if(e.heavyT>0){
-    const he=.55-e.heavyT;
-    if(he<.38){ const w=smoothT(he/.38);
-      hrx=lerp(hrx,-.58,w); jawX=.75*w; armX=-1.1*w;
-    } else { const s2=smoothT(clamp((he-.38)/.14,0,1));
-      hrx=lerp(-.58,.2,s2); jawX=lerp(.75,-.12,s2); armX=lerp(-1.1,.3,s2); }
   } else if(e.attackT>0){
     // укус: пасть раскрывается и щёлкает, шея тянется вперёд
     const et=.32-e.attackT;
@@ -1214,14 +1599,27 @@ function animDino(e,md,dt){
     else jawX=lerp(-.14,0,clamp((et-.16)/.16,0,1));
     reach+=biteK*.3;
     neckRx=Math.min(neckRx,-.2)-biteK*.45;
-  } else jawX=lerp(md.jaw.rotation.x,0,.25);
+  } else if(jawX===null) jawX=lerp(md.jaw.rotation.x,0,.25);
+  // ---- фирменный приём: перекрывает базовую хореографию ----
+  let specOn=false;
+  if(e.specId&&e.specT>=0&&SPEC[e.specId]){
+    e.specT+=dt;
+    const ph=clamp(e.specT/e.specDur,0,1);
+    if(ph>=1){ e.specId=null; e.specT=-1; e.spinY=0; }
+    else{
+      specOn=true;
+      const Q={hipsY,hrx,jawX,neckRx,reach,armX};
+      SPEC[e.specId](e,md,ph,Q,false);
+      hipsY=Q.hipsY; hrx=Q.hrx; jawX=Q.jawX; neckRx=Q.neckRx; reach=Q.reach; armX=Q.armX;
+    }
+  }
   md.hips.position.y=hipsY;
-  md.hips.rotation.x=lerp(md.hips.rotation.x,hrx,.18);
-  md.jaw.rotation.x=jawX;
+  md.hips.rotation.x=specOn?hrx:lerp(md.hips.rotation.x,hrx,.18);
+  md.jaw.rotation.x=jawX==null?0:jawX;
   md.neck.position.z=md.neckZ-reach;
-  md.neck.rotation.x=lerp(md.neck.rotation.x,neckRx,.25);
+  md.neck.rotation.x=specOn?neckRx:lerp(md.neck.rotation.x,neckRx,.25);
   if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
-  for(const a2 of md.arms) a2.rotation.x=lerp(a2.rotation.x,armX,.2);
+  for(const a2 of md.arms) a2.rotation.x=specOn?armX:lerp(a2.rotation.x,armX,.2);
   // ---- хвост: баланс на шагу, поток на бегу, дрейф в прыжке ----
   const twA=run?.12:walk?.22:.12;
   for(let i=0;i<md.tail.length;i++){
@@ -1229,6 +1627,7 @@ function animDino(e,md,dt){
     md.tail[i].rotation.x=Math.sin(p-i*.5+1.1)*(run?.05:.03)
       +(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
   }
+  if(specOn&&e.specId&&SPEC[e.specId]) SPEC[e.specId](e,md,clamp(e.specT/e.specDur,0,1),null,true);
   // ---- голова: стабилизация + живой взгляд по сторонам, когда стоишь ----
   if(!moving){ a.lkT-=dt;
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
@@ -1238,7 +1637,7 @@ function animDino(e,md,dt){
   // наклон в поворот
   const dy=wrapA(e.yaw-e.prevYaw); e.prevYaw=e.yaw;
   e.leanV=lerp(e.leanV,clamp(-dy/Math.max(dt,.001)*.05,-.22,.22),.18);
-  md.g.rotation.set(0,e.yaw,e.leanV);
+  md.g.rotation.set(0,e.yaw+(e.spinY||0),e.leanV);
   flash(e,md,dt);
 }
 
@@ -1247,13 +1646,23 @@ function placeOnGround(e,x,z){ e.pos.set(x,terrainH(x,z),z); }
 const spawnSpot=()=>[rand(9,15),rand(-14,-6)];            // внутри частокола, у ворот
 (function(){ const [sx,sz]=spawnSpot(); placeOnGround(my,sx,sz); })();
 my.yaw=Math.atan2(12,-10); my.prevYaw=my.yaw;             // лицом к костру и центру лагеря
-const NPC_ROSTER=[['raptorJungle',5],['trikeWild',3],['rexWild',1]];   // стада + один апекс
+const NPC_ROSTER=[['raptorJungle',4],['dilo',4],['trikeWild',3],['rexWild',1],['brachi',2]];   // стада + апекс + титаны
 let ni=0;
+const BRACHI_SPOTS=[[128,44],[-90,160],[-30,-160],[0,-190]];   // брахиозавры — ориентиры саванны (сухие точки)
+let bi=0;
 for(const [sp,cnt] of NPC_ROSTER) for(let i=0;i<cnt;i++){
   const n=makeEnt('n'+(++ni),'npc',sp,'wild');
   n.name=dinoDef(sp).name+' '+ni;
-  const a=srng()*6.283, d=srand(70,180);
-  placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
+  if(sp==='brachi'&&bi<BRACHI_SPOTS.length){
+    let bx=BRACHI_SPOTS[bi][0], bz=BRACHI_SPOTS[bi][1]; bi++;
+    for(let r=0;r<40&&terrainH(bx,bz)<WATER_Y+1.8;r++){       // не в воде
+      const a=srng()*6.283; bx+=Math.cos(a)*8; bz+=Math.sin(a)*8;
+    }
+    placeOnGround(n,bx,bz);
+  } else {
+    const a=srng()*6.283, d=srand(70,180);
+    placeOnGround(n,Math.cos(a)*d,Math.sin(a)*d);
+  }
   n.yaw=srng()*6.283; n.prevYaw=n.yaw; n.home=V3(n.pos.x,0,n.pos.z); n.wanderT=0; n.wp=null;
   n.mesh=buildDino(n.def); scene.add(n.mesh.g);
   ENT.push(n);
@@ -1307,7 +1716,11 @@ const SFX={
   growl(){ this.tone('sawtooth',85,60,.35,.16); this.tone('sawtooth',60,45,.4,.13,.05); },
   jump(){ this.tone('sine',240,420,.12,.08); },
   coin(){ this.tone('triangle',880,1560,.14,.18); this.tone('triangle',1320,2100,.18,.14,.08); },
-  hurt(){ this.tone('square',90,60,.15,.25); }
+  hurt(){ this.tone('square',90,60,.15,.25); },
+  whip(){ this.noise(.14,.3,0,3200); this.tone('sawtooth',300,90,.12,.1); },
+  boom(){ this.tone('sine',55,20,.5,.6); this.noise(.3,.4,0,220); },
+  chomp(){ this.noise(.12,.35,0,900); this.tone('square',120,40,.12,.2); },
+  spit(){ this.tone('square',700,180,.12,.12); this.noise(.08,.12,0,1800); }
 };
 addEventListener('pointerdown',()=>{ SFX.init(); SFX.resume(); });
 
@@ -1348,6 +1761,67 @@ function hitmark(heavy){
   el.className='on'+(heavy?' heavy':'');
   clearTimeout(hitmark.t);
   hitmark.t=setTimeout(()=>{ el.className=heavy?'heavy':''; },160);
+}
+
+// ---- ударные волны: расширяющиеся кольца по земле (попрание, вихри, дубина, топот) ----
+const RINGS=[];
+function ringFx(x,y,z,color,maxR,dur){
+  let r=RINGS.find(o=>!o.on);
+  if(!r){
+    if(RINGS.length>=6) return;
+    const m=new THREE.Mesh(new THREE.RingGeometry(.78,1,30),
+      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false}));
+    m.rotation.x=-Math.PI/2; m.visible=false; scene.add(m);
+    r={m,on:false,t:0}; RINGS.push(r);
+  }
+  r.on=true; r.t=0; r.max=maxR||9; r.dur=dur||.5;
+  r.m.visible=true; r.m.material.color.setHex(color); r.m.material.opacity=.75;
+  r.m.position.set(x,y,z); r.m.scale.set(.5,.5,.5);
+}
+function updRings(dt){
+  for(const r of RINGS){
+    if(!r.on) continue;
+    r.t+=dt; const k=r.t/r.dur;
+    if(k>=1){ r.on=false; r.m.visible=false; continue; }
+    const s=.5+k*r.max; r.m.scale.set(s,s,s);
+    r.m.material.opacity=.75*(1-k);
+  }
+}
+
+// ---- плевки дилофозавров: снаряды с замедлением ----
+const PROJ=[];
+function projBlocked(x,z){
+  for(const o of OBST){ const dx=x-o.x,dz=z-o.z; if(dx*dx+dz*dz<o.r*o.r) return true; }
+  return false;
+}
+function diloSpit(n){
+  const f=fwdOf(n);
+  const m=new THREE.Mesh(new THREE.BoxGeometry(.34,.34,.34),new THREE.MeshBasicMaterial({color:0x7fe03a}));
+  m.position.set(n.pos.x,n.pos.y+1.1*n.def.scale+.5,n.pos.z);
+  scene.add(m);
+  PROJ.push({m,v:V3(f.x*24,2.8,f.z*24),life:1.8,owner:n,dmg:Math.round(n.def.bite[0]*.6)+8});
+  SFX.spit();
+}
+function updProj(dt){
+  for(let i=PROJ.length-1;i>=0;i--){
+    const p=PROJ[i];
+    p.life-=dt; p.v.y-=9*dt;
+    p.m.position.addScaledVector(p.v,dt);
+    p.m.rotation.x+=dt*7; p.m.rotation.y+=dt*5;
+    let hit=p.life<=0||p.m.position.y<=terrainH(p.m.position.x,p.m.position.z)||projBlocked(p.m.position.x,p.m.position.z);
+    if(!hit&&my.alive&&G.state==='play'){
+      const dx=my.pos.x-p.m.position.x, dy=(my.pos.y+1.2*my.def.scale)-p.m.position.y, dz=my.pos.z-p.m.position.z;
+      const rr=1.5+my.def.scale;
+      if(dx*dx+dy*dy+dz*dz<rr*rr){
+        hit=true;
+        applyDamage(my,p.dmg,p.owner,false);
+        my.slowT=1.6;
+        burst(my.pos,0x7fe03a,6,5);
+        if(!G.spitTip){ G.spitTip=1; toast('Плевок дилофозавра замедляет — отпрыгивай!','coin'); }
+      }
+    }
+    if(hit){ burst(p.m.position,0x7fe03a,4,4); scene.remove(p.m); PROJ.splice(i,1); }
+  }
 }
 
 // ================= ВВОД =================
@@ -1434,6 +1908,7 @@ function applyDamage(target,dmg,src,heavy){
     target.alive=false; target.hp=0; target.deathT=0;
     target.deathDir=Math.random()<.5?1:-1;
     target.moveMode=0; target.speed=0;
+    target.specId=null; target.specT=-1; target.spinY=0;
     if(target.pinTarget) releasePin(target);   // умер, удерживая жертву
     burst(target.pos,0xc22f22,14,8);
     SFX.die();
@@ -1457,27 +1932,75 @@ function tryBite(){
   SFX.bite();
   updComboHud();
 }
-function tryHeavy(){
-  const e=my;
+function tryHeavy(){                        // E — тяжёлая атака: у каждого вида свой супер-приём
+  const e=my, m=e.def.model;
   if(!e.alive||e.heavyCd>0||e.stunT>0||e.sta<(e.def.heavySta||22)) return;
-  e.heavyT=.55; e.heavyCd=e.def.heavyCd||6; e.sta-=e.def.heavySta||22; e.restLockT=Math.max(e.restLockT||0,.6);
+  e.heavyCd=e.def.heavyCd||6; e.sta-=e.def.heavySta||22; e.restLockT=Math.max(e.restLockT||0,.6);
   NET.emitIntent('heavy',{});
-  SFX.growl();
-  setTimeout(()=>{ // замах 0.55 c — удар после
-    if(!e.alive) return;
-    meleeHit(e,e.def.heavy,7.2,.3,true);
-    for(const t of ENT){
-      if(t===e||!t.alive) continue;
-      const d=t.pos.distanceTo(e.pos);
-      if(d<8){
-        const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
-        t.vel.addScaledVector(dir,13);
-        t.stunT=.8;
-      }
-    }
-    burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,12,7);
-    shake=Math.max(shake,.55); SFX.heavy();
-  },550);
+  if(m==='raptor'||m==='dilo'){             // ВИХРЬ КОГТЕЙ: оборот на 360°, бьёт вокруг
+    startSpec(e,'whirl',.62); SFX.whip();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.heavy,5.8*Math.pow(e.def.scale/.95,.7),-1,true);
+      burst(V3(e.pos.x,e.pos.y+.6,e.pos.z),0xd8c9a0,10,7);
+      shake=Math.max(shake,.4); SFX.chomp();
+    },300);
+  } else if(m==='trike'){                   // БОДАНИЕ: выпад рогами, подбрасывает вверх
+    startSpec(e,'gore',.8); SFX.growl();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      e.pos.addScaledVector(fwdOf(e),2.2); edgePush(e);
+      meleeHit(e,e.def.heavy,6.8,.1,true);
+      for(const t of ENT){ if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<7.6){ t.vel.y=Math.max(t.vel.y,7.5); t.stunT=Math.max(t.stunT,.9); } }
+      burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,10,7);
+      shake=Math.max(shake,.5); SFX.boom();
+    },340);
+  } else if(m==='rex'){                     // ЧЕЛЮСТИ: замах — рывок — хруст
+    startSpec(e,'jaws',1.0); SFX.growl();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      e.pos.addScaledVector(fwdOf(e),2.6); edgePush(e);
+      meleeHit(e,e.def.heavy*1.1,8.6,.12,true);
+      for(const t of ENT){ if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<9.2){
+          const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+          t.vel.addScaledVector(dir,10); t.stunT=Math.max(t.stunT,.8); } }
+      burst(V3(e.pos.x,e.pos.y+.5,e.pos.z),0xb0a58c,12,8);
+      shake=Math.max(shake,.6); SFX.chomp();
+    },430);
+  } else if(m==='stego'){                   // ХВОСТ-ХЛЫСТ: широкая дуга с отбросом
+    startSpec(e,'tailwhip',.7); SFX.whip();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.heavy,7.8,-.45,true);
+      for(const t of ENT){ if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<8.8){
+          const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+          t.vel.addScaledVector(dir,12); t.stunT=Math.max(t.stunT,.6); } }
+      burst(V3(e.pos.x,e.pos.y+.5,e.pos.z),0xd8c9a0,9,7);
+      shake=Math.max(shake,.45); SFX.chomp();
+    },330);
+  } else if(m==='anky'){                    // ПАНЦИРНЫЙ ТАРАН: рывок корпусом
+    startSpec(e,'bash',.6); SFX.growl();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      e.pos.addScaledVector(fwdOf(e),3.4); edgePush(e);
+      meleeHit(e,e.def.heavy,6.0,.2,true);
+      for(const t of ENT){ if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<7.0){
+          const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+          t.vel.addScaledVector(dir,10); t.stunT=Math.max(t.stunT,.7); } }
+      burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,10,7);
+      shake=Math.max(shake,.45); SFX.boom();
+    },260);
+  } else {                                  // спинозавр: ДВОЙНОЙ УКУС — 72 + 108
+    startSpec(e,'snap',.66); SFX.bite();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.heavy*.4,7.2,.2,false); SFX.chomp();
+    },240);
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      e.pos.addScaledVector(fwdOf(e),1.6); edgePush(e);
+      meleeHit(e,e.def.heavy*.6,7.6,.2,true);
+      burst(V3(e.pos.x,e.pos.y+.5,e.pos.z),0xc22f22,9,7);
+      shake=Math.max(shake,.5); SFX.chomp();
+    },480);
+  }
 }
 function releasePin(e){           // слез с жертвы: отпустил Q / время / стан / смерть
   const t=e.pinTarget;
@@ -1489,31 +2012,78 @@ function releasePin(e){           // слез с жертвы: отпустил 
   }
   e.pinTarget=null; e.maulT=0;
 }
-function tryPounce(){            // Q — особый приём вида: захват / таран / попрание
+function tryPounce(){            // Q — особый приём вида: захват / таран / попрание / вихрь / дубина / рывок
   const e=my, q=e.def.q||'pounce';
   if(!e.alive||e.pounceCd>0||e.stunT>0||e.sta<(e.def.qSta||20)||!e.grounded||e.pounceT>0||e.pinTarget) return;
   e.sta-=e.def.qSta||20; e.pounceCd=e.def.qCd||5; e.restLockT=Math.max(e.restLockT||0,.6);
-  if(q==='stomp'){               // тираннозавр: встаёт и обрушивается — удар по площади вокруг
-    e.heavyT=.55; e.attackT=0;
-    SFX.growl();
+  if(q==='stomp'){               // тираннозавр: нога в небо — ударная волна по кругу
+    startSpec(e,'stomp',.95); SFX.growl();
     setTimeout(()=>{
       if(!e.alive||G.state!=='play') return;
-      meleeHit(e,e.def.qDmg,6.6*e.def.scale,-1,true);
+      meleeHit(e,e.def.qDmg,6.8*e.def.scale,-1,true);
       for(const t of ENT){
         if(t===e||!t.alive) continue;
-        if(t.pos.distanceTo(e.pos)<7.4*e.def.scale){
+        if(t.pos.distanceTo(e.pos)<7.6*e.def.scale){
           const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
-          t.vel.addScaledVector(dir,14); t.stunT=Math.max(t.stunT,1.2);
+          t.vel.addScaledVector(dir,14); t.vel.y=Math.max(t.vel.y,4.5); t.stunT=Math.max(t.stunT,1.2);
         }
       }
+      ringFx(e.pos.x,e.pos.y+.25,e.pos.z,0xd8c9a0,10*e.def.scale,.55);
       burst(V3(e.pos.x,e.pos.y+.3,e.pos.z),0xb0a58c,16,9);
-      shake=Math.max(shake,.75); SFX.heavy();
-    },380);
+      shake=Math.max(shake,.8); SFX.boom();
+    },400);
     NET.emitIntent('stomp',{});
+    return;
+  }
+  if(q==='thago'){               // стегозавр: вихрь шипов — оборот с ударом вокруг
+    startSpec(e,'thago',.9); SFX.whip();
+    setTimeout(()=>{
+      if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.qDmg,7.8,-1,true);
+      for(const t of ENT){
+        if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<9.0){
+          const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+          t.vel.addScaledVector(dir,11); t.stunT=Math.max(t.stunT,1.2);
+        }
+      }
+      ringFx(e.pos.x,e.pos.y+.25,e.pos.z,0xe0b25c,9,.5);
+      burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xd8c9a0,12,8);
+      shake=Math.max(shake,.6); SFX.boom();
+    },450);
+    NET.emitIntent('spin',{});
+    return;
+  }
+  if(q==='club'){                // анкилозавр: булава сверху — грохот и долгий стан
+    startSpec(e,'club',.85); SFX.whip();
+    setTimeout(()=>{
+      if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.qDmg,6.8,0,true);
+      for(const t of ENT){
+        if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<7.6){
+          const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
+          t.vel.addScaledVector(dir,9); t.stunT=Math.max(t.stunT,1.5);
+        }
+      }
+      ringFx(e.pos.x,e.pos.y+.25,e.pos.z,0xb0a58c,7.5,.5);
+      burst(V3(e.pos.x,e.pos.y+.3,e.pos.z),0xb0a58c,12,8);
+      shake=Math.max(shake,.7); SFX.boom();
+    },420);
+    NET.emitIntent('club',{});
+    return;
+  }
+  if(q==='dash'){                // спинозавр: косой рывок — косит всех на пути (до 3)
+    e.pounceT=.55; e.grounded=false; e.pounced=false; e.dashHits=0;
+    startSpec(e,'saildash',.75);
+    const f=fwdOf(e); e.pDx=f.x*30; e.pDz=f.z*30; e.vel.y=2.4;
+    SFX.jump(); SFX.growl();
+    NET.emitIntent('dash',{});
     return;
   }
   // рывок: раптор — прыжок на жертву, трицератопс — таран понизу
   e.pounceT=q==='pounce'?.62:.55; e.grounded=false; e.pounced=false;
+  if(q==='charge') startSpec(e,'gcharge',.9);
   const f=fwdOf(e);
   e.pDx=f.x*(q==='pounce'?17:24); e.pDz=f.z*(q==='pounce'?17:24);
   e.vel.y=q==='pounce'?7.5:2.2;
@@ -1554,7 +2124,9 @@ function updNpc(n,dt){
     const dp=n.pos.distanceTo(my.pos);
     // МЕСТЬ СТАДА: после агрессии игрока NPC в радиусе 75 м гонится и атакует.
     // Апекс (дикий тираннозавр) охотится сам, без мести — заметил в 30 м и пошёл.
-    const rage=(n.aggroT>0||(n.def.ai==='apex'&&dp<30))&&my.alive&&n.hp>n.hpMax*.25&&dp<130;
+    // Дилофозавры воюют издалека сами (плевки), как только игрок в 26 м.
+    const ai=n.def.ai;
+    const rage=(n.aggroT>0||(ai==='apex'&&dp<30)||(ai==='spitter'&&dp<26&&n.hp>n.hpMax*.25))&&my.alive&&n.hp>n.hpMax*.25&&dp<130;
     if(rage&&!n.wasHunt&&dp<30){ n.wasHunt=true; if(n.def.ai==='apex'){ toast('Дикий тираннозавр заметил тебя!','coin'); SFX.growl(); } }
     if(!rage&&dp>60) n.wasHunt=false;
     let flee=false;
@@ -1567,7 +2139,45 @@ function updNpc(n,dt){
     if(rage){
       if(n.growlCd<=0){ SFX.growl(); n.growlCd=4; }
       const want=Math.atan2(-(my.pos.x-n.pos.x),-(my.pos.z-n.pos.z));
-      if(dp<4.6){                          // догнала: стоит и кусает
+      if(ai==='spitter'){                  // держит дистанцию и плюёт кислотой
+        if(dp<11){                         // слишком близко — пятится
+          dir.copy(n.pos).sub(my.pos).setY(0).normalize();
+          n.moveMode=2; n.speed=n.def.run;
+        } else if(dp<26){                  // с дистанции — замирает и стреляет
+          n.moveMode=0; n.speed=0;
+          n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*2*dt,n.def.turn*2*dt);
+          if(n.spitCd<=0&&Math.abs(wrapA(want-n.yaw))<.5){
+            diloSpit(n); n.spitCd=rand(2.0,3.0); n.attackT=.32;
+          }
+        } else {                           // далековато — сближается
+          dir.copy(my.pos).sub(n.pos).setY(0).normalize();
+          n.moveMode=2; n.speed=n.def.run;
+          if(n.sta<10){ n.moveMode=1; n.speed=n.def.walk; }
+        }
+      } else if(ai==='titan'){             // брахиозавр: догоняет и топчется
+        if(dp>8.5){
+          dir.copy(my.pos).sub(n.pos).setY(0).normalize();
+          n.moveMode=1; n.speed=n.def.walk*1.7;
+        } else {
+          n.moveMode=0; n.speed=0;
+          n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*2*dt,n.def.turn*2*dt);
+          if(n.atkCd<=0){
+            n.atkCd=2.4; n.attackT=.42;
+            SFX.growl();
+            setTimeout(()=>{              // топот: ударная волна вокруг гиганта
+              if(!n.alive||!my.alive||G.state!=='play') return;
+              if(n.pos.distanceTo(my.pos)<11){
+                meleeHit(n,n.def.heavy,10,-1,true);
+                const kb=V3().copy(my.pos).sub(n.pos).setY(0).normalize();
+                my.vel.addScaledVector(kb,12); my.vel.y=Math.max(my.vel.y,4.5);
+                ringFx(n.pos.x,n.pos.y+.25,n.pos.z,0xb0a58c,12,.6);
+                burst(V3(n.pos.x,n.pos.y+.4,n.pos.z),0xb0a58c,16,9);
+                shake=Math.max(shake,.85); SFX.boom();
+              }
+            },430);
+          }
+        }
+      } else if(dp<4.6){                          // догнала: стоит и кусает
         n.moveMode=0; n.speed=0;
         n.yaw+=clamp(wrapA(want-n.yaw),-n.def.turn*2*dt,n.def.turn*2*dt);
         if(n.biteCd<=0){
@@ -1625,7 +2235,7 @@ function updNpc(n,dt){
       const want=Math.atan2(-dir.x,-dir.z);
       const dy=wrapA(want-n.yaw);
       n.yaw+=clamp(dy,-n.def.turn*dt,n.def.turn*dt);
-      const sp=n.speed*(terrainH(n.pos.x,n.pos.z)<WATER_Y?.55:1); // в воде вдвое медленнее
+      const sp=n.speed*(terrainH(n.pos.x,n.pos.z)<WATER_Y?.55:1)*(n.slowT>0?.62:1); // в воде и от кислоты медленнее
       n.pos.addScaledVector(fwdOf(n),sp*dt);
       n.speed=sp;
     }
@@ -1639,6 +2249,8 @@ function updNpc(n,dt){
   if(n.combatT>6) n.hp=Math.min(n.hpMax,n.hp+n.hpMax*.016*dt);   // NPC тоже отхиливаются вне боя
   n.sta=clamp(n.sta+(n.moveMode===2?-7:9)*dt,0,n.staMax);
   n.biteCd=Math.max(0,n.biteCd-dt); n.growlCd=Math.max(0,n.growlCd-dt);
+  n.atkCd=Math.max(0,n.atkCd-dt); n.spitCd=Math.max(0,n.spitCd-dt);
+  if(n.slowT>0) n.slowT-=dt;
   n.aggroT=Math.max(0,n.aggroT-dt);
   if(n.attackT>0) n.attackT=Math.max(0,n.attackT-dt);
   n.pos.y=terrainH(n.pos.x,n.pos.z);
@@ -1685,7 +2297,8 @@ function updPlayer(dt){
     const moving=(ix||iz)&&e.stunT<=0&&e.pounceT<=0&&!e.pinTarget;
     e.moveMode=moving?(wantRun?2:1):0;
     const water=gy<WATER_Y; // на мелководье вдвое медленнее — как в JB
-    const spd=(e.moveMode===2?e.def.run:e.moveMode===1?e.def.walk:0)*(water?.55:1);
+    if(e.slowT>0) e.slowT-=dt;                          // кислота дилофозавра
+    const spd=(e.moveMode===2?e.def.run:e.moveMode===1?e.def.walk:0)*(water?.55:1)*(e.slowT>0?.62:1);
     if(moving){
       const ang=Math.atan2(ix,iz)+camYaw;
       const dir=_v3.set(Math.sin(ang),0,Math.cos(ang));
@@ -1716,6 +2329,8 @@ function updPlayer(dt){
       e.pounceT-=dt;
       e.pos.x+=e.pDx*dt; e.pos.z+=e.pDz*dt;
       const pdec=Math.pow(.5,dt); e.pDx*=pdec; e.pDz*=pdec;
+      if((e.def.q==='charge'||e.def.q==='dash')&&Math.random()<dt*24)   // пыль из-под лап
+        burst(V3(e.pos.x,e.pos.y+.2,e.pos.z),0xbfae8a,2,3.5);
       if(!e.pounced){
         for(const t of ENT){
           if(t===e||!t.alive||t.team===e.team) continue;
@@ -1723,7 +2338,8 @@ function updPlayer(dt){
           const rr=2.4+t.def.scale*1.7;
           if(dx*dx+dz*dz<rr*rr&&Math.abs(t.pos.y-e.pos.y)<3.2){
             e.pounced=true; e.pounceT=0;
-            if((e.def.q||'pounce')==='pounce'&&t.def.scale<=e.def.scale*1.55){
+            const q=e.def.q||'pounce';
+            if(q==='pounce'&&t.def.scale<=e.def.scale*1.55){
               // ЗАХВАТ: прижали жертву — дальше держим Q и грызём
               e.pinTarget=t; t.pinnedBy=e;
               e.pinT=e.def.pinTime; e.maulT=0;          // первый укус сразу
@@ -1733,19 +2349,28 @@ function updPlayer(dt){
               SFX.growl();
               if(!G.pinTip){ G.pinTip=1; toast('Держи Q — грызёшь жертву, отпустишь — слезешь','coin'); }
               NET.emitIntent('pin',{tid:null});
+            } else if(q==='dash'){
+              // КОСОЙ РЫВОК: спинозавр проносится сквозь бой, до трёх жертв
+              if(!t._dh||G.t-t._dh>.45){
+                t._dh=G.t;
+                applyDamage(t,Math.round(e.def.qDmg*rand(.92,1.1)),e,true);
+                e.dashHits=(e.dashHits||0)+1;
+                burst(t.pos,0xd8c9a0,8,8);
+                shake=Math.max(shake,.4); SFX.chomp();
+                if(e.dashHits>=3) e.pounceT=0;
+              }
             } else {
               // ТАРАН/сброс о крупную жертву: прошибаем — отброс и оглушение
               applyDamage(t,Math.round(e.def.qDmg*rand(.92,1.1)),e,true);
               const dd=Math.max(.001,Math.hypot(dx,dz));
-              t.vel.x+=dx/dd*((e.def.q||'pounce')==='charge'?16:10);
-              t.vel.z+=dz/dd*((e.def.q||'pounce')==='charge'?16:10);
-              t.stunT=Math.max(t.stunT,(e.def.q||'pounce')==='charge'?1.35:.7);
+              t.vel.x+=dx/dd*16; t.vel.z+=dz/dd*16;
+              t.stunT=Math.max(t.stunT,1.35);
               burst(t.pos,0xd8c9a0,10,8);
               shake=Math.max(shake,.45);
               SFX.heavy();
               NET.emitIntent('ram',{tid:null});
             }
-            break;
+            if((e.def.q||'pounce')!=='dash') break;
           }
         }
       }
@@ -1897,7 +2522,7 @@ function toMenu(){
 // ---------- выбор динозавра в меню ----------
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
-const MENU_TIP_DEFAULT='Охота на диких динозавров приносит DinoCoins — на них открываются Трицератопс (100) и Тираннозавр (180)';
+const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220';
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
@@ -1942,12 +2567,14 @@ function applyPlayerDino(id){
   my.hp=my.hpMax=d.hp; my.sta=my.staMax=d.sta;
   my.combatT=99; my.resting=false; my.restLockT=0;
   my.pounceT=0; my.pounced=false; my.pounceCd=0; my.attackT=0; my.heavyT=0; my.pinT=0; my.maulT=0;
+  my.specId=null; my.specT=-1; my.spinY=0; my.slowT=0; my.dashHits=0;
   my.yaw=my.prevYaw=Math.atan2(12,-10);
   scene.remove(myMesh.g);
   myMesh=buildDino(d); scene.add(myMesh.g);
   const [rx,rz]=spawnSpot(); placeOnGround(my,rx,rz);
   $('dino-tag').textContent=d.name.toUpperCase();
   $('ab-pounce').querySelector('span').textContent=d.qLabel||'Приём';
+  $('ab-heavy').querySelector('span').textContent=d.heavyLabel||'Тяжёлый';
 }
 $('btn-play').addEventListener('click',()=>{
   const d=PLAYABLE[G.selIdx];
@@ -2003,6 +2630,7 @@ function frame(now){
     flames[i].scale.y=1+Math.sin(now*.011+i*2.1)*.22;
     flames[i].rotation.y+=dt*2.2;
   }
+  updRings(dt);
   renderer.render(scene,camera);
 }
 function step(dt){
@@ -2010,7 +2638,7 @@ function step(dt){
   updPlayer(dt);
   if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
-  updParts(dt);
+  updParts(dt); updProj(dt);
   for(const e of ENT){
     const md=e===my?myMesh:e.mesh;
     if(!md) continue;
@@ -2018,7 +2646,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 requestAnimationFrame(frame);
 })();
 </script>
