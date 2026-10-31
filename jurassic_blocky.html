@@ -79,6 +79,17 @@
   .plate .pn{font-size:11px;font-weight:900;letter-spacing:1px;color:#ffe9c9;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.6);white-space:nowrap}
   .plate .phb{width:64px;height:6px;border:1px solid rgba(255,120,90,.7);border-radius:3px;background:rgba(0,0,0,.55);margin:2px auto 0;overflow:hidden}
   .plate .phb>div{height:100%;background:linear-gradient(90deg,#c8452f,#ff8a5a)}
+  .plate.friend .pn{color:#a8f0b0}
+  .plate.friend .phb{border-color:rgba(110,220,140,.7)}
+  .plate.friend .phb>div{background:linear-gradient(90deg,#2f8a4a,#7ade8f)}
+  #net-chip{position:absolute;top:92px;left:18px;display:none;background:rgba(10,26,14,.82);border:2px solid rgba(110,220,140,.55);border-radius:11px;padding:6px 13px;font-size:11px;font-weight:800;font-family:monospace;letter-spacing:1.5px;color:#a8f0b0}
+  #net-chip.on{display:block}
+  #net-row{display:flex;align-items:center;gap:9px;justify-content:center;margin:4px 0 10px;flex-wrap:wrap}
+  #net-row .net-tgl{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;letter-spacing:1px;color:#a8f0b0;cursor:pointer;text-transform:uppercase}
+  #net-row .net-tgl input{width:15px;height:15px;accent-color:#46c46a;cursor:pointer}
+  #net-room{width:150px;background:rgba(6,16,9,.75);border:1px solid rgba(120,200,130,.4);border-radius:7px;color:#dff0d8;font:700 12px monospace;padding:7px 9px;text-align:center;letter-spacing:1px;outline:none}
+  #net-room:focus{border-color:rgba(140,230,150,.8)}
+  #net-hint{color:rgba(220,240,220,.45);font-size:10px}
   /* всплывающий урон */
   .dmg{position:fixed;z-index:6;pointer-events:none;font-family:monospace;font-weight:900;font-size:17px;color:#ffd24a;text-shadow:0 2px 4px #000;transform:translate(-50%,-50%)}
   .dmg.heavy{color:#ff7a4a;font-size:21px}
@@ -177,6 +188,7 @@
   <div id="coins"><small>DINOCOINS</small><span id="coins-num">0</span></div>
   <div id="npc-info">Динозавры в мире: <b id="npc-cnt">0</b><br>Серия укусов: <b id="combo-cnt">—</b></div>
   <div id="env-chip">☀ ДЕНЬ</div>
+  <div id="net-chip">🟢 В СЕТИ: <b id="net-cnt">1</b></div>
   <div id="quest"></div>
   <div id="toasts"></div>
   <canvas id="mmap" width="172" height="172"></canvas>
@@ -221,7 +233,7 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 12: звук · чат · миникарта · рейд-босс</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 13: кооп по сети · рейд-босс · звук</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc"></div>
@@ -246,6 +258,7 @@
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
+    <div id="net-row"><label class="net-tgl"><input type="checkbox" id="net-on"> играть по сети</label><input id="net-room" maxlength="18" value="jurassic-blocky" spellcheck="false"><span id="net-hint">друзья вводят тот же код — попадают на один остров</span></div>
     <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
@@ -2634,15 +2647,136 @@ for(const h of HERDS){
 }
 let myMesh=buildDino(my.def); scene.add(myMesh.g);
 
-// ================= СЕТЬ (заглушка под мультиплеер) =================
-// TODO(итерация «мультиплеер»): сюда встаёт socket.io + снапшоты, как в Wings of Glory.
-// Клиент шлёт ИНТЕНТЫ (bite/heavy/move-state), сервер применяет applyDamage и раздаёт снапшоты.
+// ================= СЕТЬ: кооператив без своего сервера (WebRTC-меш) =================
+// Сигналинг — через публичные брокеры (nostr/mqtt/torrent-трекеры), игровой трафик идёт
+// напрямую между браузерами. Код комнаты — как пароль острова: друзья вводят тот же код
+// и попадают на один остров. Дикие динозавры у каждого свои (локальная симуляция), но
+// ИГРОКИ, чат и рейд-босс общие: боссом ведёт хост (наименьший id в комнате), урон боссу
+// стекается к хосту, а добычу (≥15% хп) каждый катит себе сам по своему счётчику жалости.
+// Масштабирование босса от числа игроков теперь работает по ФАКТИЧЕСКОМУ онлайну комнаты.
+const TRYST_URLS=['https://esm.sh/trystero@0.21/nostr','https://cdn.jsdelivr.net/npm/trystero@0.21/nostr/+esm',
+  'https://esm.sh/trystero@0.21/mqtt','https://esm.sh/trystero@0.21'];
+// свои nostr-релеи: держим короткий список живых и быстрых — чем меньше релеев,
+// тем меньше параллельных ICE-каналов и надёжнее сходка (damus в дефолте часто лежит)
+const NOSTR_RELAYS=['wss://nos.lol','wss://relay.primal.net','wss://nostr-pub.wellorder.net'];
 const NET={
-  inRoom:false, sock:null,
-  intents:{ bite:null, heavy:null, move:null }, // очередь на отправку
-  connect(){ /* socket.io появится здесь */ },
-  emitIntent(type,payload){ /* NET.sock.emit('i',{t:type,...payload}) */ }
+  on:false, sock:null, peers:[], names:{}, myNetId:null, room:null, code:'',
+  tx:{}, stT:0, bT:0, joining:false, _host:true,
+  send(ch,d,t){ const f=this.tx[ch]; if(f) f(d,t); },
+  amHost(){ if(!this.on) return true; const ids=[this.myNetId].concat(this.peers).sort(); return ids[0]===this.myNetId; },
+  checkHost(){ const h=this.amHost(); if(h===this._host) return; this._host=h;
+    if(!h&&BOSS.e&&!BOSS.e.puppet) bossLeave(true);              // хост сменился — своего босса убираю, нового заспавнит новый хост
+    else if(h&&BOSS.e&&BOSS.e.puppet){ BOSS.e.puppet=false; BOSS.timer=rand(200,280); } // босс перешёл под моё управление
+  },
+  netStatus(t){ this.status=t; const el=$('net-status'); if(el) el.textContent=t; },
+  async connect(code){
+    if(this.on||this.joining) return this.on;
+    this.joining=true; this.netStatus('сеть: подключение к комнате «'+code+'»…');
+    let mod=null, isNostr=false;
+    for(const u of TRYST_URLS){ try{ const m=await import(u); if(m&&m.joinRoom){ mod=m; isNostr=u.includes('/nostr'); break; } }catch(e){} }
+    if(!mod){ this.joining=false; this.netStatus('сеть недоступна (CDN не отвечает) — играешь один'); return false; }
+    try{
+      const cfg={appId:'jurassic-blocky'};
+      if(isNostr) cfg.relayUrls=NOSTR_RELAYS;      // живые релеи вместо дефолтных (damus часто лежит)
+      const onErr=e=>{ console.warn('NET:',e&&e.error||e); };
+      const room=mod.joinRoom(cfg,code,onErr);
+      this.room=room; this.myNetId=mod.selfId; this.on=true; this.sock=true; this.code=code; this._host=true;
+      const wire=(ch,recv)=>{ const a=room.makeAction(ch); this.tx[ch]=a[0]; if(recv) a[1](recv); };
+      wire('st',(d,pid)=>{ const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r) return;
+        r.np={x:d[0],y:d[1],z:d[2]}; r.ny=d[3]; r.moveMode=d[4]; r.hpSync=d[5]; r.cloakNet=!!d[6]; });
+      wire('hi',(d,pid)=>{ NET.names[pid]={n:(''+(d.n||'Охотник')).slice(0,14),d:d.d,s:d.s}; netEnsureRemote(pid,true); updNetHud(); });
+      wire('ev',(d,pid)=>netOnEvent(d,pid));
+      wire('bx',d=>netOnBoss(d));
+      wire('bd',n=>hostApplyBossDmg(n));
+      wire('bh',n=>{ if(my.alive&&BOSS.e) applyDamage(my,Math.max(1,Math.round(n)||1),BOSS.e,true); });
+      room.onPeerJoin(pid=>{ this.peers.push(pid); netEnsureRemote(pid); this.hello(pid);
+        chatMsg(((this.names[pid]&&this.names[pid].n)||'Охотник')+' пришёл на остров','·','sys');
+        SFX.chime(); this.checkHost(); updNetHud(); });
+      room.onPeerLeave(pid=>{ const nm=(this.names[pid]&&this.names[pid].n)||'Охотник';
+        netDropRemote(pid); delete this.names[pid];
+        chatMsg(nm+' ушёл с острова','·','sys'); this.checkHost(); updNetHud(); });
+      this.joining=false;
+      updNetHud(); this.hello();
+      return true;
+    }catch(e){ this.on=false; this.sock=null; this.room=null; this.joining=false;
+      this.netStatus('сеть недоступна — играешь один'); return false; }
+  },
+  hello(target){ if(!this.on) return; const f=this.tx.hi; if(!f) return;
+    f({n:G.set.name||'Охотник',d:my.dinoId,s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:''},target); },
+  leave(){ try{ if(this.room) this.room.leave(); }catch(e){}
+    this.on=false; this.sock=null; this.room=null; this.peers=[];
+    for(let i=ENT.length-1;i>=0;i--) if(ENT[i].kind==='human'&&!ENT[i].isLocal){ scene.remove(ENT[i].mesh.g); ENT.splice(i,1); }
+    updNetHud(); },
+  emitIntent(type,payload){ if(!this.on) return; const f=this.tx.ev; if(!f) return;
+    const o={t:type}; if(payload) for(const k in payload) o[k]=payload[k]; f(o); }
 };
+function updNetHud(){
+  const chip=$('net-chip'); if(chip) chip.classList.toggle('on',NET.on);
+  const c=$('net-cnt'); if(c) c.textContent=playersOnServer();
+  if(!NET.on){ NET.netStatus('одиночный режим · локальная симуляция'); return; }
+  NET.netStatus('в сети · комната «'+NET.code+'» · игроков: '+playersOnServer()+' · друзья вводят тот же код');
+}
+function netEnsureRemote(pid,rebuild){
+  let r=ENT.find(e=>e.kind==='human'&&e.id===pid);
+  const info=NET.names[pid]||{n:'Охотник',d:'raptor',s:''};
+  if(!r){
+    const d=dinoDef(info.d);
+    r=makeEnt(pid,'human',d.id,'friend'); r.isLocal=false; r.name=info.n;
+    r.hp=r.hpMax=d.hp; r.sta=r.staMax=d.sta;
+    r.mesh=buildRemoteDino(d,info.s); scene.add(r.mesh.g); ENT.push(r);
+    const a=Math.random()*6.283; r.pos.set(my.pos.x+Math.cos(a)*7,0,my.pos.z+Math.sin(a)*7);
+    placeOnGround(r,r.pos.x,r.pos.z);
+  } else if(rebuild){
+    const d=dinoDef(info.d);
+    if(r.dinoId!==d.id){ scene.remove(r.mesh.g); r.dinoId=d.id; r.def=d;
+      r.hpMax=r.hp=d.hp; r.sta=r.staMax=d.sta; r.mesh=buildRemoteDino(d,info.s); scene.add(r.mesh.g); }
+    r.name=info.n;
+  }
+}
+function buildRemoteDino(def,skinName){
+  let d=def;
+  if(def.id==='indom'&&skinName&&SKIN_PALS[skinName])
+    d=Object.assign({},def,{pal:Object.assign({},def.pal,SKIN_PALS[skinName])});
+  return buildDino(d);
+}
+function netDropRemote(pid){
+  const r=ENT.find(e=>e.kind==='human'&&e.id===pid);
+  if(r){ scene.remove(r.mesh.g); const ix=ENT.indexOf(r); if(ix>=0) ENT.splice(ix,1); }
+  NET.peers=NET.peers.filter(p=>p!==pid);
+}
+function netOnEvent(d,pid){
+  const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r||!r.alive) return;
+  const dist=r.pos.distanceTo(my.pos);
+  switch(d.t){
+    case 'bite': r.attackT=.32; if(dist<70) SFX.bite(); break;
+    case 'heavy': r.heavyT=.55; if(dist<90) SFX.thud(); break;
+    case 'pounce': case 'pin': case 'ram': r.pounceT=.55; if(dist<70) SFX.growl(); break;
+    case 'roar': { const n=Math.max(1,Math.min(3,d.n|0)); startSpec(r,'roar'+n,n===1?1.1:n===2?1.7:2.3);
+      if(dist<140) SFX['roar'+n]();
+      if(n===3) ringFx(r.pos.x,r.pos.y+.3,r.pos.z,0xff5a4a,16,.7); break; }
+    case 'cloak': r.cloakT=8; break;
+    case 'spit': case 'venom': r.attackT=.34; break;
+    case 'neckslam': case 'stomp': case 'spin': case 'club': case 'dash':
+      r.heavyT=.55; if(dist<90){ SFX.thud(); shake=Math.max(shake,.18); } break;
+    case 'chat': chatMsg((''+(d.m||'')).slice(0,90),(NET.names[pid]&&NET.names[pid].n)||'Охотник'); break;
+  }
+}
+function updRemote(r,dt){
+  if(r.np){
+    const dx=r.np.x-r.pos.x, dz=r.np.z-r.pos.z, dd=Math.hypot(dx,dz);
+    if(dd>30) r.pos.set(r.np.x,r.np.y,r.np.z);                   // телепорт (респавн в лагере)
+    else{ const k=1-Math.exp(-9*dt);
+      r.pos.x+=dx*k; r.pos.y+=(r.np.y-r.pos.y)*k; r.pos.z+=dz*k;
+      r.speed=dd>.12?dd/Math.max(dt,.001)*.8:0; }
+  }
+  if(r.ny!==undefined&&r.ny!==null) r.yaw+=wrapA(r.ny-r.yaw)*(1-Math.exp(-9*dt));
+  if(r.cloakNet!==undefined){ r.cloakT=r.cloakNet?Math.max(r.cloakT||0,.3):0; if(r.cloakT>0) bossCloakFx(r,dt); }
+  if(r.hpSync!==undefined){
+    if(r.hpSync<=0&&r.alive){ r.alive=false; r.deathT=0; r.deathDir=1; r.moveMode=0; r.speed=0; }
+    else if(r.hpSync>0&&!r.alive){ r.alive=true; r.deathT=0; }
+    if(r.alive) r.hp=r.hpSync;
+  }
+}
 
 // ================= СЕКРЕТНЫЙ КОД «meosan»: квест тайны костей =================
 // Цепочка (всё выполняется без выхода из игры): на тирексе убить раптора →
@@ -2703,32 +2837,41 @@ $('code-later').addEventListener('click',closeCodeModal);
 $('code-input').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') submitCode(); });
 
 // ================= БОСС: ДИКИЙ ИНДОМИНУС (рейд-событие) =================
-// Появляется по таймеру среди игры. Сила масштабируется от числа игроков на сервере
-// (playersOnServer — сейчас 1, мультиплеер подставит реальное число — механика уже готова).
+// Появляется по таймеру среди игры. Сила масштабируется от ФАКТИЧЕСКОГО числа игроков в сетевой комнате
+// (в одиночной игре — 1). Хост симулирует босса, остальные повторяют его состояние.
 // Лут: все, кто нанёс ≥15% хп, получают шанс: 60% монеты · 28% скин Индоминуса · 12% СКОРПИУС РЕКС.
 // Жалость: если 7 киллов подряд без Скорпиуса — 8-й гарантирует его.
 const BOSS={ e:null, timer:rand(100,150), dmg:{}, dmgMul:1, life:0, tauntT:20, lastHp:1 };
-function playersOnServer(){ return 1+((NET.sock&&NET.peers)?NET.peers.length:0); }
-function spawnBoss(){
+function playersOnServer(){ return 1+(NET.on?NET.peers.length:0); }
+function spawnBoss(fromNet){
   if(BOSS.e) return;
-  const P=playersOnServer();
-  const hpMul=1+.55*(P-1); BOSS.dmgMul=1+.35*(P-1);
   const def=dinoDef('indomWild');
-  const b=makeEnt('boss','boss','indomWild','raider');
-  b.boss=true; b.name=def.name.toUpperCase();
-  b.hpMax=Math.round(def.hp*hpMul); b.hp=b.hpMax; b.sta=b.staMax=def.sta;
-  let px=0,pz=0,ok=false;
-  for(let i=0;i<40&&!ok;i++){
-    const a=Math.random()*6.283, d=rand(150,280);
-    const tx=my.pos.x+Math.cos(a)*d, tz=my.pos.z+Math.sin(a)*d;
-    if(terrainH(tx,tz)>WATER_Y+2&&Math.hypot(tx,tz)<MAP_R-40){ px=tx; pz=tz; ok=true; }
+  let hpMax,mul,px,pz,puppet=false;
+  if(fromNet){                                      // марионетка: параметры и точка спавна от хоста
+    hpMax=fromNet.hpMax; mul=fromNet.mul; px=fromNet.p[0]; pz=fromNet.p[2]; puppet=true; BOSS.dmgMul=fromNet.mul||1;
+  } else {
+    const P=playersOnServer();
+    const hpMul=1+.55*(P-1); BOSS.dmgMul=1+.35*(P-1);
+    hpMax=Math.round(def.hp*hpMul); mul=hpMul;
+    let ok=false;
+    for(let i=0;i<40&&!ok;i++){
+      const a=Math.random()*6.283, d=rand(150,280);
+      const tx=my.pos.x+Math.cos(a)*d, tz=my.pos.z+Math.sin(a)*d;
+      if(terrainH(tx,tz)>WATER_Y+2&&Math.hypot(tx,tz)<MAP_R-40){ px=tx; pz=tz; ok=true; }
+    }
+    if(!ok){ px=120; pz=-120; }
+    if(NET.on) NET.send('bx',{k:'sp',hpMax,mul:BOSS.dmgMul,p:[+px.toFixed(1),0,+pz.toFixed(1)]});
   }
-  if(!ok){ px=120; pz=-120; }
-  placeOnGround(b,px,pz); b.yaw=Math.atan2(-(my.pos.x-px),-(my.pos.z-pz)); b.prevYaw=b.yaw;
+  const b=makeEnt('boss','boss','indomWild','raider');
+  b.boss=true; b.puppet=puppet; b.name=def.name.toUpperCase();
+  b.hpMax=hpMax; b.hp=hpMax; b.sta=b.staMax=def.sta;
+  placeOnGround(b,px,pz);
+  b.yaw=Math.atan2(-(my.pos.x-px),-(my.pos.z-pz)); b.prevYaw=b.yaw;
   b.cloakCycle=rand(10,15); b.roarT=8; b.stepAcc=0; b.wanderT=0;
   b.mesh=buildDino(def); scene.add(b.mesh.g); ENT.push(b);
   BOSS.e=b; BOSS.dmg={}; BOSS.life=0; BOSS.tauntT=rand(14,22);
-  chatMsg('ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ! Сила ×'+hpMul.toFixed(1)+' · игроков на сервере: '+P,null,'bad');
+  const P=playersOnServer();
+  chatMsg('ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ! Сила ×'+(1+.55*(P-1)).toFixed(1)+' · игроков на сервере: '+P,null,'bad');
   toast('⚠ ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ!','coin');
   SFX.bossRoar(); shake=1;
   ringFx(px,terrainH(px,pz)+.3,pz,0xff5a3a,26,1.2);
@@ -2737,7 +2880,29 @@ function bossLeave(silent){
   const b=BOSS.e; if(!b) return;
   scene.remove(b.mesh.g); const ix=ENT.indexOf(b); if(ix>=0) ENT.splice(ix,1);
   BOSS.e=null; BOSS.timer=rand(200,280);
+  if(NET.on&&NET.amHost()&&!silent) NET.send('bx',{k:'gone'});
   if(!silent) chatMsg('Дикий Индоминус растворился в тумане... он вернётся.',null,'bad');
+}
+function netOnBoss(d){                              // сетевые события босса (хост → всем)
+  if(d.k==='sp'){ spawnBoss(d); return; }
+  const b=BOSS.e;
+  if(d.k==='s'){ if(!b||!b.puppet) return;
+    b.np={x:d.p[0],y:d.p[1],z:d.p[2]}; b.ny=d.y; b.hp=d.hp; b.nAtk=!!d.a;
+    b.cloakT=d.c?Math.max(b.cloakT||0,.3):0; return; }
+  if(!b) return;
+  if(d.k==='ev'){ if(b.puppet) b.nEv=d.t; return; }
+  if(d.k==='die'){ if(b.puppet){ b.alive=false; b.hp=0; b.deathT=0; b.deathDir=1; b.moveMode=0; b.speed=0; }
+    shake=Math.max(shake,.9);
+    chatMsg('ДИКИЙ ИНДОМИНУС ПОВЕРЖЕН! Выясняем, кто достоин добычи...',null,'sys');
+    setTimeout(()=>{ if(G.state==='play') rollLoot(d.hpMax); },1100); return; }
+  if(d.k==='gone'&&b.puppet) bossLeave();
+}
+function hostApplyBossDmg(n){                        // урон от сетевых игроков стекается к хосту
+  const b=BOSS.e; if(!b||!b.alive||b.puppet) return;
+  const eff=Math.min(Math.max(1,Math.round(n)||1),b.hp);
+  b.hp-=eff; b.flinchT=.18; burst(b.pos,0xc22f22,6,5);
+  if(b.hp<=0){ b.hp=0; b.alive=false; b.deathT=0; b.deathDir=Math.random()<.5?1:-1;
+    b.moveMode=0; b.speed=0; SFX.die(); burst(b.pos,0xc22f22,14,8); onBossDeath(b); }
 }
 function bossCloakFx(b,dt){
   if(!b.mesh||!b.mesh.mats) return;
@@ -2745,14 +2910,33 @@ function bossCloakFx(b,dt){
   for(const m of b.mesh.mats) m.opacity=lerp(m.opacity,tgt,k);
 }
 function updBoss(b,dt){
+  if(b.puppet){                                     // боссом ведёт хост — повторяем его состояние
+    if(!b.alive){ if(b.deathT>7) bossLeave(true); return; }
+    const k=1-Math.exp(-9*dt);
+    if(b.np){ b.pos.x+=(b.np.x-b.pos.x)*k; b.pos.y+=(b.np.y-b.pos.y)*k; b.pos.z+=(b.np.z-b.pos.z)*k; }
+    if(b.ny!==undefined&&b.ny!==null) b.yaw+=wrapA(b.ny-b.yaw)*k;
+    if(b.nAtk&&b.attackT<=0){ b.attackT=.32; if(b.pos.distanceTo(my.pos)<90) SFX.bite(); }
+    b.nAtk=false;
+    if(b.nEv){
+      if(b.nEv==='roar'){ startSpec(b,'roar3',2.3); if(b.pos.distanceTo(my.pos)<150) SFX.roar3();
+        ringFx(b.pos.x,b.pos.y+.4,b.pos.z,0xff5a3a,20,.9); }
+      else if(b.nEv==='thud'&&b.pos.distanceTo(my.pos)<110){ SFX.thud(); shake=Math.max(shake,.14); }
+      b.nEv=null;
+    }
+    bossCloakFx(b,dt);
+    return;
+  }
   if(!b.alive){ if(b.deathT>7) bossLeave(true); return; }
   BOSS.life+=dt;
   if(BOSS.life>170){ bossLeave(); return; }        // надоел — ушёл в туман
-  // жертва: игрок — главный приз (маскировка сбивает след); NPC — только пока игрок мёртв или невидим
-  let tgt=my.alive?(my.cloakT>0?null:my):null, td=tgt?b.pos.distanceTo(tgt.pos):1e9;
+  // жертва: ближайший живой охотник — я или сетевой друг (маскировка сбивает след); NPC — запасной вариант
+  let tgt=null, td=1e9;
+  if(my.alive&&my.cloakT<=0){ tgt=my; td=b.pos.distanceTo(my.pos); }
+  for(const o of ENT){ if(o.kind!=='human'||o.isLocal||!o.alive||o.cloakT>0) continue;
+    const d2=b.pos.distanceTo(o.pos); if(d2<td){ td=d2; tgt=o; } }
   if(!tgt){
     for(const o of ENT){ if(o.kind!=='npc'||!o.alive||o===b) continue;
-      const d=b.pos.distanceTo(o.pos); if(d<td){ td=d; tgt=o; } }
+      const d2=b.pos.distanceTo(o.pos); if(d2<td){ td=d2; tgt=o; } }
   }
   if(!tgt){ b.moveMode=0; b.speed=0; bossCloakFx(b,dt); return; }
   if(b.cloakT>0) b.cloakT-=dt;
@@ -2761,7 +2945,7 @@ function updBoss(b,dt){
     chatMsg('Индоминус растворился... слушай шаги.',null,'bad'); SFX.roar2(); }
   b.roarT-=dt;
   if(b.roarT<=0){ b.roarT=rand(20,30); startSpec(b,'roar3',2.3); SFX.roar3(); shake=Math.max(shake,.6);
-    ringFx(b.pos.x,b.pos.y+.4,b.pos.z,0xff5a3a,20,.9); }
+    ringFx(b.pos.x,b.pos.y+.4,b.pos.z,0xff5a3a,20,.9); if(NET.on) NET.send('bx',{k:'ev',t:'roar'}); }
   BOSS.tauntT-=dt;
   if(BOSS.tauntT<=0){ BOSS.tauntT=rand(18,26);
     chatMsg(['Я чую тебя...','Сырое мясо...','Прячься. Мне нравится охота.','Кости — не единственные, кто шепчет.'][(Math.random()*4)|0],b.name,'bad'); }
@@ -2773,19 +2957,25 @@ function updBoss(b,dt){
     const f=fwdOf(b), nx=b.pos.x+f.x*6, nz=b.pos.z+f.z*6;
     if(terrainH(nx,nz)<WATER_Y+.4) b.yaw+=dt*2.2;   // не топает в реку
     b.stepAcc=(b.stepAcc||0)+b.speed*dt;
-    if(b.stepAcc>7.5){ b.stepAcc=0; SFX.thud(); if(dp<90) shake=Math.max(shake,.14); }
+    if(b.stepAcc>7.5){ b.stepAcc=0; SFX.thud(); if(dp<90) shake=Math.max(shake,.14); if(NET.on) NET.send('bx',{k:'ev',t:'thud'}); }
   } else {
     b.moveMode=0; b.speed=0;
     b.yaw+=clamp(wrapA(want-b.yaw),-b.def.turn*dt*2,b.def.turn*dt*2);
     if(b.biteCd<=0){
       b.biteCd=1.35; b.attackT=.34;
       const dmg=Math.round(b.def.bite[(Math.random()*3)|0]*BOSS.dmgMul);
-      setTimeout(()=>{ if(!b.alive||!tgt.alive||G.state!=='play') return;
-        if(b.pos.distanceTo(tgt.pos)<9.5){
-          applyDamage(tgt,dmg,b,true);
-          const kb=V3().copy(tgt.pos).sub(b.pos).setY(0).normalize();
-          tgt.vel.addScaledVector(kb,13); tgt.vel.y=Math.max(tgt.vel.y,4);
-          burst(tgt.pos,0xc22f22,12,8); SFX.chomp(); shake=Math.max(shake,.5);
+      const tgtRef=tgt;
+      setTimeout(()=>{ if(!b.alive||!tgtRef.alive||G.state!=='play'||ENT.indexOf(tgtRef)<0) return;
+        if(b.pos.distanceTo(tgtRef.pos)<9.5){
+          if(tgtRef.kind==='human'&&!tgtRef.isLocal){      // сетевой игрок — урон применит он у себя
+            NET.send('bh',dmg,tgtRef.id);
+            burst(tgtRef.pos,0xc22f22,12,8); SFX.chomp(); shake=Math.max(shake,.35);
+          } else {
+            applyDamage(tgtRef,dmg,b,true);
+            const kb=V3().copy(tgtRef.pos).sub(b.pos).setY(0).normalize();
+            tgtRef.vel.addScaledVector(kb,13); tgtRef.vel.y=Math.max(tgtRef.vel.y,4);
+            burst(tgtRef.pos,0xc22f22,12,8); SFX.chomp(); shake=Math.max(shake,.5);
+          }
         } },200);
       SFX.bite();
     }
@@ -2807,9 +2997,13 @@ function updBoss(b,dt){
   resolveObs(b);
   edgePush(b);
   bossCloakFx(b,dt);
+  if(NET.on){ NET.bT-=dt;                            // снапшот босса для остальных (8 Гц)
+    if(NET.bT<=0){ NET.bT=.12;
+      NET.send('bx',{k:'s',p:[+b.pos.x.toFixed(1),+b.pos.y.toFixed(1),+b.pos.z.toFixed(1)],y:+b.yaw.toFixed(2),c:b.cloakT>0?1:0,hp:Math.round(b.hp),a:b.attackT>0?1:0}); } }
 }
 function onBossDeath(b){
   BOSS.timer=rand(200,280); BOSS.lastHp=b.hpMax;
+  if(NET.on&&NET.amHost()) NET.send('bx',{k:'die',hpMax:b.hpMax});   // добычу каждый катит себе сам (свой счётчик жалости)
   shake=Math.max(shake,.9);
   burst(b.pos,0xff5a3a,18,12); burst(V3(b.pos.x,b.pos.y+3,b.pos.z),0xe8e4d6,14,10);
   chatMsg('ДИКИЙ ИНДОМИНУС ПОВЕРЖЕН! Выясняем, кто достойн добычи...',null,'sys');
@@ -2981,6 +3175,8 @@ function updMinimap(dt){
   mmx.fillStyle='#e8d44a'; mmx.font='bold 10px monospace'; mmx.textAlign='center'; mmx.fillText('✕',C+BONES[0]*k,C+BONES[1]*k+4);
   for(const e of ENT){
     if(e===my||!e.alive) continue;
+    if(e.kind==='human'&&!e.isLocal){                 // сетевые друзья — бело-зелёные точки
+      mmx.fillStyle='#8df0a0'; mmx.beginPath(); mmx.arc(C+e.pos.x*k,C+e.pos.z*k,3.4,0,6.283); mmx.fill(); continue; }
     if(e.kind!=='npc'&&e.kind!=='boss') continue;
     const x=C+e.pos.x*k, y=C+e.pos.z*k;
     if(e.kind==='boss'){
@@ -3247,8 +3443,10 @@ function enragePack(victim){
 function applyDamage(target,dmg,src,heavy){
   if(!target.alive||G.state!=='play') return;
   const before=target.hp;
-  target.hp-=dmg;
+  const netPuppet=target.boss&&NET.on&&!NET.amHost();   // босс-марионетка: хп ведёт хост, локально не добиваем
+  target.hp-=netPuppet?Math.min(dmg,Math.max(0,before-1)):dmg;
   if(target.boss&&src) BOSS.dmg[src.id]=(BOSS.dmg[src.id]||0)+Math.min(dmg,before);   // вклад каждого в рейд-лут
+  if(netPuppet&&src&&src.isLocal) NET.send('bd',Math.round(dmg));   // урон стекается к хосту
   if(src&&src.dinoId==='scorpius'&&dmg>0&&target!==src){          // СКОРПИУС: пассивка «Ядовитые шипы»
     target.poisonT=Math.max(target.poisonT||0,5); target.poisonSrc=src;
   }
@@ -4037,16 +4235,16 @@ const _v4=V3();
 const plates=new Map();
 function updPlates(){
   for(const e of ENT){
-    if(e.kind!=='npc'&&e.kind!=='boss') continue;
+    if(e.kind!=='npc'&&e.kind!=='boss'&&e.kind!=='human') continue;
     let pl=plates.get(e.id);
     if(!e.alive){ if(pl) pl.style.opacity=0; continue; }
     if(e.kind==='boss'&&e.cloakT>0){ if(pl) pl.style.opacity=0; continue; }   // босс растворился — имя тоже
     if(!pl){
-      pl=document.createElement('div'); pl.className='plate'+(e.kind==='boss'?' boss':'');
+      pl=document.createElement('div'); pl.className='plate'+(e.kind==='boss'?' boss':e.kind==='human'?' friend':'');
       pl.innerHTML='<div class="pn"></div><div class="phb"><div></div></div>';
       document.body.appendChild(pl); plates.set(e.id,pl);
     }
-    const lim=e.kind==='boss'?170:90;
+    const lim=e.kind==='boss'?170:e.kind==='human'?140:90;
     const v=_v5.set(e.pos.x,e.pos.y+((e.mesh&&e.mesh.tagY)||3.1)*e.def.scale,e.pos.z).project(camera);
     if(v.z>1||e.pos.distanceTo(my.pos)>lim){ pl.style.opacity=0; continue; }
     pl.style.opacity=1;
@@ -4207,11 +4405,12 @@ function applyPlayerDino(id){
   scene.remove(myMesh.g);
   myMesh=buildDino(d); scene.add(myMesh.g);
   const [rx,rz]=spawnSpot(); placeOnGround(my,rx,rz);
+  if(NET.on) NET.hello();                           // смена вида — сообщить острову
   $('dino-tag').textContent=d.name.toUpperCase();
   $('ab-pounce').querySelector('span').textContent=d.qLabel||'Приём';
   $('ab-heavy').querySelector('span').textContent=d.heavyLabel||'Тяжёлый';
 }
-$('btn-play').addEventListener('click',()=>{
+$('btn-play').addEventListener('click',async ()=>{
   const d=PLAYABLE[G.selIdx];
   if(d.id==='indom'&&!G.owned.indom){               // секретный вид — только через квест
     $('menu-tip').textContent='Этот силуэт скрыт туманом... Тайна костей ещё не раскрыта';
@@ -4228,6 +4427,12 @@ $('btn-play').addEventListener('click',()=>{
     $('menu-tip').style.color='#ffb0a0';
     return;
   }
+  if($('net-on').checked&&!NET.on&&!NET.joining){    // кооп: комната по коду, без своего сервера
+    const code=($('net-room').value||'jurassic-blocky').trim().toLowerCase().replace(/[^0-9a-zа-яё-]/gi,'').slice(0,18)||'jurassic-blocky';
+    $('net-room').value=code;
+    await NET.connect(code);
+  } else if(!$('net-on').checked&&NET.on){ NET.leave(); }
+  if(NET.on) NET.hello();
   applyPlayerDino(d.id);
   G.state='play';
   $('ov-menu').classList.add('hidden');
@@ -4313,9 +4518,15 @@ function step(dt){
   G.t+=dt;
   updPlayer(dt);
   if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
+  if(NET.on){
+    NET.stT-=dt;
+    if(NET.stT<=0){ NET.stT=.1; const f=NET.tx.st;   // своё состояние — 10 Гц
+      if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }
+    for(const e of ENT){ if(e.kind==='human'&&!e.isLocal) updRemote(e,dt); }
+  }
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
   if(BOSS.e) updBoss(BOSS.e,dt);              // рейд-босс: ИИ + клоак + рыки
-  else { BOSS.timer-=dt; if(BOSS.timer<=0) spawnBoss(); }
+  else if(!NET.on||NET.amHost()){ BOSS.timer-=dt; if(BOSS.timer<=0) spawnBoss(); }   // спавнит только хост
   updPoison(dt);                              // тики яда Скорпиуса
   CHAT.t-=dt; if(CHAT.t<=0){ CHAT.t=rand(22,40); botChat(); }
   updParts(dt); updProj(dt);
@@ -4326,7 +4537,8 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+addEventListener('beforeunload',()=>NET.leave());
 requestAnimationFrame(frame);
 })();
 </script>
