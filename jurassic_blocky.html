@@ -258,7 +258,7 @@
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
-    <div id="net-row"><label class="net-tgl"><input type="checkbox" id="net-on"> играть по сети</label><input id="net-room" maxlength="18" value="jurassic-blocky" spellcheck="false"><span id="net-hint">одинаковый код у всех — кто первый нажал «ИГРАТЬ», тот хост (до 8+ игроков)</span></div>
+    <div id="net-row"><label class="net-tgl"><input type="checkbox" id="net-on"> играть по сети</label><input id="net-room" maxlength="18" value="jurassic-blocky" spellcheck="false"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку-приглашение с кодом комнаты">🔗 ссылка другу</button><span id="net-hint">введи тот же код у друга — или отправь ему ссылку; кто первый нажал «ИГРАТЬ», тот хост</span></div>
     <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
@@ -2697,7 +2697,78 @@ let myMesh=buildDino(my.def); scene.add(myMesh.g);
 // первый нажавший «ИГРАТЬ» станет хостом, второй сам подключится клиентом — конфликт невозможен.
 // Топология «звезда»: клиенты шлют всё хосту, хост транслирует состояние босса и пересылает
 // сообщения между клиентами. Число игроков ЛЮБОЕ — сила босса растёт с каждым подключившимся.
-// План Б (если PeerJS-брокер недоступен): trystero/nostr через CDN.
+// План Б (жёсткий/симметричный NAT): релей ДАННЫХ через публичные nostr-релеи
+// (WSS :443, ephemeral kind 20001, подпись BIP340 встроена ниже).
+// План В: публичный MQTT-брокер (WSS). Оба работают за любым NAT: только исходящие
+// WebSocket, свой сервер не нужен.
+// ===== крипто для nostr-релея: sha256 + secp256k1 BIP340 (Jacobian, BigInt) =====
+function jbSha256(data){
+  const K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  const rr=(x,n)=>(x>>>n)|(x<<(32-n));
+  let H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  const l=data.length, bl=(l+9+63)>>6, tb=bl<<6;
+  const buf=new Uint8Array(tb); buf.set(data); buf[l]=0x80;
+  const dv=new DataView(buf.buffer); dv.setUint32(tb-8,Math.floor(l/536870912)); dv.setUint32(tb-4,(l<<3)>>>0);
+  const w=new Uint32Array(64);
+  for(let i=0;i<bl;i++){
+    for(let j=0;j<16;j++) w[j]=dv.getUint32((i<<6)+(j<<2));
+    for(let j=16;j<64;j++){ const a=w[j-15],b=w[j-2];
+      w[j]=(w[j-16]+(rr(a,7)^rr(a,18)^(a>>>3))+w[j-7]+(rr(b,17)^rr(b,19)^(b>>>10)))|0; }
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(let j=0;j<64;j++){ const t1=(h+(rr(e,6)^rr(e,11)^rr(e,25))+((e&f)^(~e&g))+K[j]+w[j])|0;
+      const t2=((rr(a,2)^rr(a,13)^rr(a,22))+((a&b)^(a&c)^(b&c)))|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0; }
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;
+    H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  const out=new Uint8Array(32), o=new DataView(out.buffer);
+  for(let j=0;j<8;j++) o.setUint32(j<<2,H[j]>>>0);
+  return out;
+}
+function jbHex(b){ let s=''; for(let i=0;i<b.length;i++) s+=(b[i]>>4).toString(16)+(b[i]&15).toString(16); return s; }
+const JB_P=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2Fn;
+const JB_N=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141n;
+const JB_G=[0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798n,
+            0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8n,1n];
+function jbInv(a){ let r=1n,e=JB_P-2n,b2=a%JB_P; while(e>0n){ if(e&1n) r=r*b2%JB_P; b2=b2*b2%JB_P; e>>=1n; } return r; }
+function jbJacDbl(P){ const X=P[0],Y=P[1],Z=P[2];
+  if(Z===0n||Y===0n) return [0n,1n,0n];
+  const A=X*X%JB_P, B=Y*Y%JB_P, C=B*B%JB_P;
+  const D=(((X+B)*(X+B)%JB_P-A-C)%JB_P*2n)%JB_P;
+  const E=(3n*A)%JB_P, F=(E*E)%JB_P;
+  const X3=(F-2n*D)%JB_P, Y3=(E*(D-X3)%JB_P-8n*C)%JB_P, Z3=(2n*Y*Z)%JB_P;
+  return [((X3%JB_P)+JB_P)%JB_P,((Y3%JB_P)+JB_P)%JB_P,((Z3%JB_P)+JB_P)%JB_P]; }
+function jbJacAdd(P,Q){ const X1=P[0],Y1=P[1],Z1=P[2],X2=Q[0],Y2=Q[1],Z2=Q[2];
+  if(Z1===0n) return Q; if(Z2===0n) return P;
+  const Z1Z1=Z1*Z1%JB_P, Z2Z2=Z2*Z2%JB_P;
+  const U1=X1*Z2Z2%JB_P, U2=X2*Z1Z1%JB_P;
+  const S1=Y1*Z2Z2%JB_P*Z2%JB_P, S2=Y2*Z1Z1%JB_P*Z1%JB_P;
+  if(U1===U2) return (S1===S2)?jbJacDbl(P):[0n,1n,0n];
+  const H=((U2-U1)%JB_P+JB_P)%JB_P, I=(2n*H*(2n*H)%JB_P)%JB_P, J=H*I%JB_P;
+  const r=((2n*((S2-S1)%JB_P+JB_P)%JB_P)%JB_P+JB_P)%JB_P, V=U1*I%JB_P;
+  const X3=(r*r-J-2n*V)%JB_P, Y3=(r*(V-X3)%JB_P-2n*S1*J%JB_P)%JB_P, Z3=(((Z1+Z2)*(Z1+Z2)%JB_P-Z1Z1-Z2Z2)%JB_P)*H%JB_P;
+  return [((X3%JB_P)+JB_P)%JB_P,((Y3%JB_P)+JB_P)%JB_P,((Z3%JB_P)+JB_P)%JB_P]; }
+function jbJacMul(P,k){ let R=[0n,1n,0n],Q=P; while(k>0n){ if(k&1n) R=jbJacAdd(R,Q); Q=jbJacDbl(Q); k>>=1n; } return R; }
+function jbAff(P){ const z=jbInv(P[2]), z2=z*z%JB_P; return [P[0]*z2%JB_P, P[1]*z2%JB_P*z%JB_P]; }
+function jbB32(x){ const o=new Uint8Array(32); for(let i=31;i>=0;i--){ o[i]=Number(x&255n); x>>=8n; } return o; }
+function jbBi(b){ let x=0n; for(let i=0;i<32;i++) x=(x<<8n)|BigInt(b[i]); return x; }
+function jbCat(...as){ const L=as.reduce((a,b)=>a+b.length,0); const o=new Uint8Array(L); let k=0;
+  for(const a of as){ o.set(a,k); k+=a.length; } return o; }
+function jbKeygen(sk32){
+  const d0=jbBi(sk32); if(d0===0n||d0>=JB_N) return null;
+  const A=jbAff(jbJacMul(JB_G,d0));
+  return { pk:jbB32(A[0]), d:(A[1]&1n)===0n?d0:JB_N-d0, px:jbB32(A[0]) };
+}
+function jbSign(msg32,key,aux32){
+  const th=(tag,m)=>{ const t=jbSha256(new TextEncoder().encode(tag)); return jbSha256(jbCat(t,t,m)); };
+  const t=(key.d^jbBi(th('BIP0340/aux',aux32)));
+  const rand=th('BIP0340/nonce',jbCat(jbB32(t),key.px,msg32));
+  let k0=jbBi(rand)%JB_N; if(k0===0n) return null;
+  const R=jbAff(jbJacMul(JB_G,k0)); if(!R) return null;
+  const k=(R[1]&1n)===0n?k0:JB_N-k0;
+  const e=jbBi(th('BIP0340/challenge',jbCat(jbB32(R[0]),key.px,msg32)))%JB_N;
+  return jbCat(jbB32(R[0]),jbB32((k+e*key.d)%JB_N));
+}
 const NET={
   on:false, peer:null, room:null, conns:{}, _hostConn:null, peers:[], names:{}, myNetId:null, code:'',
   tx:{}, rx:{}, stT:0, bT:0, joining:false, _host:true, _iAmHost:false, _mode:'peer',
@@ -2712,7 +2783,7 @@ const NET={
       } else if(this._hostConn&&this._hostConn.open){ this._hostConn.send(msg); }
     }catch(e){}
   },
-  _recv(m,from){ if(!m||typeof m!=='object'||!m.c) return; const f=this.rx[m.c];
+  _recv(m,from){ if(!m||typeof m!=='object'||!m.c) return; if(m.f&&m.f===this.myNetId) return; const f=this.rx[m.c];
     if(f){ try{ f(m.d, m.f||from); }catch(e){} } },
   _relay(from,msg){ if(!msg||typeof msg!=='object'||!msg.c) return;   // хост пересылает чужое остальным
     for(const k in this.conns){ if(k!==from){ const c=this.conns[k];
@@ -2730,6 +2801,8 @@ const NET={
     wire('hi',(d,pid)=>{ const fresh=!this.names[pid];
       this.names[pid]={n:(''+(d.n||'Охотник')).slice(0,14),d:d.d,s:d.s}; netEnsureRemote(pid,true);
       if(fresh&&!this._iAmHost) this.hello(pid);   // клиент отвечает новичку — тот узнаёт его имя
+      if(fresh&&this._iAmHost&&this._mode!=='peer'&&BOSS.e&&BOSS.e.alive)
+        this.send('bx',{k:'sp',hpMax:BOSS.e.hpMax,mul:BOSS.dmgMul,p:[+BOSS.e.pos.x.toFixed(1),0,+BOSS.e.pos.z.toFixed(1)]},pid);
       updNetHud(); });
     wire('ev',(d,pid)=>netOnEvent(d,pid));
     wire('bx',d=>netOnBoss(d));
@@ -2737,8 +2810,10 @@ const NET={
     wire('bh',n=>{ if(my.alive&&BOSS.e) applyDamage(my,Math.max(1,Math.round(n)||1),BOSS.e,true); });
     const PeerCtor=(typeof PeerLib!=='undefined'&&PeerLib&&PeerLib.Peer)?PeerLib.Peer:(typeof Peer!=='undefined'?Peer:null);
     let ok=false;
-    if(PeerCtor) ok=await this._dialPeer(PeerCtor,code);
-    if(!ok) ok=await this._dialTrystero(code);     // план Б: nostr-релеи через CDN
+    if(PeerCtor&&!this._forceRelay) ok=await this._dialPeer(PeerCtor,code);
+    if(!ok){ this.netStatus('прямое соединение не собралось — иду через релей…');
+      ok=await this._dialNostr(code); }            // план Б: nostr-релей (порт 443, любой NAT)
+    if(!ok) ok=await this._dialMqtt(code);         // план В: публичный MQTT-брокер
     this.joining=false; this.on=!!ok;
     if(ok){ updNetHud(); this.hello(); }
     else this.netStatus('сеть недоступна — играешь один');
@@ -2747,15 +2822,16 @@ const NET={
   _dialPeer(PeerCtor,code){                        // true → вошёл (хостом или клиентом)
     return new Promise(res=>{
       const hostId=this.PREFIX+code;
+      const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun.cloudflare.com:3478']}]};
       let done=false, tries=0, unavail=0;
       const finish=v=>{ if(done) return; done=true; res(v); };
-      const giveUp=setTimeout(()=>finish(false),40000);
+      const giveUp=setTimeout(()=>finish(false),22000);
       let cp=null;
       const dropCp=()=>{ if(cp){ try{cp.destroy();}catch(e){} cp=null; this._hostConn=null; } };
       const becomeHost=()=>{                       // комната точно пуста — занимаю код
         if(done) return;
         dropCp();
-        let hp=null; try{ hp=new PeerCtor(hostId,{debug:0}); }catch(e){ return finish(false); }
+        let hp=null; try{ hp=new PeerCtor(hostId,{debug:0,config:ICE}); }catch(e){ return finish(false); }
         hp.on('open',()=>{ if(done){ try{hp.destroy();}catch(e){} return; }
           clearTimeout(giveUp); this._wirePeer(hp,true); finish(true); });
         hp.on('error',e=>{ if(done) return;
@@ -2769,22 +2845,22 @@ const NET={
         const conn=cp.connect(hostId,{reliable:true});
         try{ window.__jbconn=conn; }catch(e){}
         this._hostConn=conn;
-        const to=setTimeout(()=>{ if(done) return; try{conn.close();}catch(e){} tryConnect(); },15000);
+        const to=setTimeout(()=>{ if(done||conn.open) return; try{conn.close();}catch(e){} tryConnect(); },12000);
         conn.on('open',()=>{ clearTimeout(to);
           if(done){ try{conn.close();}catch(e){} return; }
           this._wirePeer(cp,false); this._hostConn=conn; this._addConn(conn); finish(true); });
-        conn.on('close',()=>{ if(!done){ clearTimeout(to); setTimeout(()=>{ if(!done) tryConnect(); },900); }
+        conn.on('close',()=>{ if(!done){ clearTimeout(to); setTimeout(()=>{ if(!done) tryConnect(); },700); }
           else { chatMsg('Хост вышел — комната распущена','·','sys'); this.leave(); } });
         conn.on('error',()=>{});
       };
       const becomeClient=()=>{                     // сперва пробуем ВОЙТИ — гонок за id нет
         if(done) return;
-        if(++tries>6){ clearTimeout(giveUp); dropCp(); return finish(false); }
+        if(++tries>3){ clearTimeout(giveUp); dropCp(); return finish(false); }
         if(cp&&cp.open){ return tryConnect(); }    // пиир жив — переиспользуем (брокер не любит частых пиров)
         dropCp();
-        try{ cp=new PeerCtor({debug:0}); }catch(e){ return finish(false); }
+        try{ cp=new PeerCtor({debug:0,config:ICE}); }catch(e){ return finish(false); }
         try{ window.__jbcp=cp; }catch(e){}
-        const openTo=setTimeout(()=>{ if(done) return; dropCp(); becomeClient(); },12000);  // брокер притормозил
+        const openTo=setTimeout(()=>{ if(done) return; dropCp(); becomeClient(); },8000);  // брокер притормозил
         cp.on('open',()=>{ clearTimeout(openTo); if(done) return; tryConnect(); });
         cp.on('disconnected',()=>{ try{ cp.reconnect(); }catch(e){} });
         cp.on('error',e=>{
@@ -2814,9 +2890,11 @@ const NET={
     this.conns[pid]=conn;
     if(!this.peers.includes(pid)) this.peers.push(pid);
     conn.on('data',m=>{ if(this._iAmHost) this._relay(pid,m); this._recv(m,pid); });
-    conn.on('close',()=>this._dropConn(pid));
+    conn.on('close',()=>{ if(this.conns[pid]===conn) this._dropConn(pid); });
     conn.on('error',()=>{});
     netEnsureRemote(pid);
+    if(this._iAmHost&&BOSS.e&&BOSS.e.alive)        // новичок опоздал к спавну — досылаем босса
+      this.send('bx',{k:'sp',hpMax:BOSS.e.hpMax,mul:BOSS.dmgMul,p:[+BOSS.e.pos.x.toFixed(1),0,+BOSS.e.pos.z.toFixed(1)]},pid);
     this.hello(pid);
     chatMsg(((this.names[pid]&&this.names[pid].n)||'Охотник')+' пришёл на остров','·','sys');
     SFX.chime(); updNetHud();
@@ -2831,38 +2909,220 @@ const NET={
     chatMsg(nm+' ушёл с острова','·','sys'); updNetHud();
     if(!this._iAmHost&&pid===this.PREFIX+this.code){ chatMsg('Связь с хостом потеряна','·','sys'); this.leave(); }
   },
-  _dialTrystero(code){                             // план Б: trystero/nostr (как раньше, через CDN)
+  // ---------- план Б: релей через публичный MQTT-брокер (WSS) ----------
+  // Минимальный MQTT 3.1.1 на голом WebSocket (CONNECT/SUBSCRIBE/PUBLISH, QoS0).
+  // Публичные брокеры принимают анонимов — свой сервер не нужен, работает за любым NAT.
+  // ---------- план Б: релей ДАННЫХ через публичные nostr-релеи (WSS :443) ----------
+  // Ephemeral-события kind 20001 с подписью BIP340 (крипта выше). Работает за любым NAT:
+  // только исходящий WebSocket на 443. Хост для босса — выборы по (since,id).
+  _dialNostr(code){
     const self=this;
-    return (async()=>{
-      try{
-        let mod=null, isNostr=false;
-        for(const u of TRYST_URLS){ try{ const m=await import(u); if(m&&m.joinRoom){ mod=m; isNostr=u.includes('/nostr'); break; } }catch(e){} }
-        if(!mod){ self.netStatus('резервная сеть (nostr) недоступна'); return false; }
-        const cfg={appId:'jurassic-blocky'};
-        if(isNostr) cfg.relayUrls=NOSTR_RELAYS;
-        const onErr=e=>{ console.warn('NET:',e&&e.error||e); };
-        const room=mod.joinRoom(cfg,code,onErr);
-        self.room=room; self.myNetId=mod.selfId; self.on=true; self._mode='tryst'; self._iAmHost=false; self._host=false;
-        const wire=(ch,recv)=>{ const a=room.makeAction(ch); self.tx[ch]=a[0]; if(recv) a[1](recv); };
-        wire('st',(d,pid)=>{ const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r) return;
-          r.np={x:d[0],y:d[1],z:d[2]}; r.ny=d[3]; r.moveMode=d[4]; r.hpSync=d[5]; r.cloakNet=!!d[6]; });
-        wire('hi',(d,pid)=>{ const fresh=!self.names[pid];
-          self.names[pid]={n:(''+(d.n||'Охотник')).slice(0,14),d:d.d,s:d.s}; netEnsureRemote(pid,true);
-          if(fresh&&!self._iAmHost) self.hello(pid);   // клиент отвечает новичку, чтобы тот узнал имя
-          updNetHud(); });
-        wire('ev',(d,pid)=>netOnEvent(d,pid));
-        wire('bx',d=>netOnBoss(d));
-        wire('bd',n=>hostApplyBossDmg(n));
-        wire('bh',n=>{ if(my.alive&&BOSS.e) applyDamage(my,Math.max(1,Math.round(n)||1),BOSS.e,true); });
-        room.onPeerJoin(pid=>{ self.peers.push(pid); netEnsureRemote(pid); self.hello(pid);
-          chatMsg(((self.names[pid]&&self.names[pid].n)||'Охотник')+' пришёл на остров','·','sys');
-          SFX.chime(); updNetHud(); });
-        room.onPeerLeave(pid=>{ const nm=(self.names[pid]&&self.names[pid].n)||'Охотник';
-          netDropRemote(pid); delete self.names[pid];
-          chatMsg(nm+' ушёл с острова','·','sys'); updNetHud(); });
-        return true;
-      }catch(e){ self.on=false; self.room=null; return false; }
-    })();
+    return new Promise(res=>{
+      const REL=['wss://nos.lol','wss://relay.primal.net','wss://nostr.mutinywallet.com'];
+      const conns=[], seenIds=new Set(), seen={};
+      let mySince=Date.now(), done=false, tickT=null;
+      const sk=new Uint8Array(32);
+      try{ crypto.getRandomValues(sk); }catch(e){ for(let i=0;i<32;i++) sk[i]=(Math.random()*256)|0; }
+      const key=jbKeygen(sk);
+      const finish=v=>{ if(done) return; done=true; clearTimeout(giveUp); res(v); };
+      const giveUp=setTimeout(()=>{ if(!self.on){ hardStop(); finish(false); } },26000);
+      if(!key){ hardStop(); finish(false); return; }
+      const pkHex=jbHex(key.pk);
+      const myId='n'+pkHex.slice(0,10);
+      function hardStop(){
+        if(tickT){ clearInterval(tickT); tickT=null; }
+        for(const ws of conns){ try{ ws.onclose=ws.onerror=ws.onmessage=null; ws.close(); }catch(e){} }
+        conns.length=0;
+      }
+      function publish(msg){
+        try{
+          const created=Math.floor(Date.now()/1000);
+          const content=JSON.stringify(msg);
+          const ser=JSON.stringify([0,pkHex,created,20001,[['t',self.code]],content]);
+          const id=jbSha256(new TextEncoder().encode(ser));
+          const aux=new Uint8Array(32);
+          try{ crypto.getRandomValues(aux); }catch(e){ for(let i=0;i<32;i++) aux[i]=(Math.random()*256)|0; }
+          const ev={pubkey:pkHex,created_at:created,kind:20001,tags:[['t',self.code]],content,id:jbHex(id),sig:jbHex(jbSign(id,key,aux))};
+          const wire=JSON.stringify(['EVENT',ev]);
+          for(const ws of conns){ try{ if(ws.readyState===1) ws.send(wire); }catch(e){} }
+        }catch(e){}
+      }
+      function onEvent(e2){
+        if(!e2||!e2.id||seenIds.has(e2.id)) return;
+        seenIds.add(e2.id); if(seenIds.size>700) seenIds.clear();
+        let m; try{ m=JSON.parse(e2.content); }catch(e){ return; }
+        if(!m||typeof m!=='object'||!m.c||!m.f||m.f===self.myNetId) return;
+        if(seen[m.f]){ seen[m.f].t=Date.now(); if(m.d&&m.d._s) seen[m.f].since=m.d._s; }
+        else seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0};
+        if(m.to&&m.to!==self.myNetId) return;
+        if(!self.peers.includes(m.f)) self.peers.push(m.f);
+        if(m.c==='st'&&!ENT.find(e=>e.kind==='human'&&e.id===m.f)) netEnsureRemote(m.f);
+        self._recv(m,m.f);
+      }
+      function attach(ws){
+        conns.push(ws);
+        ws.onmessage=ev=>{
+          let arr; try{ arr=JSON.parse(ev.data); }catch(e){ return; }
+          if(Array.isArray(arr)&&arr[0]==='EVENT') onEvent(arr[2]);
+          else if(Array.isArray(arr)&&arr[0]==='OK'&&!arr[2]) console.log('JBOK rejected',(''+arr[1]).slice(0,8),(''+arr[3]).slice(0,60));
+        };
+        ws.onclose=()=>{ const ix=conns.indexOf(ws); if(ix>=0) conns.splice(ix,1);
+          if(self.on&&self._mode==='nostr'&&!conns.length){ try{ self.leave(); }catch(e){} } };
+        ws.onerror=()=>{};
+      }
+      function dialOne(url){
+        try{
+          const ws=new WebSocket(url);
+          const to=setTimeout(()=>{ if(ws.readyState===0){ try{ ws.onclose=null; ws.close(); }catch(e){} } },9000);
+          ws.onopen=()=>{ clearTimeout(to); attach(ws);
+            try{ ws.send(JSON.stringify(['REQ','jb0',{kinds:[20001],'#t':[self.code],since:Math.floor(Date.now()/1000)-90,limit:0}])); }catch(e){}
+            if(!self.on){
+              self.on=true; self._mode='nostr'; self.myNetId=myId; self._iAmHost=false; self._host=false;
+              self._nPub=publish; self._nConns=conns;
+              for(const ch of ['st','hi','ev','bx','bd','bh'])
+                self.tx[ch]=(d,t2)=>{ const m={c:ch,d:d,f:self.myNetId}; if(t2) m.to=t2; publish(m); };
+              const elect=()=>{
+                let bid=myId, bs=mySince;
+                for(const pid in seen){ const sc=seen[pid].since||0;
+                  if(sc&&(sc<bs||(sc===bs&&pid<bid))){ bs=sc; bid=pid; } }
+                self._nHostId=bid;
+                if(bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
+                  if(BOSS.e&&BOSS.e.puppet) BOSS.e.puppet=false; }
+                else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
+                  if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
+              };
+              tickT=setInterval(()=>{
+                if(!self.on||self._mode!=='nostr') return;
+                publish({c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
+                  s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:self.myNetId});
+                const now=Date.now();
+                for(const pid in seen){ if(now-seen[pid].t>13000){ delete seen[pid]; self._dropConn(pid); } }
+                elect();
+              },2000);
+              self._nTick=tickT;
+              setTimeout(()=>{ if(self.on) elect(); },400);
+              chatMsg('Релей подключён — совместный режим (данные через nostr)','·','sys');
+              finish(true);
+            }
+          };
+        }catch(e){}
+      }
+      for(const u of REL) dialOne(u);
+      self.netStatus('релей: подключаюсь к nostr…');
+    });
+  },
+  _mpubRoute(ch,d,t){ const msg={c:ch,d:d,f:this.myNetId};
+    if(this._iAmHost) this._mpub(this._mBase+(t?('/'+t):'/b'),JSON.stringify(msg));
+    else this._mpub(this._mBase+'/'+(this._mHostId||this._mBase),JSON.stringify(msg)); },
+  _dialMqtt(code){
+    const self=this;
+    return new Promise(res=>{
+      const URLS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+      const base='jb23x/'+code;
+      const myId='m'+Math.random().toString(36).slice(2,8);
+      const mySince=Date.now();
+      let done=false, ui=0, ws=null, buf=new Uint8Array(0), tickT=null;
+      const seen={};
+      const finish=v=>{ if(done) return; done=true; clearTimeout(giveUp); res(v); };
+      const giveUp=setTimeout(()=>{ hardStop(); finish(false); },34000);
+      function hardStop(){
+        if(tickT){ clearInterval(tickT); tickT=null; }
+        if(ws){ try{ ws.onclose=ws.onerror=ws.onmessage=ws.onopen=null; ws.close(); }catch(e){} ws=null; }
+      }
+      // --- MQTT-кодирование ---
+      const vlq=n=>{ const o=[]; do{ let d=n%128; n=Math.floor(n/128); if(n>0)d|=128; o.push(d); }while(n>0); return o; };
+      const encStr=t=>{ const b=new TextEncoder().encode(t); return [...vlq(b.length),...b]; };
+      const pkt=(t,f,body)=>new Uint8Array([t|f,...vlq(body.length),...body]);
+      const merge=(a,b2)=>{ const o=new Uint8Array(a.length+b2.length); o.set(a); o.set(b2,a.length); return o; };
+      // --- MQTT-декодирование: поток -> пакеты ---
+      function feed(u8){
+        buf=merge(buf,u8);
+        for(;;){
+          if(buf.length<2) return;
+          const t=buf[0]>>4;
+          let rl=0, mul=1, p=1;
+          for(;;){ if(buf.length<=p) return; const d=buf[p++]; rl+=(d&127)*mul; if(!(d&128)) break; mul*=128; }
+          if(buf.length<p+rl) return;
+          const body=buf.subarray(p,p+rl);
+          buf=buf.subarray(p+rl);
+          if(t===2) onConnack(body);                 // CONNACK
+          else if(t===3){                            // PUBLISH (QoS0: без packet id)
+            const td=new TextDecoder();
+            const tl=(body[0]<<8)|body[1];
+            const pl=td.decode(body.subarray(2+tl));
+            onPub(pl);
+          }                                          // SUBACK(9)/PINGRESP(13) — игнор
+        }
+      }
+      function onPub(pl){
+        let m; try{ m=JSON.parse(pl); }catch(e){ return; }
+        if(!m||typeof m!=='object'||!m.c||!m.f||m.f===myId) return;
+        seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0};
+        if(m.c==='st'&&!ENT.find(e=>e.kind==='human'&&e.id===m.f)) netEnsureRemote(m.f);
+        if(self._iAmHost) self._mpub(base+'/b',pl);  // звезда: хост переливает чужое всем (своё f — фильтр у отправителя)
+        self._recv(m,m.f);
+      }
+      function nextUrl(){
+        if(done) return;
+        ui++;
+        if(ui>=URLS.length){ hardStop(); finish(false); return; }
+        openWs();
+      }
+      function openWs(){
+        if(ws){ try{ ws.close(); }catch(e){} ws=null; }
+        let opened=false, greeted=false, adv=false;
+        const advance=()=>{ if(adv||done) return; adv=true; try{ws.close();}catch(e){} nextUrl(); };
+        try{ ws=new WebSocket(URLS[ui]); }catch(e){ return nextUrl(); }
+        ws.binaryType='arraybuffer';
+        const to=setTimeout(()=>{ if(greeted) return; opened=true; advance(); },8000);
+        ws.onopen=()=>{ if(done) return;
+          const cid='jb'+Math.random().toString(36).slice(2,10);
+          try{ ws.send(pkt(0x10,0,[...encStr('MQTT'),4,2,0,60,...encStr(cid)])); }catch(e){} };
+        ws.onmessage=ev=>{ if(done) return;
+          const u8=(ev.data instanceof ArrayBuffer)?new Uint8Array(ev.data):new TextEncoder().encode(''+ev.data);
+          feed(u8); };
+        ws.onerror=()=>{};
+        ws.onclose=()=>{ if(self.on&&self._mode==='mqtt'&&ws===self._mqttWs){ try{ self.leave(); }catch(e){} return; }
+          if(done) return; advance(); };
+      }
+      function onConnack(body){
+        if(done) return;
+        if(!(body[0]&1)){ advance(); return; }   // отказ брокера — следующий
+        // === подключились: назначаем роли и таймеры ===
+        self._mqttWs=ws; self._mode='mqtt'; self.on=true; self.myNetId=myId;
+        self._iAmHost=false; self._host=false; self._mBase=base; self._mSeen=seen; self._mHostId=null;
+        self._mpub=(t2,p2)=>{ try{ if(ws&&ws.readyState===1)
+          ws.send(pkt(0x30,0,[...encStr(t2),...new TextEncoder().encode(p2)])); }catch(e){} };
+        for(const ch of ['st','hi','ev','bx','bd','bh']) self.tx[ch]=(d,t2)=>self._mpubRoute(ch,d,t2);
+        try{ ws.send(pkt(0x82,0,[0,1,...encStr(base+'/+'),0])); }catch(e){}
+        const elect=()=>{
+          let bid=myId, bs=mySince;
+          for(const pid in seen){ const sc=seen[pid].since||0;
+            if(sc&&(sc<bs||(sc===bs&&pid<bid))){ bs=sc; bid=pid; } }
+          self._mHostId=bid;
+          if(bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
+            if(BOSS.e&&BOSS.e.puppet) BOSS.e.puppet=false; }
+          else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
+            if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
+        };
+        tickT=setInterval(()=>{
+          if(!self.on||self._mode!=='mqtt') return;
+          const hel={c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
+            s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:myId};
+          self._mpub(base+'/b',JSON.stringify(hel));            // маячок присутствия (hi всем)
+          const now=Date.now();
+          for(const pid in seen){ if(now-seen[pid].t>13000){ delete seen[pid]; self._dropConn(pid); } }
+          elect();
+        },2000);
+        self._mTick=tickT;
+        setTimeout(()=>{ if(!done) elect(); },400);             // быстрый первый выбор хоста
+        chatMsg('Релей подключён — совместный режим (для тяжёлых сетей)','·','sys');
+        greeted=true; opened=true; clearTimeout(to);
+        finish(true);
+      }
+      self.netStatus('релей: подключаюсь к публичному брокеру…');
+      openWs();
+    });
   },
   hello(target){ if(!this.on) return;
     this.send('hi',{n:G.set.name||'Охотник',d:my.dinoId,s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:''},target); },
@@ -2871,6 +3131,12 @@ const NET={
     this.conns={}; this._hostConn=null;
     try{ if(this.room) this.room.leave(); }catch(e){}
     try{ if(this.peer) this.peer.destroy(); }catch(e){}
+    if(this._mqttWs){ try{ this._mqttWs.onclose=null; this._mqttWs.close(); }catch(e){} this._mqttWs=null; }
+    if(this._mTick){ try{ clearInterval(this._mTick); }catch(e){} this._mTick=null; }
+    this._mSeen=null; this._mHostId=null; this._mBase=null; this._mpub=null;
+    if(this._nTick){ try{ clearInterval(this._nTick); }catch(e){} this._nTick=null; }
+    if(this._nConns){ for(const ws2 of this._nConns){ try{ ws2.onclose=null; ws2.send(JSON.stringify(['CLOSE','jb0'])); ws2.close(); }catch(e){} } this._nConns=null; }
+    this._nPub=null; this._nKey=null;
     this.on=false; this.peer=null; this.room=null; this.peers=[]; this._iAmHost=false; this._host=true; this._mode='peer';
     for(let i=ENT.length-1;i>=0;i--) if(ENT[i].kind==='human'&&!ENT[i].isLocal){ scene.remove(ENT[i].mesh.g); ENT.splice(i,1); }
     updNetHud(); },
@@ -2882,15 +3148,28 @@ try{
   const nr=$('net-room');
   if(nr){
     const qm=location.search.match(/[?&]room=([0-9A-Za-zа-яА-ЯёЁ-]{1,18})/);
-    if(qm) nr.value=qm[1];
+    if(qm){ nr.value=qm[1]; const nt=$('net-on'); if(nt) nt.checked=true; }  // пришёл по ссылке — сеть сразу включена
     else if(nr.value==='jurassic-blocky') nr.value=Math.random().toString(36).slice(2,8);
   }
+}catch(e){}
+function fallbackCopy(t){ const ta=document.createElement('textarea'); ta.value=t;
+  ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta); }
+try{
+  const bi=$('btn-invite');
+  if(bi) bi.onclick=()=>{
+    const code=($('net-room').value||'jurassic-blocky').trim();
+    const url=location.origin+location.pathname+'?room='+encodeURIComponent(code);
+    const ok=()=>toast('Ссылка скопирована — отправь другу: он откроет её и нажмёт ИГРАТЬ','coin');
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok,()=>{ fallbackCopy(url); ok(); });
+    else { fallbackCopy(url); ok(); }
+  };
 }catch(e){}
 function updNetHud(){
   const chip=$('net-chip'); if(chip) chip.classList.toggle('on',NET.on);
   const c=$('net-cnt'); if(c) c.textContent=playersOnServer();
   if(!NET.on){ NET.netStatus('одиночный режим · локальная симуляция'); return; }
-  NET.netStatus('в сети · комната «'+NET.code+'» · игроков: '+playersOnServer()+' · друзья вводят тот же код');
+  NET.netStatus('в сети · комната «'+NET.code+'» · игроков: '+playersOnServer()+(NET._mode==='mqtt'?' · релей':' · P2P')+' · 🔗 в меню — ссылка другу');
 }
 function netEnsureRemote(pid,rebuild){
   let r=ENT.find(e=>e.kind==='human'&&e.id===pid);
@@ -4696,7 +4975,7 @@ function step(dt){
   if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
   if(NET.on){
     NET.stT-=dt;
-    if(NET.stT<=0){ NET.stT=.1; const f=NET.tx.st;   // своё состояние — 10 Гц
+    if(NET.stT<=0){ NET.stT=(NET._mode==='peer')?.1:.2; const f=NET.tx.st;   // своё состояние: P2P 10 Гц, релей 5 Гц
       if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }
     for(const e of ENT){ if(e.kind==='human'&&!e.isLocal) updRemote(e,dt); }
   }
@@ -4713,7 +4992,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 addEventListener('beforeunload',()=>NET.leave());
 requestAnimationFrame(frame);
 })();
