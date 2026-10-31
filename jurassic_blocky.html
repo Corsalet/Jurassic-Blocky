@@ -107,6 +107,52 @@
   .code-row{margin-top:8px;display:flex;gap:10px;justify-content:center}
   #code-box.shake{animation:shk .38s}
   @keyframes shk{0%,100%{transform:none}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+  /* ---------- миникарта ---------- */
+  #mmap{position:fixed;top:14px;right:14px;z-index:5;width:172px;height:172px;border:2px solid var(--line);border-radius:12px;background:rgba(9,20,12,.82);box-shadow:0 6px 22px rgba(0,0,0,.5);display:none}
+  #hud.on #mmap{display:block}
+  #mmap.off{display:none!important}
+  /* ---------- босс-бар ---------- */
+  #bossbar{position:absolute;top:112px;left:50%;transform:translateX(-50%);width:min(520px,80vw);display:none;text-align:center;z-index:6}
+  #bossbar.on{display:block}
+  #boss-name{font-size:15px;font-weight:900;letter-spacing:2px;color:#ffb4a8;text-shadow:0 2px 0 #2a0a06,0 0 14px rgba(255,60,30,.55)}
+  #boss-sub{font-size:10.5px;font-weight:800;letter-spacing:1px;color:rgba(255,220,200,.75);margin-top:1px}
+  #boss-hpw{height:13px;border:2px solid rgba(255,90,74,.75);border-radius:8px;background:rgba(0,0,0,.6);overflow:hidden;margin-top:4px}
+  #boss-hp{height:100%;width:100%;background:linear-gradient(90deg,#8a1410,#ff5a3a)}
+  /* ---------- чат ---------- */
+  #chat{position:fixed;left:14px;bottom:108px;z-index:5;width:min(360px,46vw);display:none;flex-direction:column;gap:3px;pointer-events:none;font-size:12.5px}
+  #hud.on ~ #chat{display:flex}
+  .cmsg{background:rgba(9,20,12,.74);border-left:3px solid var(--grn-d);border-radius:6px;padding:4px 9px;color:#e8f5d8;letter-spacing:.3px;opacity:0;animation:cmsg 9s forwards;word-break:break-word}
+  .cmsg b{color:var(--grn)} .cmsg.sys{border-left-color:var(--amb);color:#ffe9b0} .cmsg.sys b{color:var(--amb)}
+  .cmsg.bad{border-left-color:#ff5a4a;color:#ffc9c2} .cmsg.bad b{color:#ff8a7a}
+  @keyframes cmsg{0%{opacity:0;transform:translateX(-8px)}4%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+  #chat-wrap{position:fixed;left:14px;bottom:62px;z-index:8;width:min(360px,46vw);display:none}
+  #chat-wrap.on{display:block}
+  #chat-in{width:100%;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:rgba(9,20,12,.92);border:2px solid var(--line);border-radius:9px;padding:8px 11px;outline:none}
+  #chat-in:focus{border-color:var(--amb)}
+  /* ---------- добыча с босса ---------- */
+  #ov-loot{z-index:22;background:rgba(20,12,4,.72)}
+  #loot-box{width:min(430px,92vw);background:var(--panel);border:2px solid rgba(255,210,74,.55);border-radius:18px;padding:26px 28px 22px;text-align:center;box-shadow:0 0 60px rgba(255,190,60,.25),0 18px 60px rgba(0,0,0,.7);animation:lootin .45s}
+  @keyframes lootin{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  #loot-t{font-size:19px;font-weight:900;letter-spacing:3px;color:var(--amb);text-shadow:0 2px 0 #3a2a06}
+  #loot-i{font-size:15.5px;font-weight:800;color:#fff;margin:13px 0 5px;line-height:1.5}
+  #loot-s{font-size:12px;color:rgba(232,245,216,.7);margin-bottom:14px;line-height:1.5}
+  /* ---------- настройки ---------- */
+  #ov-set{z-index:24;background:rgba(7,14,9,.9)}
+  #set-box{width:min(460px,94vw);background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:24px 28px 22px;text-align:left}
+  #set-title{font-size:24px;font-weight:900;letter-spacing:2.5px;color:var(--grn);text-align:center;text-shadow:0 2px 0 #143a18}
+  .set-row{margin-top:14px}
+  .set-row label{display:block;font-size:11.5px;font-weight:800;letter-spacing:1px;color:rgba(232,245,216,.75);margin-bottom:6px}
+  .set-row input[type=range]{width:100%;accent-color:#8ee05a;height:22px;cursor:pointer}
+  .set-row select,.set-row input[type=text]{width:100%;background:rgba(0,0,0,.5);border:2px solid var(--line);border-radius:9px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:8px 10px;outline:none}
+  .set-row select:focus,.set-row input[type=text]:focus{border-color:var(--amb)}
+  .set-val{float:right;color:var(--amb)}
+  #set-back{display:block;margin:18px auto 0}
+  .btn-row{display:flex;gap:10px;justify-content:center;margin-top:4px}
+  #dc-skinrow{display:none;margin-top:9px;font-size:12px;font-weight:800;letter-spacing:.5px;color:rgba(232,245,216,.85);text-align:center}
+  #dc-skinrow .dc-arr{width:26px;height:26px;font-size:15px}
+  #dc-skinname{color:#cdb4ff}
+  /* ---------- яд ---------- */
+  #pois-vig{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(60,200,40,0) 42%,rgba(60,200,40,.34) 100%);transition:opacity .3s}
   #err-net{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,14,9,.94);color:#ffb0a0;font-size:15px;letter-spacing:1px;text-align:center;padding:30px}
 </style>
 </head>
@@ -133,8 +179,34 @@
   <div id="env-chip">☀ ДЕНЬ</div>
   <div id="quest"></div>
   <div id="toasts"></div>
+  <canvas id="mmap" width="172" height="172"></canvas>
+  <div id="bossbar"><div id="boss-name"></div><div id="boss-sub"></div><div id="boss-hpw"><div id="boss-hp"></div></div></div>
+  <div id="pois-vig"></div>
 </div>
 <div id="hitm">✕</div>
+<!-- ================= ЧАТ ================= -->
+<div id="chat"></div>
+<div id="chat-wrap"><input id="chat-in" maxlength="90" autocomplete="off" spellcheck="false" placeholder="сообщение · Enter — отправить, Esc — закрыть"></div>
+<!-- ================= НАСТРОЙКИ ================= -->
+<div id="ov-set" class="ov hidden">
+  <div id="set-box">
+    <div id="set-title">НАСТРОЙКИ</div>
+    <div class="set-row"><label>ИМЯ ОХОТНИКА <span class="set-val">для чата и онлайна</span></label><input type="text" id="set-name" maxlength="14" placeholder="как тебя звать"></div>
+    <div class="set-row"><label>ГРОМКОСТЬ <span class="set-val" id="set-vol-v">70%</span></label><input type="range" id="set-vol" min="0" max="100" step="5"></div>
+    <div class="set-row"><label>ПОЛЕ ЗРЕНИЯ · FOV <span class="set-val" id="set-fov-v">62</span></label><input type="range" id="set-fov" min="50" max="90" step="1"></div>
+    <div class="set-row"><label>КАЧЕСТВО ГРАФИКИ</label><select id="set-gfx"><option value="low">Низкое — максимальный FPS</option><option value="med">Среднее</option><option value="high">Высокое — тени и красота</option></select></div>
+    <button id="set-back" class="jb-btn mini">ГОТОВО</button>
+  </div>
+</div>
+<!-- ================= ДОБЫЧА С БОССА ================= -->
+<div id="ov-loot" class="ov hidden">
+  <div id="loot-box">
+    <div id="loot-t">🏆 ДОБЫЧА С БОССА</div>
+    <div id="loot-i"></div>
+    <div id="loot-s"></div>
+    <button id="loot-ok" class="jb-btn mini">ЗАБРАТЬ</button>
+  </div>
+</div>
 <!-- ================= СЕКРЕТНЫЙ КОД ================= -->
 <div id="ov-code" class="ov hidden">
   <div id="code-box">
@@ -149,11 +221,12 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 11: 13 видов, погода и тайна костей</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 12: звук · чат · миникарта · рейд-босс</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
-      <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — захват: напрыгни на жертву, прижми её и, удерживая Q, рви на части; отпустишь — слезешь. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
+      <div id="dc-desc"></div>
       <div id="dc-stats"></div>
+      <div id="dc-skinrow"><button class="dc-arr" id="dc-skinprev">‹</button> ОКРАС: <span id="dc-skinname"></span> <button class="dc-arr" id="dc-skinnext">›</button></div>
       <div id="dc-buyrow"><span id="menu-coins">0 DinoCoins</span><button id="dc-buy" class="jb-btn mini">КУПИТЬ</button></div>
     </div>
     <div id="ctrl-grid">
@@ -168,10 +241,12 @@
       <div class="ctrl"><b>КОЛЕСО</b><span>зум</span></div>
       <div class="ctrl"><b>1·2·3</b><span>рычания</span></div>
       <div class="ctrl"><b>C</b><span>маскировка</span></div>
+      <div class="ctrl"><b>M</b><span>миникарта</span></div>
+      <div class="ctrl"><b>T</b><span>чат</span></div>
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
-    <button id="btn-play" class="jb-btn">ИГРАТЬ</button>
+    <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
@@ -308,7 +383,18 @@ const DINOS=[
   { id:'alloWild', name:'Дикий аллозавр', cost:0, hp:1600, sta:75, walk:4.6, run:11,
     bite:[110,85,150], heavy:200, jumpV:7, scale:1.28, turn:1.9, model:'allo', coin:55, npc:true, ai:'pack',
     pal:{body:0x7a5f42, belly:0xd0bd9c, dark:0x453122, head:0x85694a, stripe:0x54402a, eye:0xffb02e, claw:0x33302a, accent:0xb84a28},
-    desc:'Стайный засадчик: караулит травоядных у водопоя.' }
+    desc:'Стайный засадчик: караулит травоядных у водопоя.' },
+  { id:'scorpius', name:'Скорпиус Рекс', cost:0, hp:2450, sta:105, walk:5.6, run:14.2,
+    bite:[165,135,225], heavy:300, maul:48, pinTime:3.0, jumpV:9, scale:1.18, turn:2.4, model:'scorpius',
+    q:'venom', qLabel:'Плевок ядом', qStat:'60 + ЯД 5с', qDmg:60, qSta:22, qCd:5, heavySta:30, heavyCd:6,
+    heavyLabel:'Веер шипов',
+    pal:{body:0x9aa88a, belly:0xd8d8c2, dark:0x50584a, head:0xa4b094, stripe:0x3f4636, eye:0xd0ff2e, claw:0x2e2e26, accent:0xa6ff3a},
+    desc:'E750 — первый гибрид ИнГена (Монолофозавр + Карнотавр + скорпен), замороженный в туннелях задолго до Индоминуса. Пассивка «Ядовитые шипы»: каждый укус отравляет — яд добивает сам. Q — плевок ядом на расстоянии, E — веер шипов вокруг.' },
+  { id:'indomWild', name:'Дикий Индоминус', cost:0, hp:5200, sta:130, walk:5.2, run:13.5,
+    bite:[250,210,340], heavy:0, jumpV:8, scale:2.05, turn:1.65, model:'indom', coin:0, npc:true, ai:'boss', boss:true,
+    q:'pounce', qDmg:0, qSta:99, qCd:9,
+    pal:{body:0xcfcab8, belly:0xe8e4d6, dark:0x6a6458, head:0xd8d3c4, stripe:0x7a3024, eye:0xff1e0e, claw:0x2c2822, accent:0x8a2a1e},
+    desc:'Рейд-босс. Его сила растёт с числом игроков на сервере.' }
 ];
 const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
 
@@ -316,12 +402,21 @@ const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
 // Мультиплеер-задел: ENT — единый формат для локального игрока, NPC и будущих сетевых игроков.
 // Симуляция идёт фиксированным шагом SIM_DT; рендер читает то же состояние.
 const SIM_DT=1/30;
-const G={ state:'menu', myId:'p1', coins:0, t:0, comboIdx:0, comboT:0, owned:{raptor:true} };
-// профиль (монеты и купленные виды) — в localStorage; мультиплеер заменит его серверным аккаунтом
+const G={ state:'menu', myId:'p1', coins:0, t:0, comboIdx:0, comboT:0, owned:{raptor:true},
+  set:{vol:.7,fov:62,gfx:'high',name:'Охотник'},      // настройки: звук/камера/графика/имя
+  skins:{indom:['Классический']}, skinIndom:0,         // окрасы Индоминуса (добыча с босса)
+  bossKills:0, mapOn:true };                           // счётчик киллов для «жалости» лут-ролла
+// профиль (монеты, покупки, настройки, скины) — в localStorage; мультиплеер заменит его серверным аккаунтом
 function loadProfile(){ try{ const s=JSON.parse(localStorage.getItem('jb_profile')||'null');
-  if(s){ if(typeof s.coins==='number') G.coins=s.coins; if(s.owned&&s.owned.raptor) G.owned=s.owned; } }catch(e){}
+  if(s){ if(typeof s.coins==='number') G.coins=s.coins; if(s.owned&&s.owned.raptor) G.owned=s.owned;
+    if(s.set) G.set=Object.assign(G.set,s.set);
+    if(s.skins&&s.skins.indom&&s.skins.indom.length) G.skins=s.skins;
+    if(s.skinIndom) G.skinIndom=clamp(s.skinIndom,0,G.skins.indom.length-1);
+    if(s.bossKills) G.bossKills=s.bossKills;
+    if(typeof s.mapOn==='boolean') G.mapOn=s.mapOn; } }catch(e){}
   $('coins-num').textContent=G.coins; }
-function saveProfile(){ try{ localStorage.setItem('jb_profile',JSON.stringify({coins:G.coins,owned:G.owned})); }catch(e){} }
+function saveProfile(){ try{ localStorage.setItem('jb_profile',JSON.stringify({coins:G.coins,owned:G.owned,set:G.set,
+  skins:G.skins,skinIndom:G.skinIndom,bossKills:G.bossKills,mapOn:G.mapOn})); }catch(e){} }
 loadProfile();
 const ENT=[];
 function makeEnt(id,kind,dinoId,team){
@@ -345,7 +440,7 @@ const scene=new THREE.Scene();
 const SKY=0x8ec8e8;
 scene.background=new THREE.Color(SKY);
 scene.fog=new THREE.Fog(SKY,180,720);
-const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,1600);
+const camera=new THREE.PerspectiveCamera(G.set.fov||62,innerWidth/innerHeight,.1,1600);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -353,6 +448,8 @@ renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+// GFX: множитель дальности тумана от настройки «качество графики»
+const GFX={fogMul:1};
 
 // свет: тёплое утро в джунглях
 const hemi=new THREE.HemisphereLight(0xcfe8ff,0x3a5a2e,.85); scene.add(hemi);
@@ -437,6 +534,7 @@ function updEnv(dt){
   if(ENV.storm){ fn=46; ff=300; }
   else if(nf>.5){ fn=70; ff=520; }
   else if(ENV.eclipse){ fn=70; ff=460; }
+  ff*=GFX.fogMul; if(GFX.fogMul<1) fn*=.85;          // «низкое» качество — короче туман, меньше нагрузка
   scene.fog.near=lerp(scene.fog.near,fn,.04); scene.fog.far=lerp(scene.fog.far,ff,.04);
   // свет
   let hi=.85*(1-nf*.78), su=1.15*(1-nf*.92);
@@ -1182,7 +1280,7 @@ function buildDino(def){ const m=def.model||'raptor';
   return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):m==='stego'?buildStego(def):m==='anky'?buildAnky(def):
     m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):
     m==='allo'?buildAllo(def):m==='carno'?buildCarno(def):m==='pachy'?buildPachy(def):m==='para'?buildPara(def):
-    m==='indom'?buildIndom(def):buildRaptor(def); }
+    m==='indom'?buildIndom(def):m==='scorpius'?buildScorpius(def):buildRaptor(def); }
 function buildRaptor(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye, KG=def.rig||{}, bulk=KG.bulk||1, hd=KG.head||1;
   const mats=[], cache={};
@@ -2070,6 +2168,88 @@ function buildIndom(def){
   return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.6, hipsY:2.15, legReach:2.1, tagY:3.4 };
 }
 
+// ================= СКОРПИУС РЕКС (E750): первый гибрид ИнГена =================
+// Бледно-болотный, горбатый и скрюченный: Монолофозавр + Карнотавр + скорпен.
+// Двойной ряд ядовитых шипов со светящимися кончиками, железы на боках, жало на хвосте,
+// рожки Карнотавра над глазами и перекус с бивнями вверх. Материалы прозрачные — тоже умеет красться в тени ночью.
+function buildScorpius(def){
+  const P=def.pal, sc=def.scale||1;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c,transparent:true,opacity:1}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const glow=new THREE.MeshLambertMaterial({color:0x86c22e,emissive:0x6aff2e,emissiveIntensity:.85,transparent:true,opacity:1}); mats.push(glow);
+  const gbox=(w,h,d)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),glow);
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.9; g.add(hips);
+  // корпус: горбатая капля — зад высокий, грудь опущена (дёрганая посадка E750)
+  const rump=box(1.34,1.24,1.5,P.body); rump.position.set(0,.1,.72); hips.add(rump);
+  const spine=box(1.22,1.1,1.5,P.body); spine.position.set(0,.22,-.5); spine.rotation.x=.12; hips.add(spine);
+  const chest=box(1.14,1.0,1.35,P.body); chest.position.set(0,-.14,-1.75); chest.rotation.x=.18; hips.add(chest);
+  const belly=box(1.1,.42,3.4,P.belly); belly.position.set(0,-.5,-.55); hips.add(belly);
+  // ЯДОВИТЫЕ ШИПЫ: двойной ряд игл от шеи до хвоста + светящиеся кончики
+  const QX=[.5,.62,.7,.72,.66,.56];
+  for(let i=0;i<6;i++){
+    for(const s of [-1,1]){
+      const q1=box(.1,.5+i*.04,.1,P.dark); q1.position.set(s*.3,QX[i]+.28,.85-i*.62); q1.rotation.x=-.28; q1.rotation.z=s*.3; hips.add(q1);
+      const tip=gbox(.07,.16,.07); tip.position.set(s*.44,QX[i]+.55,.93-i*.62); hips.add(tip);
+    }
+  }
+  // светящиеся железы на боках (след скорпена в ДНК)
+  for(const s of [-1,1]) for(let i=0;i<3;i++){ const gl=gbox(.15,.15,.15); gl.position.set(s*.62,.15-i*.3,-.1-i*.9); hips.add(gl); }
+  // длинные кривые передние лапы с тремя когтями
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.56,-.42,-1.62); hips.add(arm);
+    const up=box(.2,.5,.2,P.body); up.position.set(0,-.2,.04); up.rotation.x=-.6; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.42,-.05); arm.add(fore);
+    const fm=box(.16,.44,.18,P.dark); fm.position.set(0,-.14,.1); fm.rotation.x=-.3; fore.add(fm);
+    for(let c2=0;c2<3;c2++){ const cl=box(.07,.22,.07,P.claw); cl.position.set((c2-1)*.09,-.4,.24); cl.rotation.x=-.55; fore.add(cl); }
+    arms.push(arm);
+  }
+  // кривая шея вперёд-вниз
+  const neck=new THREE.Group(); neck.position.set(0,.32,-2.3); hips.add(neck);
+  const neckM=box(.8,.78,1.0,P.body); neckM.rotation.x=.42; neckM.position.set(0,-.05,-.35); neck.add(neckM);
+  // голова: маленький злой череп, рожки Карнотавра, перекус с бивнями вверх
+  const head=new THREE.Group(); head.position.set(0,-.02,-.85); neck.add(head);
+  const skull=box(.82,.66,.95,P.head); skull.position.set(0,.05,-.25); head.add(skull);
+  const snout=box(.7,.5,1.05,P.head); snout.position.set(0,-.04,-1.15); head.add(snout);
+  for(const s of [-1,1]){
+    const h1=box(.14,.3,.3,P.dark); h1.position.set(s*.3,.44,-.4); h1.rotation.x=-.4; head.add(h1);
+    const ew=box(.13,.15,.13,0x141410); ew.position.set(s*.4,.2,-.35); head.add(ew);
+    const ep=box(.07,.1,.08,P.eye); ep.position.set(s*.44,.19,-.38); head.add(ep);
+  }
+  const nostrM=box(.4,.09,.4,P.dark); nostrM.position.set(0,.24,-1.6); head.add(nostrM);
+  const lip=box(.6,.11,1.4,P.dark); lip.position.set(0,-.27,-1.0); head.add(lip);
+  for(const s of [-1,1]) for(let i=0;i<6;i++){ const t=box(.06,.16,.07,P.claw); t.position.set(s*.28,-.3,-.65-i*.17); head.add(t); }
+  for(const s of [-1,1]){ const tus=box(.09,.26,.09,P.claw); tus.position.set(s*.24,-.12,-1.55); head.add(tus); }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.3,-.3); head.add(jaw);
+  const jawM=box(.6,.2,1.35,P.dark); jawM.position.set(0,-.07,-.5); jaw.add(jawM);
+  for(const s of [-1,1]) for(let i=0;i<5;i++){ const t=box(.05,.14,.06,P.claw); t.position.set(s*.23,.06,-.25-i*.19); jaw.add(t); }
+  // хвост с ядовитым жалом: 4 сегмента + иглы + светящееся жало
+  const tail=[]; let prev=hips; const tw=[1.0,.78,.54,.3];
+  for(let i=0;i<4;i++){
+    const seg=new THREE.Group(); seg.position.set(0,.06,i?1.0:.95); prev.add(seg);
+    const tm=box(tw[i],Math.max(.15,tw[i]-.2),1.0,i<2?P.body:P.dark); tm.position.z=.5; seg.add(tm);
+    const q2=box(.09,.34,.09,P.dark); q2.position.set(0,tw[i]/2+.12,.4); q2.rotation.x=-.3; seg.add(q2);
+    if(i===3){ const sting=gbox(.1,.32,.1); sting.position.set(0,tw[i]/2+.28,.5); sting.rotation.x=-.5; seg.add(sting); }
+    tail.push(seg); prev=seg;
+  }
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.54,-.02,.6); hips.add(hip);
+    const thigh=box(.78,1.1,.94,P.body); thigh.position.set(0,-.48,.06); hip.add(thigh);
+    const knee=box(.56,.52,.7,P.body); knee.position.set(0,-.94,-.08); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.98,-.04); hip.add(shin);
+    const shinM=box(.38,.86,.48,P.dark); shinM.position.set(0,-.34,.06); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.74,-.05); shin.add(foot);
+    const footM=box(.52,.2,.98,P.body); footM.position.set(0,-.06,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.11,.12,.4,P.claw); cl.position.set((t-1)*.17,-.11,-.8); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.3, hipsY:1.9, legReach:1.95, tagY:2.9 };
+}
+
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
 function flash(e,md,dt){
   if(e.flinchT>0){ e.flinchT-=dt;
@@ -2522,12 +2702,171 @@ $('code-ok').addEventListener('click',submitCode);
 $('code-later').addEventListener('click',closeCodeModal);
 $('code-input').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') submitCode(); });
 
+// ================= БОСС: ДИКИЙ ИНДОМИНУС (рейд-событие) =================
+// Появляется по таймеру среди игры. Сила масштабируется от числа игроков на сервере
+// (playersOnServer — сейчас 1, мультиплеер подставит реальное число — механика уже готова).
+// Лут: все, кто нанёс ≥15% хп, получают шанс: 60% монеты · 28% скин Индоминуса · 12% СКОРПИУС РЕКС.
+// Жалость: если 7 киллов подряд без Скорпиуса — 8-й гарантирует его.
+const BOSS={ e:null, timer:rand(100,150), dmg:{}, dmgMul:1, life:0, tauntT:20, lastHp:1 };
+function playersOnServer(){ return 1+((NET.sock&&NET.peers)?NET.peers.length:0); }
+function spawnBoss(){
+  if(BOSS.e) return;
+  const P=playersOnServer();
+  const hpMul=1+.55*(P-1); BOSS.dmgMul=1+.35*(P-1);
+  const def=dinoDef('indomWild');
+  const b=makeEnt('boss','boss','indomWild','raider');
+  b.boss=true; b.name=def.name.toUpperCase();
+  b.hpMax=Math.round(def.hp*hpMul); b.hp=b.hpMax; b.sta=b.staMax=def.sta;
+  let px=0,pz=0,ok=false;
+  for(let i=0;i<40&&!ok;i++){
+    const a=Math.random()*6.283, d=rand(150,280);
+    const tx=my.pos.x+Math.cos(a)*d, tz=my.pos.z+Math.sin(a)*d;
+    if(terrainH(tx,tz)>WATER_Y+2&&Math.hypot(tx,tz)<MAP_R-40){ px=tx; pz=tz; ok=true; }
+  }
+  if(!ok){ px=120; pz=-120; }
+  placeOnGround(b,px,pz); b.yaw=Math.atan2(-(my.pos.x-px),-(my.pos.z-pz)); b.prevYaw=b.yaw;
+  b.cloakCycle=rand(10,15); b.roarT=8; b.stepAcc=0; b.wanderT=0;
+  b.mesh=buildDino(def); scene.add(b.mesh.g); ENT.push(b);
+  BOSS.e=b; BOSS.dmg={}; BOSS.life=0; BOSS.tauntT=rand(14,22);
+  chatMsg('ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ! Сила ×'+hpMul.toFixed(1)+' · игроков на сервере: '+P,null,'bad');
+  toast('⚠ ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ!','coin');
+  SFX.bossRoar(); shake=1;
+  ringFx(px,terrainH(px,pz)+.3,pz,0xff5a3a,26,1.2);
+}
+function bossLeave(silent){
+  const b=BOSS.e; if(!b) return;
+  scene.remove(b.mesh.g); const ix=ENT.indexOf(b); if(ix>=0) ENT.splice(ix,1);
+  BOSS.e=null; BOSS.timer=rand(200,280);
+  if(!silent) chatMsg('Дикий Индоминус растворился в тумане... он вернётся.',null,'bad');
+}
+function bossCloakFx(b,dt){
+  if(!b.mesh||!b.mesh.mats) return;
+  const on=b.cloakT>0, tgt=on?.12:1, k=1-Math.exp(-dt*6);
+  for(const m of b.mesh.mats) m.opacity=lerp(m.opacity,tgt,k);
+}
+function updBoss(b,dt){
+  if(!b.alive){ if(b.deathT>7) bossLeave(true); return; }
+  BOSS.life+=dt;
+  if(BOSS.life>170){ bossLeave(); return; }        // надоел — ушёл в туман
+  // жертва: игрок — главный приз (маскировка сбивает след); NPC — только пока игрок мёртв или невидим
+  let tgt=my.alive?(my.cloakT>0?null:my):null, td=tgt?b.pos.distanceTo(tgt.pos):1e9;
+  if(!tgt){
+    for(const o of ENT){ if(o.kind!=='npc'||!o.alive||o===b) continue;
+      const d=b.pos.distanceTo(o.pos); if(d<td){ td=d; tgt=o; } }
+  }
+  if(!tgt){ b.moveMode=0; b.speed=0; bossCloakFx(b,dt); return; }
+  if(b.cloakT>0) b.cloakT-=dt;
+  b.cloakCycle-=dt;
+  if(b.cloakCycle<=0){ b.cloakT=4.5; b.cloakCycle=rand(13,19);
+    chatMsg('Индоминус растворился... слушай шаги.',null,'bad'); SFX.roar2(); }
+  b.roarT-=dt;
+  if(b.roarT<=0){ b.roarT=rand(20,30); startSpec(b,'roar3',2.3); SFX.roar3(); shake=Math.max(shake,.6);
+    ringFx(b.pos.x,b.pos.y+.4,b.pos.z,0xff5a3a,20,.9); }
+  BOSS.tauntT-=dt;
+  if(BOSS.tauntT<=0){ BOSS.tauntT=rand(18,26);
+    chatMsg(['Я чую тебя...','Сырое мясо...','Прячься. Мне нравится охота.','Кости — не единственные, кто шепчет.'][(Math.random()*4)|0],b.name,'bad'); }
+  const dp=b.pos.distanceTo(tgt.pos);
+  const want=Math.atan2(-(tgt.pos.x-b.pos.x),-(tgt.pos.z-b.pos.z));
+  if(dp>7.2){
+    b.moveMode=dp>16?2:1; b.speed=b.moveMode===2?b.def.run:b.def.walk*1.6;
+    b.yaw+=clamp(wrapA(want-b.yaw),-b.def.turn*dt*2,b.def.turn*dt*2);
+    const f=fwdOf(b), nx=b.pos.x+f.x*6, nz=b.pos.z+f.z*6;
+    if(terrainH(nx,nz)<WATER_Y+.4) b.yaw+=dt*2.2;   // не топает в реку
+    b.stepAcc=(b.stepAcc||0)+b.speed*dt;
+    if(b.stepAcc>7.5){ b.stepAcc=0; SFX.thud(); if(dp<90) shake=Math.max(shake,.14); }
+  } else {
+    b.moveMode=0; b.speed=0;
+    b.yaw+=clamp(wrapA(want-b.yaw),-b.def.turn*dt*2,b.def.turn*dt*2);
+    if(b.biteCd<=0){
+      b.biteCd=1.35; b.attackT=.34;
+      const dmg=Math.round(b.def.bite[(Math.random()*3)|0]*BOSS.dmgMul);
+      setTimeout(()=>{ if(!b.alive||!tgt.alive||G.state!=='play') return;
+        if(b.pos.distanceTo(tgt.pos)<9.5){
+          applyDamage(tgt,dmg,b,true);
+          const kb=V3().copy(tgt.pos).sub(b.pos).setY(0).normalize();
+          tgt.vel.addScaledVector(kb,13); tgt.vel.y=Math.max(tgt.vel.y,4);
+          burst(tgt.pos,0xc22f22,12,8); SFX.chomp(); shake=Math.max(shake,.5);
+        } },200);
+      SFX.bite();
+    }
+  }
+  if(b.speed>0&&b.moveMode>0){                       // физическое перемещение босса
+    const sp=b.speed*(terrainH(b.pos.x,b.pos.z)<WATER_Y?.55:1);
+    b.pos.addScaledVector(fwdOf(b),sp*dt);
+    b.speed=sp;
+  }
+  if(Math.abs(b.vel.x)>.05||Math.abs(b.vel.z)>.05){
+    b.pos.x+=b.vel.x*dt; b.pos.z+=b.vel.z*dt;
+    const kdec=Math.pow(.02,dt); b.vel.x*=kdec; b.vel.z*=kdec;
+  }
+  b.combatT=Math.min(99,(b.combatT||0)+dt);
+  b.sta=clamp(b.sta+(b.moveMode===2?-7:9)*dt,0,b.staMax);
+  b.biteCd=Math.max(0,b.biteCd-dt);
+  if(b.attackT>0) b.attackT=Math.max(0,b.attackT-dt);
+  b.pos.y=terrainH(b.pos.x,b.pos.z);
+  resolveObs(b);
+  edgePush(b);
+  bossCloakFx(b,dt);
+}
+function onBossDeath(b){
+  BOSS.timer=rand(200,280); BOSS.lastHp=b.hpMax;
+  shake=Math.max(shake,.9);
+  burst(b.pos,0xff5a3a,18,12); burst(V3(b.pos.x,b.pos.y+3,b.pos.z),0xe8e4d6,14,10);
+  chatMsg('ДИКИЙ ИНДОМИНУС ПОВЕРЖЕН! Выясняем, кто достойн добычи...',null,'sys');
+  setTimeout(()=>{ if(G.state==='play') rollLoot(); },1100);
+}
+function rollLoot(hpMax){
+  const myPct=(BOSS.dmg[G.myId]||0)/Math.max(1,hpMax||BOSS.lastHp);
+  if(myPct<.15){
+    chatMsg('Ты нанёс всего '+(myPct*100).toFixed(0)+'% урона боссу (нужно ≥15%) — добычи нет.',null,'sys');
+    toast('Слишком мало урона — добычи нет');
+    return;
+  }
+  const skinFull=G.skins.indom.length>=4, scorpOwned=!!G.owned.scorpius;
+  // веса: монеты 60 · скин 28 · Скорпиус 12 (занятые слоты перекочёвывают в монеты)
+  const wC=60+(skinFull?28:0)+(scorpOwned?12:0), wS=skinFull?0:28, wQ=scorpOwned?0:12;
+  let r=Math.random()*(wC+wS+wQ);
+  G.bossKills++;
+  if(!scorpOwned&&G.bossKills>=7) r=wC+wS;          // жалость: гарантированный Скорпиус
+  let title,sub;
+  if(r<wC){ const n=180+((Math.random()*241)|0); addCoins(n);
+    title='+'+n+' DinoCoins'; sub='Добыча из шкуры Дикого Индоминуса. Монеты — тоже добыча. Может, следующий килл?'; SFX.loot(); }
+  else if(r<wC+wS){ const opts=['Полночный','Кровавый','Изумрудный'].filter(s=>!G.skins.indom.includes(s));
+    const s=opts[(Math.random()*opts.length)|0]; G.skins.indom.push(s); G.skinIndom=G.skins.indom.length-1;
+    title='Скин Индоминуса: «'+s+'»'; sub='Открыт новый окрас! Сменить — в меню (ESC) на карточке Индоминуса.'; SFX.loot(); SFX.chime(); }
+  else { G.owned.scorpius=true; G.bossKills=0;
+    title='НОВЫЙ ГИБРИД: СКОРПИУС РЕКС!'; sub='E750 — прототип Индоминуса с ядовитыми шипами. Выбери его в меню (ESC).';
+    SFX.loot(); SFX.roar3(); toast('🏆 СКОРПИУС РЕКС РАЗБЛОКИРОВАН!','coin'); }
+  saveProfile();
+  chatMsg(title,null,'sys');
+  $('loot-i').textContent=title; $('loot-s').textContent=sub;
+  $('ov-loot').classList.remove('hidden');
+  if(document.pointerLockElement) document.exitPointerLock();
+  clearTimeout(rollLoot.t); rollLoot.t=setTimeout(()=>{ $('ov-loot').classList.add('hidden'); },9000);
+}
+$('loot-ok').addEventListener('click',()=>{ $('ov-loot').classList.add('hidden'); });
+
 // ================= ЗВУК (WebAudio-синтез, без файлов) =================
+// Весь звук идёт через мастер-гейн (ползунок «Громкость» в настройках).
+// Эмбиент: ветер всегда, дождь в грозу, сверчки ночью, птицы днём.
 const SFX={
-  ctx:null, bad:false,
+  ctx:null, bad:false, master:null, rainG:null, windG:null,
   init(){ if(this.ctx||this.bad) return;
     try{ const AC=window.AudioContext||window.webkitAudioContext; this.ctx=AC?new AC():null; }
-    catch(e){ this.bad=true; } },
+    catch(e){ this.bad=true; }
+    if(this.ctx){
+      this.master=this.ctx.createGain(); this.master.gain.value=G.set.vol; this.master.connect(this.ctx.destination);
+      const mkLoop=(fc,type,vol)=>{ const len=this.ctx.sampleRate*2, buf=this.ctx.createBuffer(1,len,this.ctx.sampleRate), d=buf.getChannelData(0);
+        let last=0; for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+.02*w)/1.02; d[i]=last*3.2; }
+        const n=this.ctx.createBufferSource(); n.buffer=buf; n.loop=true;
+        const f=this.ctx.createBiquadFilter(); f.type=type; f.frequency.value=fc;
+        const g=this.ctx.createGain(); g.gain.value=vol;
+        n.connect(f); f.connect(g); g.connect(this.master); n.start();
+        return g; };
+      this.windG=mkLoop(320,'lowpass',.05);
+      this.rainG=mkLoop(1500,'bandpass',0);
+    } },
+  setVol(v){ G.set.vol=v; if(this.master) this.master.gain.value=v; },
   resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
   tone(type,f0,f1,dur,vol,delay){
     if(!this.ctx) return;
@@ -2536,7 +2875,7 @@ const SFX={
     o.type=type; o.frequency.setValueAtTime(Math.max(1,f0),t);
     o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+dur);
     g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g); g.connect(this.ctx.destination);
+    o.connect(g); g.connect(this.master||this.ctx.destination);
     o.start(t); o.stop(t+dur+.02);
   },
   noise(dur,vol,delay,fc){
@@ -2549,7 +2888,7 @@ const SFX={
     const n=this.ctx.createBufferSource(); n.buffer=buf;
     const f=this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=fc||900;
     const g=this.ctx.createGain(); g.gain.value=vol;
-    n.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    n.connect(f); f.connect(g); g.connect(this.master||this.ctx.destination);
     n.start(t);
   },
   bite(){ this.noise(.09,.22,0,2400); this.tone('square',160,70,.08,.1); },
@@ -2564,12 +2903,102 @@ const SFX={
   boom(){ this.tone('sine',55,20,.5,.6); this.noise(.3,.4,0,220); },
   chomp(){ this.noise(.12,.35,0,900); this.tone('square',120,40,.12,.2); },
   spit(){ this.tone('square',700,180,.12,.12); this.noise(.08,.12,0,1800); },
+  venom(){ this.tone('square',520,90,.16,.14); this.noise(.1,.14,0,1400); },
+  stepS(sz,vol){ const v=(vol||1)*clamp(.06+sz*.075,.06,.3);
+    this.tone('sine',120-sz*26,55,.09,v); this.noise(.05,v*.5,0,500); },
+  thud(){ this.tone('sine',52,26,.16,.4); this.noise(.1,.3,0,240); },
+  bossRoar(){ this.tone('sawtooth',95,26,1.6,.5); this.tone('sawtooth',58,20,1.7,.4,.08);
+    this.tone('square',40,16,1.5,.3,.15); this.noise(1.3,.5,0,420); this.noise(.6,.32,.2,1100); },
+  loot(){ const ns=[660,880,1100,1320]; for(let i=0;i<ns.length;i++) this.tone('triangle',ns[i],ns[i]*1.02,.22,.2,i*.09);
+    this.tone('sine',440,442,.5,.1,.36); },
+  chime(){ this.tone('sine',1046,1040,.5,.08); this.tone('sine',1568,1560,.6,.06,.1); },
   roar1(){ this.tone('sawtooth',150,70,.5,.3); this.noise(.3,.2,0,700); },
   roar2(){ this.tone('sawtooth',90,150,.9,.24); this.tone('sawtooth',65,115,.95,.16,.08); this.noise(.6,.12,0,500); },
   roar3(){ this.tone('sawtooth',190,42,1.25,.44); this.tone('sawtooth',120,28,1.35,.3,.06);
     this.tone('square',58,22,1.2,.28,.12); this.noise(1.05,.4,0,480); this.noise(.5,.3,.15,1200); }
 };
 addEventListener('pointerdown',()=>{ SFX.init(); SFX.resume(); });
+// живой эмбиент: гром дождя, сверчки ночью, птицы днём
+function updAmb(dt){
+  if(!SFX.ctx||SFX.ctx.state!=='running') return;
+  if(SFX.rainG) SFX.rainG.gain.value=lerp(SFX.rainG.gain.value,ENV.storm?.16:0,.05);
+  if(SFX.windG) SFX.windG.gain.value=lerp(SFX.windG.gain.value,ENV.storm?.09:.05,.02);
+  if(G.state==='play'){
+    if(ENV.isNight&&!ENV.storm&&Math.random()<dt*.55){
+      const f0=rand(3800,4400);
+      for(let i=0;i<3;i++) SFX.tone('sine',f0,f0,.035,.045,i*.075);
+    }
+    if(!ENV.isNight&&!ENV.storm&&Math.random()<dt*.12){
+      const b=rand(1900,3100);
+      SFX.tone('sine',b,b*1.25,.09,.04); SFX.tone('sine',b*1.1,b*.8,.11,.035,.12);
+    }
+  }
+}
+
+// ================= ЧАТ =================
+const CHAT={ open:false, t:rand(18,30), max:9 };
+const BOT_LINES=['Кто-то чувствует этот запах?','На востоке слышал топот...','Вода в реке холодная — проверено.','Осторожнее у чащи: там стаи.','Кости снова шептали ночью...','Свежий ветер с моря. Люблю его.','Видели БОЛЬШОГО? Он где-то тут.','Не подходите к воде ночью...'];
+function chatMsg(text,who,cls){
+  const el=$('chat');
+  const d=document.createElement('div'); d.className='cmsg'+(cls?' '+cls:'');
+  if(who){ const b=document.createElement('b'); b.textContent=who+': '; d.appendChild(b); d.appendChild(document.createTextNode(text)); }
+  else d.textContent=text;
+  el.appendChild(d);
+  while(el.children.length>CHAT.max) el.removeChild(el.firstChild);
+  setTimeout(()=>{ if(d.parentNode) d.parentNode.removeChild(d); },9200);
+}
+function chatOpenSet(v){
+  CHAT.open=v; $('chat-wrap').classList.toggle('on',v);
+  if(v){ if(document.pointerLockElement) document.exitPointerLock(); $('chat-in').value=''; setTimeout(()=>$('chat-in').focus(),40); }
+  else $('chat-in').blur();
+}
+$('chat-in').addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){ const v=$('chat-in').value.trim();
+    if(v){ chatMsg(v,G.set.name||'Охотник'); NET.emitIntent('chat',{m:v}); }
+    chatOpenSet(false); }
+  else if(e.key==='Escape') chatOpenSet(false);
+});
+function botChat(){
+  const alive=ENT.filter(e=>e.kind==='npc'&&e.alive&&e.pos.distanceTo(my.pos)<160);
+  if(!alive.length) return;
+  const n=alive[(Math.random()*alive.length)|0];
+  chatMsg(BOT_LINES[(Math.random()*BOT_LINES.length)|0],n.name);
+}
+
+// ================= МИНИКАРТА =================
+const mmap=$('mmap'), mmx=mmap.getContext('2d');
+let mmT=0;
+function updMinimap(dt){
+  if(!G.mapOn) return;
+  mmT-=dt; if(mmT>0) return; mmT=.12;
+  const S=172, C=S/2, k=(C-8)/MAP_R;
+  mmx.clearRect(0,0,S,S);
+  mmx.fillStyle='#12301c'; mmx.beginPath(); mmx.arc(C,C,MAP_R*k,0,6.283); mmx.fill();
+  mmx.strokeStyle='rgba(90,160,220,.55)'; mmx.lineWidth=2; mmx.stroke();
+  mmx.fillStyle='rgba(20,58,26,.9)'; mmx.beginPath(); mmx.arc(C+FOREST_C[0]*k,C+FOREST_C[1]*k,FOREST_R*k,0,6.283); mmx.fill();
+  mmx.fillStyle='#c9a05a'; mmx.fillRect(C+9*k-3,C-10*k-3,6,6);
+  mmx.fillStyle='#e8d44a'; mmx.font='bold 10px monospace'; mmx.textAlign='center'; mmx.fillText('✕',C+BONES[0]*k,C+BONES[1]*k+4);
+  for(const e of ENT){
+    if(e===my||!e.alive) continue;
+    if(e.kind!=='npc'&&e.kind!=='boss') continue;
+    const x=C+e.pos.x*k, y=C+e.pos.z*k;
+    if(e.kind==='boss'){
+      mmx.fillStyle=Math.sin(ambT*8)>0?'#ff3a2a':'#ff8a6a';
+      mmx.beginPath(); mmx.arc(x,y,5,0,6.283); mmx.fill();
+      continue;
+    }
+    const ai=e.def.ai;
+    mmx.fillStyle=(ai==='herb'||ai==='titan')?'#a3e635':(ai==='spitter'?'#ff9a3a':'#ff5a4a');
+    mmx.fillRect(x-1.6,y-1.6,3.2,3.2);
+  }
+  const px=C+my.pos.x*k, py=C+my.pos.z*k;
+  mmx.save(); mmx.translate(px,py); mmx.rotate(-my.yaw);
+  mmx.fillStyle='#fff'; mmx.beginPath(); mmx.moveTo(0,-6); mmx.lineTo(4.2,4.5); mmx.lineTo(0,2.2); mmx.lineTo(-4.2,4.5); mmx.closePath(); mmx.fill();
+  mmx.restore();
+  mmx.fillStyle='rgba(232,245,216,.85)'; mmx.font='bold 8px monospace'; mmx.textAlign='left';
+  mmx.fillText('M — СКРЫТЬ',6,S-6);
+}
 
 // ================= ЭФФЕКТЫ: частицы, хитмаркер =================
 const PARTS=[];
@@ -2674,6 +3103,7 @@ function updProj(dt){            // снаряды: у каждого своя �
             hit=true;
             applyDamage(t,p.dmg,p.owner,false);
             t.slowT=1.6;
+            if(p.poison){ t.poisonT=Math.max(t.poisonT||0,p.poison); t.poisonSrc=p.owner; }
             burst(t.pos,0x7fe03a,6,5);
             break;
           }
@@ -2702,7 +3132,22 @@ function updProj(dt){            // снаряды: у каждого своя �
         }
       }
     }
-    if(hit){ burst(p.m.position,0x7fe03a,4,4); scene.remove(p.m); PROJ.splice(i,1); }
+    if(hit){ burst(p.m.position,p.poison?0xa6ff3a:0x7fe03a,4,4); scene.remove(p.m); PROJ.splice(i,1); }
+  }
+}
+
+// ---- яд: тики урона раз в секунду (Скорпиус Рекс) ----
+function updPoison(dt){
+  for(const e of ENT){
+    if(!e.alive||!(e.poisonT>0)) continue;
+    e.poisonT-=dt; e.poisonAcc=(e.poisonAcc||0)+dt;
+    if(e.poisonAcc>=1){
+      e.poisonAcc-=1;
+      applyDamage(e,9,e.poisonSrc&&e.poisonSrc!==e?e.poisonSrc:null,false);
+      burst(V3(e.pos.x,e.pos.y+1.1*e.def.scale,e.pos.z),0x7fe03a,3,3);
+      if(e===my) SFX.hurt();
+    }
+    if(e.poisonT<=0){ e.poisonAcc=0; e.poisonSrc=null; }
   }
 }
 
@@ -2726,10 +3171,11 @@ function tryLock(){
 document.addEventListener('pointerlockerror',plFail);
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===renderer.domElement;
-  if(!locked&&G.state==='play'&&!plFailed) toMenu(); // Esc при захвате = выход в меню
+  if(!locked&&G.state==='play'&&!plFailed&&!CHAT.open&&$('ov-code').classList.contains('hidden')&&$('ov-loot').classList.contains('hidden')&&$('ov-set').classList.contains('hidden')) toMenu(); // Esc при захвате = выход в меню
 });
 addEventListener('keydown',e=>{
   if(e.repeat) return;
+  if(CHAT.open) return;                                   // печатаешь в чат — WASD не двигают динозавра
   keys[e.code]=true;
   if(G.state!=='play') return;
   if(!$('ov-code').classList.contains('hidden')) return;   // ввод кода — клавиши игры молчат
@@ -2740,11 +3186,15 @@ addEventListener('keydown',e=>{
   if(e.code==='Digit3') tryRoar(3);
   if(e.code==='KeyC') tryCloak();
   if(e.code==='KeyY'&&QUEST.step===2) openCodeModal();
+  if(e.code==='KeyT'&&!CHAT.open){ chatOpenSet(true); return; }   // чат
+  if(e.code==='KeyM'){ G.mapOn=!G.mapOn; mmap.classList.toggle('off',!G.mapOn); saveProfile(); }
   if(e.code==='KeyP'||(e.code==='Escape'&&plFailed)) toMenu();
 });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 addEventListener('mousedown',e=>{
   if(e.button!==0) return;
+  if(CHAT.open) return;
+  if(e.target&&e.target.closest&&e.target.closest('#ov-loot,#ov-set,#ov-menu,#ov-code')) return;  // клик по UI — не укус
   SFX.init(); SFX.resume();
   if(G.state==='play'){
     mouseDown=true;
@@ -2754,7 +3204,7 @@ addEventListener('mousedown',e=>{
 });
 addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
 addEventListener('mousemove',e=>{
-  if(G.state!=='play') return;
+  if(G.state!=='play'||CHAT.open) return;
   if(locked||plFailed){
     const k=locked?1:.85;
     // обрезаем выбросы movementX/Y (браузер иногда шлёт скачки) — камера без рывков
@@ -2796,7 +3246,12 @@ function enragePack(victim){
 // ================= БОЙ: воронка урона (на сервере будет только она) =================
 function applyDamage(target,dmg,src,heavy){
   if(!target.alive||G.state!=='play') return;
+  const before=target.hp;
   target.hp-=dmg;
+  if(target.boss&&src) BOSS.dmg[src.id]=(BOSS.dmg[src.id]||0)+Math.min(dmg,before);   // вклад каждого в рейд-лут
+  if(src&&src.dinoId==='scorpius'&&dmg>0&&target!==src){          // СКОРПИУС: пассивка «Ядовитые шипы»
+    target.poisonT=Math.max(target.poisonT||0,5); target.poisonSrc=src;
+  }
   target.combatT=0; if(src&&src!==target) src.combatT=0;   // оба — в боевом состоянии
   if(target.isLocal) target.restLockT=1;                    // урон сбивает отдых
   target.flinchT=.18;
@@ -2814,7 +3269,8 @@ function applyDamage(target,dmg,src,heavy){
     if(target.pinTarget) releasePin(target);   // умер, удерживая жертву
     burst(target.pos,0xc22f22,14,8);
     SFX.die();
-    if(src&&src.isLocal){ const rw=target.def.coin||15; addCoins(rw); toast('+'+rw+' DinoCoins — '+target.name+' повержен','coin'); questOnKill(target); }
+    if(src&&src.isLocal&&!target.boss){ const rw=target.def.coin||15; addCoins(rw); toast('+'+rw+' DinoCoins — '+target.name+' повержен','coin'); questOnKill(target); }
+    if(target.boss) onBossDeath(target);
     if(target.kind==='npc') target.respawnT=15;
     if(target.isLocal) setTimeout(()=>{ if(G.state==='play') toast('Ты повержен... возрождение в лагере','coin'); },400);
   }
@@ -2839,7 +3295,7 @@ function tryHeavy(){                        // E — тяжёлая атака: 
   if(!e.alive||e.heavyCd>0||e.stunT>0||e.sta<(e.def.heavySta||22)) return;
   e.heavyCd=e.def.heavyCd||6; e.sta-=e.def.heavySta||22; e.restLockT=Math.max(e.restLockT||0,.6);
   NET.emitIntent('heavy',{});
-  if(m==='raptor'||m==='dilo'||m==='indom'){             // ВИХРЬ КОГТЕЙ: оборот на 360°, бьёт вокруг
+  if(m==='raptor'||m==='dilo'||m==='indom'||m==='scorpius'){   // ВИХРЬ КОГТЕЙ / ВЕЕР ШИПОВ: оборот на 360°, бьёт вокруг
     startSpec(e,'whirl',.62); SFX.whip();
     setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
       meleeHit(e,e.def.heavy,5.8*Math.pow(e.def.scale/.95,.7),-1,true);
@@ -2942,6 +3398,19 @@ function tryPounce(){            // Q — особый приём вида: за
       SFX.spit();
     },260);
     NET.emitIntent('spit',{});
+    return;
+  }
+  if(q==='venom'){               // скорпиус: плевок ядом — урон + долгое отравление
+    startSpec(e,'spitback',.6); SFX.venom();
+    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
+      const f=fwdOf(e);
+      const m=new THREE.Mesh(new THREE.BoxGeometry(.42,.42,.42),new THREE.MeshBasicMaterial({color:0xa6ff3a}));
+      m.position.set(e.pos.x+f.x*1.5,e.pos.y+1.05*e.def.scale+.7,e.pos.z+f.z*1.5);
+      scene.add(m);
+      PROJ.push({m,v:V3(f.x*26,2.4,f.z*26),life:1.9,owner:e,dmg:e.def.qDmg,hurts:'npcs',poison:6});
+      SFX.venom();
+    },260);
+    NET.emitIntent('venom',{});
     return;
   }
   if(q==='neckslam'){            // брахиозавр: шея заводится назад и хлещет вперёд
@@ -3568,20 +4037,22 @@ const _v4=V3();
 const plates=new Map();
 function updPlates(){
   for(const e of ENT){
-    if(e.kind!=='npc') continue;
+    if(e.kind!=='npc'&&e.kind!=='boss') continue;
     let pl=plates.get(e.id);
     if(!e.alive){ if(pl) pl.style.opacity=0; continue; }
+    if(e.kind==='boss'&&e.cloakT>0){ if(pl) pl.style.opacity=0; continue; }   // босс растворился — имя тоже
     if(!pl){
-      pl=document.createElement('div'); pl.className='plate';
+      pl=document.createElement('div'); pl.className='plate'+(e.kind==='boss'?' boss':'');
       pl.innerHTML='<div class="pn"></div><div class="phb"><div></div></div>';
       document.body.appendChild(pl); plates.set(e.id,pl);
     }
+    const lim=e.kind==='boss'?170:90;
     const v=_v5.set(e.pos.x,e.pos.y+((e.mesh&&e.mesh.tagY)||3.1)*e.def.scale,e.pos.z).project(camera);
-    if(v.z>1||e.pos.distanceTo(my.pos)>90){ pl.style.opacity=0; continue; }
+    if(v.z>1||e.pos.distanceTo(my.pos)>lim){ pl.style.opacity=0; continue; }
     pl.style.opacity=1;
     pl.style.left=((v.x+1)/2*innerWidth)+'px';
     pl.style.top=((-v.y+1)/2*innerHeight)+'px';
-    pl.querySelector('.pn').textContent=(e.aggroT>0?'⚠ ':'')+e.name;
+    pl.querySelector('.pn').textContent=(e.kind==='boss'?'☠ ':(e.aggroT>0?'⚠ ':''))+e.name;
     pl.querySelector('.phb>div').style.width=(e.hp/e.hpMax*100)+'%';
   }
 }
@@ -3592,6 +4063,15 @@ function updHud(){
   $('sta-fill').style.width=(my.sta/my.staMax*100)+'%';
   $('sta-num').textContent=Math.ceil(my.sta);
   $('npc-cnt').textContent=ENT.filter(e=>e.kind==='npc'&&e.alive).length;
+  // босс-бар + зелёная вуаль яда
+  const bb=$('bossbar');
+  if(BOSS.e&&BOSS.e.alive){
+    bb.classList.add('on');
+    $('boss-hp').style.width=(BOSS.e.hp/BOSS.e.hpMax*100)+'%';
+    $('boss-name').textContent='☠ '+BOSS.e.name+(BOSS.e.cloakT>0?' · ИСЧЕЗ':'');
+    $('boss-sub').textContent='Сила ×'+(1+.55*(playersOnServer()-1)).toFixed(2)+' · игроков: '+playersOnServer()+' · твой урон: '+((BOSS.dmg[G.myId]||0)/BOSS.e.hpMax*100).toFixed(0)+'%';
+  } else bb.classList.remove('on');
+  $('pois-vig').style.opacity=my.poisonT>0?(.35+.3*Math.abs(Math.sin(ambT*4))):0;
   const abBite=$('ab-bite'), abHeavy=$('ab-heavy'), abRun=$('ab-run'), abPounce=$('ab-pounce');
   abBite.classList.toggle('cool',my.biteCd>0||my.sta<5);
   abBite.querySelector('.cd').style.height=(my.biteCd/.45*100)+'%';
@@ -3660,7 +4140,11 @@ function toMenu(){
 // ---------- выбор динозавра в меню ----------
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
-const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус Рекс — тайна костей';
+const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса';
+const SKIN_PALS={
+  'Полночный':{body:0x23232e,belly:0x3c3c50,dark:0x101018,head:0x2a2a3a,stripe:0x8a7cff,eye:0x9a7cff,accent:0x554a8a},
+  'Кровавый':{body:0x3a1e1e,belly:0x6a3a34,dark:0x1e0e0e,head:0x46241f,stripe:0xd82a1a,eye:0xff4a2a,accent:0xa82418},
+  'Изумрудный':{body:0x1e3a2c,belly:0x3a6a4c,dark:0x0e1e16,head:0x24462f,stripe:0x2ee88a,eye:0x7affb0,accent:0x1a8a52} };
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
@@ -3676,14 +4160,21 @@ function renderDinoCard(){
   $('dc-stats').innerHTML=rows.map(r=>
     '<div class="stat-row"><div class="sn">'+r[0]+'</div><div class="sb"><div style="width:'+clamp(r[1]/r[2]*100,8,100)+'%;background:'+r[3]+'"></div></div><div class="sv">'+r[4]+'</div></div>'
   ).join('');
-  // магазин: куплено / цена / хватает ли монет (Индоминус — только через секретный код)
+  // магазин: куплено / цена / хватает ли монет (Индоминус — код, Скорпиус — только добыча с босса)
   const secret=d.id==='indom'&&!G.owned[d.id];
+  const secret2=d.id==='scorpius'&&!G.owned[d.id];
   const has=!!G.owned[d.id];
-  $('dc-cost').textContent=has?'КУПЛЕНО':(secret?'СЕКРЕТНЫЙ КОД':(d.cost?'ЗА '+d.cost+' DC':'БЕСПЛАТНО'));
-  $('dc-cost').style.color=has?'var(--grn)':(secret?'#cdb4ff':'var(--amb)');
+  $('dc-cost').textContent=has?'КУПЛЕНО':(secret2?'ТОЛЬКО С БОССА':(secret?'СЕКРЕТНЫЙ КОД':(d.cost?'ЗА '+d.cost+' DC':'БЕСПЛАТНО')));
+  $('dc-cost').style.color=has?'var(--grn)':(secret2?'#a6ff3a':(secret?'#cdb4ff':'var(--amb)'));
   const buy=$('dc-buy');
-  buy.style.display=(has||secret)?'none':'inline-block';
-  if(!has&&!secret){ buy.textContent='КУПИТЬ · '+d.cost+' DC'; buy.disabled=!!d.cost&&G.coins<d.cost; }
+  buy.style.display=(has||secret||secret2)?'none':'inline-block';
+  if(!has&&!secret&&!secret2){ buy.textContent='КУПИТЬ · '+d.cost+' DC'; buy.disabled=!!d.cost&&G.coins<d.cost; }
+  // скины Индоминуса: переключатель окрасов
+  const sk=$('dc-skinrow');
+  if(d.id==='indom'&&G.skins.indom.length>1){
+    sk.style.display='block';
+    $('dc-skinname').textContent=G.skins.indom[G.skinIndom]||'Классический';
+  } else sk.style.display='none';
   $('menu-coins').textContent=G.coins+' DinoCoins';
   $('menu-tip').textContent=MENU_TIP_DEFAULT; $('menu-tip').style.color='';
 }
@@ -3697,9 +4188,13 @@ $('dc-buy').addEventListener('click',()=>{
   SFX.init(); SFX.resume(); SFX.coin();
   renderDinoCard();
 });
+$('dc-skinprev').addEventListener('click',()=>{ G.skinIndom=(G.skinIndom+G.skins.indom.length-1)%G.skins.indom.length; saveProfile(); renderDinoCard(); });
+$('dc-skinnext').addEventListener('click',()=>{ G.skinIndom=(G.skinIndom+1)%G.skins.indom.length; saveProfile(); renderDinoCard(); });
 renderDinoCard();
 function applyPlayerDino(id){
-  const d=dinoDef(id);
+  let d=dinoDef(id);
+  if(id==='indom'&&G.skinIndom>0&&SKIN_PALS[G.skins.indom[G.skinIndom]])   // выбранный окрас
+    d=Object.assign({},d,{pal:Object.assign({},d.pal,SKIN_PALS[G.skins.indom[G.skinIndom]])});
   if(my.dinoId===id&&myMesh&&myMesh.g.parent) return;   // уже этот вид
   releasePin(my);
   my.dinoId=id; my.def=d;
@@ -3723,6 +4218,11 @@ $('btn-play').addEventListener('click',()=>{
     $('menu-tip').style.color='#cdb4ff';
     return;
   }
+  if(d.id==='scorpius'&&!G.owned.scorpius){          // гибрид E750 — только из добычи с босса
+    $('menu-tip').textContent='Скорпиус Рекс (E750) — только из ДОБЫЧИ за Дикого Индоминуса. Жди рейд!';
+    $('menu-tip').style.color='#a6ff3a';
+    return;
+  }
   if(d.cost&&!G.owned[d.id]){                       // не куплен — играть нельзя
     $('menu-tip').textContent='«'+d.name+'» ещё не куплен: охоться на диких динозавров и копи DinoCoins';
     $('menu-tip').style.color='#ffb0a0';
@@ -3732,9 +4232,37 @@ $('btn-play').addEventListener('click',()=>{
   G.state='play';
   $('ov-menu').classList.add('hidden');
   $('hud').classList.add('on');
+  mmap.classList.toggle('off',!G.mapOn);
   tryLock();
   toast('ЛКМ — укусы, Q — '+(d.qLabel||'приём')+', R — отдых. Стадо помнит обиды!');
+  SFX.init(); SFX.resume();
 });
+
+// ---------- настройки: громкость · FOV · графика · имя ----------
+function applySettings(){
+  SFX.setVol(G.set.vol);
+  camera.fov=G.set.fov; camera.updateProjectionMatrix();
+  const q=G.set.gfx;
+  renderer.setPixelRatio(q==='low'?Math.max(.5,Math.min(devicePixelRatio,2)*.62):q==='med'?1:Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=q!=='low';
+  GFX.fogMul=q==='low'?.68:q==='high'?1.12:1;
+  my.name=G.set.name||'Охотник';
+}
+function openSettings(){
+  $('set-vol').value=Math.round(G.set.vol*100); $('set-vol-v').textContent=Math.round(G.set.vol*100)+'%';
+  $('set-fov').value=G.set.fov; $('set-fov-v').textContent=G.set.fov;
+  $('set-gfx').value=G.set.gfx; $('set-name').value=G.set.name;
+  $('ov-set').classList.remove('hidden');
+  if(document.pointerLockElement) document.exitPointerLock();
+}
+$('btn-set').addEventListener('click',()=>{ SFX.init(); SFX.resume(); openSettings(); });
+$('set-back').addEventListener('click',()=>{ $('ov-set').classList.add('hidden'); saveProfile(); });
+$('set-vol').addEventListener('input',e=>{ const v=+e.target.value/100; SFX.setVol(v); $('set-vol-v').textContent=e.target.value+'%'; });
+$('set-vol').addEventListener('change',()=>SFX.coin());
+$('set-fov').addEventListener('input',e=>{ G.set.fov=+e.target.value; $('set-fov-v').textContent=e.target.value; camera.fov=G.set.fov; camera.updateProjectionMatrix(); });
+$('set-gfx').addEventListener('change',e=>{ G.set.gfx=e.target.value; applySettings(); });
+$('set-name').addEventListener('input',e=>{ G.set.name=e.target.value.trim().slice(0,14)||'Охотник'; my.name=G.set.name; });
+applySettings();
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
 let acc=0, lastT=performance.now(), ambT=0;
@@ -3746,7 +4274,7 @@ function frame(now){
   if(G.state==='play'){
     acc+=dt;
     while(acc>=SIM_DT){ step(SIM_DT); acc-=SIM_DT; }
-    updHud(); updDmgNums(dt); updPlates();
+    updHud(); updDmgNums(dt); updPlates(); updMinimap(dt);
   } else {
     // меню: кинематографичный облёт лагеря, динозавры дышат и осматриваются
     camYaw+=dt*.1;
@@ -3754,6 +4282,7 @@ function frame(now){
   }
   updCamera(dt);
   updEnv(dt);            // небо, солнце/луна, погода, день и ночь
+  updAmb(dt);            // живой звук: ветер/дождь/сверчки/птицы
   updCloakFx(dt);        // маскировка/ярость
   // живой фон: облака, птерозавры, брызги водопада
   for(const c of clouds){
@@ -3785,6 +4314,10 @@ function step(dt){
   updPlayer(dt);
   if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
+  if(BOSS.e) updBoss(BOSS.e,dt);              // рейд-босс: ИИ + клоак + рыки
+  else { BOSS.timer-=dt; if(BOSS.timer<=0) spawnBoss(); }
+  updPoison(dt);                              // тики яда Скорпиуса
+  CHAT.t-=dt; if(CHAT.t<=0){ CHAT.t=rand(22,40); botChat(); }
   updParts(dt); updProj(dt);
   for(const e of ENT){
     const md=e===my?myMesh:e.mesh;
@@ -3793,7 +4326,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 requestAnimationFrame(frame);
 })();
 </script>
