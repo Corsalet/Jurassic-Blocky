@@ -120,7 +120,7 @@
 <div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 8: 8 видов, стаи и стада</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 9: 12 видов, стаи и стада</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc">Умный засадный хищник. Тактика «ударил — убежал»: молниеносные комбо-укусы и прыжки. Приём Q — захват: напрыгни на жертву, прижми её и, удерживая Q, рви на части; отпустишь — слезешь. Пассивка «Бегун» — быстрое восстановление сил в движении.</div>
@@ -208,6 +208,30 @@ const DINOS=[
     heavyLabel:'Двойной укус',
     pal:{body:0x4a6a7a, belly:0xd0d8c8, dark:0x2c3e48, head:0x557888, stripe:0x243842, eye:0xffd24a, claw:0x2e3438, accent:0xe06a3a},
     desc:'Речной охотник с парусом. E — двойной щелчок пасти. Q — косой рывок: проносится сквозь бой и косит до трёх жертв.' },
+  { id:'allo', name:'Аллозавр', cost:200, hp:2000, sta:85, walk:5.0, run:12.5,
+    bite:[140,110,190], heavy:240, maul:42, pinTime:2.6, jumpV:7.5, scale:1.35, turn:2.0, model:'allo',
+    q:'pounce', qLabel:'Преследование', qStat:'42×6', qDmg:42, qSta:22, qCd:5.5, heavySta:30, heavyCd:6.5,
+    heavyLabel:'Вихрь когтей',
+    pal:{body:0x9a6a44, belly:0xe0cba6, dark:0x5c3a22, head:0xa8764e, stripe:0x6b4526, eye:0xffd24a, claw:0x33302a, accent:0xd84a2a},
+    desc:'Засадный гигант с парой рогов над глазами. E — вихрь когтей. Q — прыжок: сшиби жертву с ног и рви, пока держишь Q.' },
+  { id:'carno', name:'Карнотавр', cost:160, hp:1500, sta:90, walk:5.8, run:14.5,
+    bite:[120,95,160], heavy:190, jumpV:8.5, scale:1.05, turn:2.7, model:'carno',
+    q:'dash', qLabel:'Таранный рывок', qStat:'85×3', qDmg:85, qSta:26, qCd:5, heavySta:24, heavyCd:6,
+    heavyLabel:'Вихрь когтей',
+    pal:{body:0x5a4a4a, belly:0xcfc0b0, dark:0x332a2a, head:0x664f4f, stripe:0x2a2222, eye:0xffe14a, claw:0x2e2a20, accent:0xe0552e},
+    desc:'Бык среди ящеров: рога и спринтер. E — вихрь когтей. Q — таранный рывок: проносится сквозь бой и косит до трёх жертв.' },
+  { id:'pachy', name:'Пахицефалозавр', cost:150, hp:1600, sta:88, walk:5.4, run:13.5,
+    bite:[85,70,120], heavy:160, jumpV:8, scale:1.0, turn:2.6, model:'pachy',
+    q:'charge', qLabel:'Копыто-таран', qStat:'150 + отброс', qDmg:150, qSta:28, qCd:5.5, heavySta:26, heavyCd:6,
+    heavyLabel:'Хвост-прутья',
+    pal:{body:0x8a6a4a, belly:0xdcccab, dark:0x4f3a24, head:0x96754f, stripe:0x61482c, eye:0x241a0e, claw:0x40311f, accent:0xc79a48},
+    desc:'Живая батарея: костяной купол гасит удары. E — хвост-прутья. Q — копыто-таран: разбег и удар куполом, отбрасывает всех на пути.' },
+  { id:'para', name:'Паразауролоф', cost:130, hp:1800, sta:82, walk:5.0, run:12,
+    bite:[70,55,100], heavy:130, jumpV:7, scale:1.18, turn:2.1, model:'para',
+    q:'stomp', qLabel:'Топот стада', qStat:'140 AoE', qDmg:140, qSta:26, qCd:6, heavySta:24, heavyCd:5.5,
+    heavyLabel:'Удар хвостом',
+    pal:{body:0x6a7a8a, belly:0xd0d8c8, dark:0x3c4652, head:0x78889a, stripe:0x46525e, eye:0x241a0e, claw:0x3a352a, accent:0xd87a3a},
+    desc:'Трубач саванны с изогнутым гребнем. E — удар хвостом. Q — топот стада: земля идёт волной, все вокруг отлетают.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
     bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', coin:15, npc:true, ai:'pack',
     pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
@@ -239,7 +263,15 @@ const DINOS=[
   { id:'brachiWild', name:'Дикий брахиозавр', cost:0, hp:5200, sta:60, walk:2.4, run:4.0,
     bite:[90,75,110], heavy:260, jumpV:0, scale:2.5, turn:.8, model:'brachi', coin:120, npc:true, ai:'titan',
     pal:{body:0x8a7a5a, belly:0xd8ccb0, dark:0x544836, head:0x96865f, stripe:0x6a5a42, eye:0x33291a, claw:0x4a4234, accent:0xb09a6a},
-    desc:'Гигант-ориентир саванны. Не трогай — затопчет.' }
+    desc:'Гигант-ориентир саванны. Не трогай — затопчет.' },
+  { id:'paraWild', name:'Дикий паразауролоф', cost:0, hp:1300, sta:70, walk:4.8, run:11,
+    bite:[55,45,80], heavy:110, jumpV:7, scale:1.12, turn:2.0, model:'para', coin:30, npc:true, ai:'herb',
+    pal:{body:0x7a8a6a, belly:0xd8dcc0, dark:0x46523c, head:0x889878, stripe:0x52603e, eye:0x241a0e, claw:0x3a352a, accent:0xc06a2e},
+    desc:'Трубач стада: паника разносится криком по всей саванне.' },
+  { id:'alloWild', name:'Дикий аллозавр', cost:0, hp:1600, sta:75, walk:4.6, run:11,
+    bite:[110,85,150], heavy:200, jumpV:7, scale:1.28, turn:1.9, model:'allo', coin:55, npc:true, ai:'pack',
+    pal:{body:0x7a5f42, belly:0xd0bd9c, dark:0x453122, head:0x85694a, stripe:0x54402a, eye:0xffb02e, claw:0x33302a, accent:0xb84a28},
+    desc:'Стайный засадчик: караулит травоядных у водопоя.' }
 ];
 const dinoDef=id=>DINOS.find(d=>d.id===id)||DINOS[0];
 
@@ -929,7 +961,8 @@ obsIndex();   // все преграды расставлены — строим
 // NPC и будущих сетевых игроков. Материалы кэшируются по цвету внутри одной сборки.
 function buildDino(def){ const m=def.model||'raptor';
   return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):m==='stego'?buildStego(def):m==='anky'?buildAnky(def):
-    m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):buildRaptor(def); }
+    m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):
+    m==='allo'?buildAllo(def):m==='carno'?buildCarno(def):m==='pachy'?buildPachy(def):m==='para'?buildPara(def):buildRaptor(def); }
 function buildRaptor(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye, KG=def.rig||{}, bulk=KG.bulk||1, hd=KG.head||1;
   const mats=[], cache={};
@@ -1373,6 +1406,291 @@ function buildDilo(def){
   return md;
 }
 
+// ================= АЛЛОЗАВР: засадный гигант с парой рогов над глазами =================
+function buildAllo(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.82; g.add(hips);
+  // корпус: крепкий хищный торс
+  const rump=box(1.2,.98,1.6,P.body); rump.position.set(0,.08,.4); hips.add(rump);
+  const mid=box(1.06,.9,1.45,P.body); mid.position.set(0,.02,-.7); hips.add(mid);
+  const chest=box(.92,.8,1.2,P.body); chest.position.set(0,-.05,-1.85); hips.add(chest);
+  const belly=box(1.0,.42,3.0,P.belly); belly.position.set(0,-.4,-.6); hips.add(belly);
+  for(let i=0;i<6;i++){ const pl=box(.38,.15,.42,P.stripe); pl.position.set(0,.6-i*.04,.66-i*.6); pl.rotation.x=.18; hips.add(pl); }
+  for(const s of [-1,1]) for(let i=0;i<3;i++){
+    const st=box(.12,.5,.32,P.stripe); st.position.set(s*.5,.08,.55-i*.85); hips.add(st);
+  }
+  // руки покрупнее рапторьих — три когтя
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.5,-.06,-1.6); hips.add(arm);
+    const up=box(.18,.5,.2,P.body); up.position.y=-.2; up.rotation.x=-.65; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.42,-.06); arm.add(fore);
+    const fm=box(.15,.44,.16,P.dark); fm.position.set(0,-.15,.12); fm.rotation.x=-.5; fore.add(fm);
+    for(let c2=0;c2<3;c2++){ const cl=box(.07,.18,.07,P.claw); cl.position.set((c2-1)*.08,-.36,.2); fore.add(cl); }
+    arms.push(arm);
+  }
+  // шея и длинная узкая голова с парой невысоких рогов
+  const neck=new THREE.Group(); neck.position.set(0,.4,-2.3); hips.add(neck);
+  const neckM=box(.66,.6,1.0,P.body); neckM.rotation.x=.32; neckM.position.set(0,.16,-.34); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.48,-.8); neck.add(head);
+  const skull=box(.58,.5,.85,P.head); skull.position.set(0,.04,-.15); head.add(skull);
+  for(const s of [-1,1]){
+    const cr=box(.1,.2,.36,AC); cr.position.set(s*.17,.35,-.4); cr.rotation.x=-.25; head.add(cr);
+  }
+  const brow=box(.6,.12,.3,P.dark); brow.position.set(0,.27,-.32); head.add(brow);
+  const snout=box(.46,.34,.9,P.head); snout.position.set(0,-.02,-.9); head.add(snout);
+  const nose=box(.34,.24,.5,P.head); nose.position.set(0,0,-1.44); head.add(nose);
+  const lip=box(.4,.1,1.1,P.dark); lip.position.set(0,-.18,-1.05); head.add(lip);
+  for(const s of [-1,1]){
+    const mk=box(.08,.13,.4,AC); mk.position.set(s*.25,.14,-.85); head.add(mk);
+    for(let i=0;i<6;i++){ const t=box(.05,.12,.06,P.claw); t.position.set(s*.19,-.24,-.62-i*.15); head.add(t); }
+    const ew=box(.12,.14,.12,0xf5f2e0); ew.position.set(s*.3,.18,-.38); head.add(ew);
+    const ep=box(.06,.1,.07,P.eye); ep.position.set(s*.34,.17,-.4); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.19,-.3); head.add(jaw);
+  const jawM=box(.4,.13,1.25,P.dark); jawM.position.set(0,-.06,-.58); jaw.add(jawM);
+  const jawTip=box(.32,.11,.3,P.dark); jawTip.position.set(0,-.05,-1.28); jaw.add(jawTip);
+  for(const s of [-1,1]) for(let i=0;i<4;i++){ const t=box(.05,.1,.06,P.claw); t.position.set(s*.15,.04,-.42-i*.15); jaw.add(t); }
+  // хвост: длинный, с толстым основанием и кольцами
+  const tail=[]; let prev=hips;
+  const tw=[.82,.64,.5,.36,.26,.18];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.12,tw[i]-.16),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i===1||i===3){ const ring=box(tw[i]+.05,.13,.97,P.stripe); ring.position.set(0,.02,.48); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.54,-.02,.4); hips.add(hip);
+    const thigh=box(.6,1.04,.78,P.body); thigh.position.set(0,-.48,.06); hip.add(thigh);
+    const knee=box(.46,.52,.56,P.body); knee.position.set(0,-.92,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.92,-.04); hip.add(shin);
+    const shinM=box(.32,.82,.4,P.dark); shinM.position.set(0,-.33,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.7,-.06); shin.add(foot);
+    const footM=box(.46,.16,.92,P.body); footM.position.set(0,-.06,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.1,.1,.34,P.claw); cl.position.set((t-1)*.15,-.11,-.76); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.3, hipsY:1.82, legReach:1.82 };
+}
+
+// ================= КАРНОТАВР: бык-спринтер с рогами над глазами =================
+function buildCarno(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.7; g.add(hips);
+  // компактный мускулистый корпус
+  const rump=box(1.24,1.02,1.5,P.body); rump.position.set(0,.06,.35); hips.add(rump);
+  const mid=box(1.1,.94,1.35,P.body); mid.position.set(0,0,-.62); hips.add(mid);
+  const chest=box(.96,.86,1.1,P.body); chest.position.set(0,-.06,-1.7); hips.add(chest);
+  const belly=box(1.02,.44,2.8,P.belly); belly.position.set(0,-.42,-.55); hips.add(belly);
+  for(let i=0;i<5;i++){ const pl=box(.4,.14,.4,P.stripe); pl.position.set(0,.62-i*.04,.5-i*.62); hips.add(pl); }
+  for(const s of [-1,1]) for(let i=0;i<3;i++){
+    const st=box(.12,.52,.3,P.stripe); st.position.set(s*.52,.06,.5-i*.8); hips.add(st);
+  }
+  // крошечные двухпалые лапки — фирменная черта карнотавра
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.46,-.08,-1.5); hips.add(arm);
+    const up=box(.14,.3,.15,P.body); up.position.y=-.12; up.rotation.x=-.8; arm.add(up);
+    for(let c2=0;c2<2;c2++){ const cl=box(.06,.14,.06,P.claw); cl.position.set(c2?-.04:.04,-.28,.08); arm.add(cl); }
+    arms.push(arm);
+  }
+  // толстая шея и глубокий короткий череп с рогами быка
+  const neck=new THREE.Group(); neck.position.set(0,.38,-2.0); hips.add(neck);
+  const neckM=box(.74,.68,.92,P.body); neckM.rotation.x=.4; neckM.position.set(0,.18,-.3); neck.add(neckM);
+  const head=new THREE.Group(); head.position.set(0,.46,-.66); neck.add(head);
+  const skull=box(.62,.6,.7,P.head); skull.position.set(0,.02,-.18); head.add(skull);
+  for(const s of [-1,1]){
+    const horn=box(.13,.3,.42,AC); horn.position.set(s*.21,.44,-.26); horn.rotation.x=-.55; head.add(horn);
+  }
+  const snout=box(.5,.44,.62,P.head); snout.position.set(0,-.06,-.75); head.add(snout);
+  const nose=box(.4,.32,.34,P.head); nose.position.set(0,-.08,-1.1); head.add(nose);
+  const lip=box(.44,.1,.9,P.dark); lip.position.set(0,-.24,-.85); head.add(lip);
+  for(const s of [-1,1]) for(let i=0;i<4;i++){ const t=box(.05,.12,.06,P.claw); t.position.set(s*.2,-.28,-.52-i*.14); head.add(t); }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.26,-.22); head.add(jaw);
+  const jawM=box(.44,.14,1.0,P.dark); jawM.position.set(0,-.06,-.45); jaw.add(jawM);
+  for(const s of [-1,1]) for(let i=0;i<3;i++){ const t=box(.05,.1,.06,P.claw); t.position.set(s*.16,.04,-.32-i*.14); jaw.add(t); }
+  for(const s of [-1,1]){
+    const ew=box(.11,.13,.11,0xf5f2e0); ew.position.set(s*.3,.14,-.4); head.add(ew);
+    const ep=box(.06,.09,.07,P.eye); ep.position.set(s*.34,.13,-.42); head.add(ep);
+  }
+  // хвост-балансир
+  const tail=[]; let prev=hips;
+  const tw=[.84,.66,.52,.38,.27,.18];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.12,tw[i]-.16),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i===2){ const ring=box(tw[i]+.05,.13,.97,P.stripe); ring.position.set(0,.02,.48); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  // ноги-пружины: крупные стопы — спринтер
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.56,-.02,.38); hips.add(hip);
+    const thigh=box(.62,1.0,.8,P.body); thigh.position.set(0,-.46,.06); hip.add(thigh);
+    const knee=box(.48,.5,.58,P.body); knee.position.set(0,-.88,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.88,-.04); hip.add(shin);
+    const shinM=box(.34,.78,.42,P.dark); shinM.position.set(0,-.32,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.68,-.06); shin.add(foot);
+    const footM=box(.48,.17,.95,P.body); footM.position.set(0,-.07,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.1,.1,.34,P.claw); cl.position.set((t-1)*.15,-.12,-.78); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.0, hipsY:1.7, legReach:1.7 };
+}
+
+// ================= ПАХИЦЕФАЛОЗАВР: костяной купол и жёсткий хвост =================
+function buildPachy(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.66; g.add(hips);
+  const rump=box(1.02,.9,1.45,P.body); rump.position.set(0,.06,.4); hips.add(rump);
+  const mid=box(.9,.82,1.3,P.body); mid.position.set(0,0,-.62); hips.add(mid);
+  const chest=box(.76,.7,1.05,P.body); chest.position.set(0,-.06,-1.72); hips.add(chest);
+  const belly=box(.84,.4,2.7,P.belly); belly.position.set(0,-.38,-.55); hips.add(belly);
+  // ряд костяных шишек по спине и бока
+  for(let i=0;i<6;i++){ const kn=box(.16,.14,.16,P.stripe); kn.position.set(0,.52,.6-i*.58); hips.add(kn); }
+  for(const s of [-1,1]) for(let i=0;i<3;i++){ const kn=box(.1,.2,.28,P.stripe); kn.position.set(s*.46,.06,.5-i*.8); hips.add(kn); }
+  // короткие лапки
+  const arms=[];
+  for(const s of [-1,1]){
+    const arm=new THREE.Group(); arm.position.set(s*.4,-.08,-1.5); hips.add(arm);
+    const up=box(.13,.3,.14,P.body); up.position.y=-.12; up.rotation.x=-.75; arm.add(up);
+    for(let c2=0;c2<2;c2++){ const cl=box(.05,.13,.05,P.claw); cl.position.set(c2?-.04:.04,-.27,.08); arm.add(cl); }
+    arms.push(arm);
+  }
+  // шея короткая толстая
+  const neck=new THREE.Group(); neck.position.set(0,.4,-2.05); hips.add(neck);
+  const neckM=box(.58,.52,.78,P.body); neckM.rotation.x=.3; neckM.position.set(0,.12,-.3); neck.add(neckM);
+  // голова: купол + костяной ободок с шишками
+  const head=new THREE.Group(); head.position.set(0,.44,-.68); neck.add(head);
+  const skull=box(.5,.48,.62,P.head); skull.position.set(0,.02,-.18); head.add(skull);
+  const dome=box(.4,.26,.44,AC); dome.position.set(0,.34,-.12); head.add(dome);
+  const dome2=box(.26,.16,.3,AC); dome2.position.set(0,.5,-.08); head.add(dome2);
+  const rim=box(.54,.14,.2,P.dark); rim.position.set(0,.18,.1); head.add(rim);
+  for(const s of [-1,1]) for(let i=0;i<3;i++){ const kn=box(.09,.09,.09,P.stripe); kn.position.set(s*.2,.27-i*.1,.1-i*.07); head.add(kn); }
+  const snout=box(.38,.28,.5,P.head); snout.position.set(0,-.04,-.66); head.add(snout);
+  const nose=box(.3,.2,.28,P.head); nose.position.set(0,-.04,-.96); head.add(nose);
+  const lip=box(.32,.08,.6,P.dark); lip.position.set(0,-.16,-.72); head.add(lip);
+  for(const s of [-1,1]){
+    const ew=box(.11,.13,.11,0xf5f2e0); ew.position.set(s*.27,.12,-.34); head.add(ew);
+    const ep=box(.06,.09,.07,P.eye); ep.position.set(s*.31,.11,-.36); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.16,-.24); head.add(jaw);
+  const jawM=box(.34,.11,.72,P.dark); jawM.position.set(0,-.05,-.32); jaw.add(jawM);
+  // хвост: жёсткий противовес
+  const tail=[]; let prev=hips;
+  const tw=[.7,.54,.42,.3,.2,.14];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.12,tw[i]-.14),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i===1||i===4){ const ring=box(tw[i]+.05,.12,.97,P.stripe); ring.position.set(0,.02,.48); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.5,-.02,.4); hips.add(hip);
+    const thigh=box(.54,.98,.7,P.body); thigh.position.set(0,-.45,.06); hip.add(thigh);
+    const knee=box(.42,.5,.52,P.body); knee.position.set(0,-.88,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.88,-.04); hip.add(shin);
+    const shinM=box(.3,.78,.36,P.dark); shinM.position.set(0,-.32,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.68,-.06); shin.add(foot);
+    const footM=box(.44,.16,.9,P.body); footM.position.set(0,-.06,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.1,.1,.32,P.claw); cl.position.set((t-1)*.14,-.11,-.74); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.05, hipsY:1.66, legReach:1.66 };
+}
+
+// ================= ПАРАЗАУРОЛОФ: трубач саванны с изогнутым гребнем =================
+function buildPara(def){
+  const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
+  const mats=[], cache={};
+  const M=c=>{ if(!cache[c]){ const m=new THREE.MeshLambertMaterial({color:c}); mats.push(m); cache[c]=m; } return cache[c]; };
+  const box=(w,h,d,c)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.castShadow=true; return m; };
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=1.78; g.add(hips);
+  // длинный корпус, плечи ниже крупа
+  const rump=box(1.3,1.05,1.7,P.body); rump.position.set(0,.06,.55); hips.add(rump);
+  const mid=box(1.24,1.0,1.6,P.body); mid.position.set(0,-.02,-.6); hips.add(mid);
+  const chest=box(1.05,.85,1.3,P.body); chest.position.set(0,-.12,-1.85); hips.add(chest);
+  const belly=box(1.15,.5,3.4,P.belly); belly.position.set(0,-.48,-.6); hips.add(belly);
+  for(let i=0;i<6;i++){ const pl=box(.36,.14,.4,P.stripe); pl.position.set(0,.64-i*.05,.75-i*.6); hips.add(pl); }
+  for(const s of [-1,1]) for(let i=0;i<3;i++){
+    const st=box(.12,.5,.3,P.stripe); st.position.set(s*.56,.02,.6-i*.85); hips.add(st);
+  }
+  // шея вверх-вперёд
+  const neck=new THREE.Group(); neck.position.set(0,.46,-2.4); hips.add(neck);
+  const neckM=box(.6,.56,.9,P.body); neckM.rotation.x=.42; neckM.position.set(0,.12,-.32); neck.add(neckM);
+  // голова: утиный клюв и гребень-труба, уходящая назад
+  const head=new THREE.Group(); head.position.set(0,.44,-.72); neck.add(head);
+  const skull=box(.5,.46,.6,P.head); skull.position.set(0,.02,-.2); head.add(skull);
+  const crest1=box(.16,.16,.5,AC); crest1.position.set(0,.34,.02); crest1.rotation.x=.3; head.add(crest1);
+  const crest2=box(.14,.15,.5,AC); crest2.position.set(0,.5,.28); crest2.rotation.x=.5; head.add(crest2);
+  const crest3=box(.12,.14,.46,AC); crest3.position.set(0,.62,.6); crest3.rotation.x=.7; head.add(crest3);
+  const crest4=box(.1,.12,.38,AC); crest4.position.set(0,.7,.88); crest4.rotation.x=.85; head.add(crest4);
+  const billU=box(.58,.12,.5,P.head); billU.position.set(0,-.06,-.72); head.add(billU);
+  const billT=box(.52,.08,.2,P.dark); billT.position.set(0,-.13,-.94); head.add(billT);
+  for(const s of [-1,1]){
+    const ew=box(.11,.13,.11,0xf5f2e0); ew.position.set(s*.27,.14,-.3); head.add(ew);
+    const ep=box(.06,.09,.07,P.eye); ep.position.set(s*.31,.13,-.32); head.add(ep);
+  }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.22,-.28); head.add(jaw);
+  const jawM=box(.52,.1,.6,P.dark); jawM.position.set(0,-.04,-.4); jaw.add(jawM);
+  const billL=box(.5,.07,.2,P.dark); billL.position.set(0,-.1,-.76); jaw.add(billL);
+  // хвост: толстый, гибкий
+  const tail=[]; let prev=hips;
+  const tw=[.84,.68,.54,.4,.28,.2];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,0,i?.9:.88); prev.add(seg);
+    const tm=box(tw[i],Math.max(.12,tw[i]-.16),.95,i<3?P.body:P.dark); tm.position.z=.48; seg.add(tm);
+    if(i===2||i===4){ const ring=box(tw[i]+.05,.13,.97,P.stripe); ring.position.set(0,.02,.48); seg.add(ring); }
+    tail.push(seg); prev=seg;
+  }
+  // 4 ноги: задние мощные, передние тоньше
+  const legs=[];
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.56,-.02,.5); hips.add(hip);
+    const thigh=box(.62,1.04,.8,P.body); thigh.position.set(0,-.48,.06); hip.add(thigh);
+    const knee=box(.48,.52,.58,P.body); knee.position.set(0,-.92,-.1); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.92,-.04); hip.add(shin);
+    const shinM=box(.34,.82,.42,P.dark); shinM.position.set(0,-.33,.08); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.7,-.06); shin.add(foot);
+    const footM=box(.48,.16,.95,P.body); footM.position.set(0,-.06,-.22); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.1,.1,.34,P.claw); cl.position.set((t-1)*.15,-.11,-.76); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  for(const s of [-1,1]){
+    const hip=new THREE.Group(); hip.position.set(s*.52,-.14,-1.45); hips.add(hip);
+    const thigh=box(.46,.9,.56,P.body); thigh.position.set(0,-.41,.05); hip.add(thigh);
+    const knee=box(.36,.44,.44,P.body); knee.position.set(0,-.8,-.06); hip.add(knee);
+    const shin=new THREE.Group(); shin.position.set(0,-.84,-.04); hip.add(shin);
+    const shinM=box(.28,.68,.32,P.dark); shinM.position.set(0,-.28,.06); shin.add(shinM);
+    const foot=new THREE.Group(); foot.position.set(0,-.6,-.04); shin.add(foot);
+    const footM=box(.42,.14,.8,P.body); footM.position.set(0,-.05,-.18); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.09,.09,.3,P.claw); cl.position.set((t-1)*.13,-.1,-.62); foot.add(cl); }
+    legs.push({hip,shin,foot});
+  }
+  g.scale.setScalar(sc);
+  const arms=[];   // передние конечности — это ноги: отдельные руки не нужны, анимация ждёт пустой массив
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.4, hipsY:1.78, legReach:1.78 };
+}
+
 // ================= БРАХИОЗАВР: ходячая гора с длинной шеей-цепочкой =================
 function buildBrachi(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
@@ -1400,10 +1718,10 @@ function buildBrachi(def){
     const tm=box(tw[i],Math.max(.2,tw[i]-.18),1.06,i<2?P.body:P.dark); tm.position.z=.53; inner.add(tm);
     tail.push(seg); prev=seg;
   }
-  // ШЕЯ: 6 сегментов — мощная колонна, выходящая из плеч под 35° и поднимающаяся
-  // к почти вертикали у головы; глубокое перекрытие сегментов = гладкий силуэт
+  // ШЕЯ: 6 сегментов — S-кривая жирафа: выход из плеч под 54°, потом сегменты
+  // плавно заворачивают вперёд (19° у головы). Голова смотрит ВПЕРЁД, не в небо.
   const neck=new THREE.Group(); neck.position.set(0,.9,-2.3); hips.add(neck);
-  const NB=[.62,.3,.22,.15,.09,.05];
+  const NB=[.95,-.08,-.12,-.14,-.15,-.12];
   let pn=neck; const neckSegs=[];
   for(let i=0;i<6;i++){
     const seg=new THREE.Group();
@@ -1415,8 +1733,8 @@ function buildBrachi(def){
     const rb=box(w*.3,.13,.42,P.dark); rb.position.set(0,w*.43,-.36); seg.add(rb); // позвонки-гребень
     neckSegs.push(seg); pn=seg;
   }
-  // голова: удлинённая, с гребнем и ноздрями на бугре, смотрит вперёд-вверх
-  const head=new THREE.Group(); head.position.set(0,.04,-.6); head.rotation.x=-.5; pn.add(head);
+  // голова: удлинённая, с гребнем и ноздрями на бугре; взгляд вперёд по ходу шеи
+  const head=new THREE.Group(); head.position.set(0,.04,-.6); head.rotation.x=-.32; pn.add(head);
   const skull=box(.6,.52,.8,P.head); skull.position.set(0,.02,-.2); head.add(skull);
   const snout=box(.42,.3,.62,P.head); snout.position.set(0,-.04,-.72); head.add(snout);
   const nosetip=box(.3,.22,.34,P.head); nosetip.position.set(0,-.08,-1.1); head.add(nosetip);
@@ -1442,7 +1760,7 @@ function buildBrachi(def){
     legs.push({hip,shin,foot});
   }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.3, hipsY:3.05, legReach:3.0, neckSegs, neckBase:NB, headBaseX:-.5, tagY:7.4 };
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, neckZ:-2.3, hipsY:3.05, legReach:3.0, neckSegs, neckBase:NB, headBaseX:-.32, tagY:6.4 };
 }
 
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
@@ -1744,14 +2062,14 @@ function placeOnGround(e,x,z){ e.pos.set(x,terrainH(x,z),z); }
 const spawnSpot=()=>[rand(9,15),rand(-14,-6)];            // внутри частокола, у ворот
 (function(){ const [sx,sz]=spawnSpot(); placeOnGround(my,sx,sz); })();
 my.yaw=Math.atan2(12,-10); my.prevYaw=my.yaw;             // лицом к костру и центру лагеря
-const NPC_ROSTER=[['raptorJungle',4],['diloWild',4],['trikeWild',6],['rexWild',1],['brachiWild',2]];   // стаи хищников · стада травоядных · апекс · титаны
+const NPC_ROSTER=[['raptorJungle',4],['diloWild',4],['trikeWild',6],['paraWild',6],['alloWild',2],['rexWild',1],['brachiWild',2]];   // стаи хищников · стада травоядных · апекс · титаны
 let ni=0;
 const BRACHI_SPOTS=[[128,44],[-90,160],[-30,-160],[0,-190]];   // брахиозавры — ориентиры саванны (сухие точки)
 let bi=0;
 // ===== СТАДА ТРАВОЯДНЫХ: якоря, вокруг которых пасётся каждая группа =====
 const HERD_SIZE=3, HERDS=[];
 for(const [sp,cnt] of NPC_ROSTER){
-  if(sp!=='trikeWild') continue;
+  if(sp!=='trikeWild'&&sp!=='paraWild') continue;
   for(let h=0;h<Math.ceil(cnt/HERD_SIZE);h++){
     let ax=0, az=0;
     for(let t=0;t<60&&(Math.hypot(ax,az)<80||terrainH(ax,az)<WATER_Y+1.2);t++){  // подальше от лагеря и не в воде
@@ -1769,7 +2087,7 @@ for(const [sp,cnt] of NPC_ROSTER) for(let i=0;i<cnt;i++){
       const a=srng()*6.283; bx+=Math.cos(a)*8; bz+=Math.sin(a)*8;
     }
     placeOnGround(n,bx,bz);
-  } else if(sp==='trikeWild'){                                 // члены стада — кучно вокруг якоря
+  } else if(sp==='trikeWild'||sp==='paraWild'){                                 // члены стада — кучно вокруг якоря
     const hdList=HERDS.filter(h=>h.sp===sp);
     const hIdx=Math.floor(i/HERD_SIZE)%hdList.length;
     const hd=hdList[hIdx];
@@ -2835,7 +3153,7 @@ function toMenu(){
 // ---------- выбор динозавра в меню ----------
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
-const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Дилофозавр 140 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220 · Брахиозавр 280';
+const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 180 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280';
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
