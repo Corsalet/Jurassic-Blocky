@@ -196,7 +196,7 @@ const DINOS=[
     heavyLabel:'Панцирный таран',
     pal:{body:0x7a6a50, belly:0xcfc3a0, dark:0x4a3f2c, head:0x85745a, stripe:0x5a4c36, eye:0xffb02e, claw:0x33302a, accent:0xd8c9a0},
     desc:'Бронированный танк. E — панцирный таран: сбивает с ног корпусом. Q — дубина: хвост-булава обрушивается и оглушает на 1.5 с.' },
-  { id:'rex', name:'Тираннозавр', cost:180, hp:2600, sta:90, walk:4.2, run:11,
+  { id:'rex', name:'Тираннозавр', cost:320, hp:2600, sta:90, walk:4.2, run:11,
     bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
     heavyLabel:'Челюсти',
@@ -1739,7 +1739,7 @@ function buildBrachi(def){
   const snout=box(.42,.3,.62,P.head); snout.position.set(0,-.04,-.72); head.add(snout);
   const nosetip=box(.3,.22,.34,P.head); nosetip.position.set(0,-.08,-1.1); head.add(nosetip);
   const crest=box(.22,.12,.5,AC); crest.position.set(0,.3,-.4); head.add(crest);
-  const nostr=box(.14,.1,.16,P.dark); nostr.position.set(0,.26,-.9); head.add(nostr);
+  for(const s of [-1,1]){ const nostr=box(.11,.09,.18,P.dark); nostr.position.set(s*.1,.145,-.8); head.add(nostr); }
   for(const s of [-1,1]){
     const ew=box(.12,.13,.12,0xf5f2e0); ew.position.set(s*.32,.12,-.32); head.add(ew);
     const ep=box(.06,.08,.07,P.eye); ep.position.set(s*.38,.11,-.34); head.add(ep);
