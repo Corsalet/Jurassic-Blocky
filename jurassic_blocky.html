@@ -3807,13 +3807,24 @@ function updPoison(dt){
 // Если захват недоступен — камера следует за курсором (фолбэк).
 const keys={};
 let mouseDown=false, camYaw=Math.PI*.25, camPitch=.34, camDist=11, locked=false, plFailed=false;
+let plTries=0, plLastTry=0, plRetryTimer=null;   // захват может отказать ОДИН раз (Chrome дросселирует ~1.25с после Esc) — больше не отключаем его навсегда
 function plFail(){
-  if(plFailed) return;
-  plFailed=true;
-  toast('Захват мыши недоступен — камера следует за курсором','coin');
+  plTries++;
+  if(!plFailed){
+    plFailed=true;
+    const inFrame=(function(){try{return window.self!==window.top}catch(e){return true}})();
+    toast('Захват мыши недоступен — камера следует за курсором. Кликни — попробуем ещё раз.'+(inFrame?' Открой игру в отдельной вкладке — там захват работает.':''),'coin');
+  }
+  // авто-повтор: частая причина — слишком быстрый возврат в игру после Esc; через 1.6с захват обычно уже можно
+  if(G.state==='play'&&plTries<4&&!plRetryTimer){
+    plRetryTimer=setTimeout(()=>{ plRetryTimer=null; if(G.state==='play'&&!locked) tryLock(); },1600);
+  }
 }
 function tryLock(){
-  if(plFailed) return;
+  if(locked) return;
+  const now=performance.now();
+  if(now-plLastTry<1200) return;          // не спамим запросами — иначе Chrome кидает SecurityError
+  plLastTry=now;
   try{
     const r=renderer.domElement.requestPointerLock();
     if(r&&r.catch) r.catch(plFail);
@@ -3822,7 +3833,12 @@ function tryLock(){
 document.addEventListener('pointerlockerror',plFail);
 document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===renderer.domElement;
-  if(!locked&&G.state==='play'&&!plFailed&&!CHAT.open&&$('ov-code').classList.contains('hidden')&&$('ov-loot').classList.contains('hidden')&&$('ov-set').classList.contains('hidden')) toMenu(); // Esc при захвате = выход в меню
+  if(locked){
+    if(plFailed) toast('Захват мыши снова работает');
+    plFailed=false; plTries=0;
+    if(plRetryTimer){ clearTimeout(plRetryTimer); plRetryTimer=null; }
+  }
+  else if(G.state==='play'&&!plFailed&&!CHAT.open&&$('ov-code').classList.contains('hidden')&&$('ov-loot').classList.contains('hidden')&&$('ov-set').classList.contains('hidden')) toMenu(); // Esc при захвате = выход в меню
 });
 addEventListener('keydown',e=>{
   if(e.repeat) return;
@@ -3850,7 +3866,7 @@ addEventListener('mousedown',e=>{
   if(G.state==='play'){
     mouseDown=true;
     tryBite();                    // бьём сразу — даже если клик ушёл на захват мыши
-    if(!locked&&!plFailed) tryLock();
+    if(!locked) tryLock();        // даже после отказа пробуем снова (клик = пользовательский жест)
   }
 });
 addEventListener('mouseup',e=>{ if(e.button===0) mouseDown=false; });
