@@ -258,7 +258,7 @@
       <div class="ctrl"><b>ESC</b><span>меню</span></div>
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
-    <div id="net-row"><label class="net-tgl"><input type="checkbox" id="net-on"> играть по сети</label><input id="net-room" maxlength="18" value="jurassic-blocky" spellcheck="false"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку-приглашение с кодом комнаты">🔗 ссылка другу</button><span id="net-hint">введи тот же код у друга — или отправь ему ссылку; кто первый нажал «ИГРАТЬ», тот хост</span></div>
+    <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
     <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
@@ -2783,7 +2783,9 @@ const NET={
       } else if(this._hostConn&&this._hostConn.open){ this._hostConn.send(msg); }
     }catch(e){}
   },
-  _recv(m,from){ if(!m||typeof m!=='object'||!m.c) return; if(m.f&&m.f===this.myNetId) return; const f=this.rx[m.c];
+  _recv(m,from){ if(!m||typeof m!=='object'||!m.c) return; if(m.f&&m.f===this.myNetId) return;
+    this._lastMsg=Date.now(); if(this._hostWd&&m.f) this._hostWd[m.f]=Date.now();
+    const f=this.rx[m.c];
     if(f){ try{ f(m.d, m.f||from); }catch(e){} } },
   _relay(from,msg){ if(!msg||typeof msg!=='object'||!msg.c) return;   // хост пересылает чужое остальным
     for(const k in this.conns){ if(k!==from){ const c=this.conns[k];
@@ -2794,7 +2796,7 @@ const NET={
   async connect(code){
     if(this.on||this.joining) return this.on;
     this.joining=true; this.code=code;
-    this.netStatus('сеть: открываю комнату «'+code+'»…');
+    this.netStatus('сеть: вхожу на общий остров…');
     const wire=(ch,recv)=>{ this.rx[ch]=recv; this.tx[ch]=(d,t)=>this._route(ch,d,t); };   // peer-режим
     wire('st',(d,pid)=>{ const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r) return;
       r.np={x:d[0],y:d[1],z:d[2]}; r.ny=d[3]; r.moveMode=d[4]; r.hpSync=d[5]; r.cloakNet=!!d[6]; });
@@ -2868,19 +2870,20 @@ const NET={
           const t=e&&e.type;
           if(t==='peer-unavailable'){
             unavail++;
-            if(unavail>=2){ this.netStatus('комната свободна — становлюсь хостом «'+code+'»'); setTimeout(becomeHost,200+Math.random()*600); }
-            else { this.netStatus('сеть: комната пуста, проверяю ещё раз…'); setTimeout(()=>{ if(!done) tryConnect(); },1100); }
+            if(unavail>=2){ this.netStatus('остров пуст — я первым, становлюсь хостом'); setTimeout(becomeHost,200+Math.random()*600); }
+            else { this.netStatus('сеть: остров пуст, проверяю ещё раз…'); setTimeout(()=>{ if(!done) tryConnect(); },1100); }
           } else if(t==='network'||t==='disconnected'||t==='server-error'||t==='socket-error'){
             setTimeout(()=>{ if(!done){ dropCp(); becomeClient(); } },1200);   // брокер моргнул — заново
           } else { clearTimeout(giveUp); dropCp(); finish(false); }
         });
       };
-      this.netStatus('сеть: ищу комнату «'+code+'»…');
+      this.netStatus('сеть: ищу общий остров…');
       becomeClient();
     });
   },
   _wirePeer(peer,iAmHost){
     this.peer=peer; this.myNetId=peer.id; this.on=true; this._iAmHost=iAmHost; this._host=iAmHost; this._mode='peer';
+    this._lastMsg=Date.now(); this._hostWd={};
     peer.on('connection',conn=>{ conn.on('open',()=>this._addConn(conn)); });
     peer.on('disconnected',()=>{ try{ peer.reconnect(); }catch(e){} });
     peer.on('error',()=>{});
@@ -2889,6 +2892,7 @@ const NET={
     const pid=conn.peer;
     this.conns[pid]=conn;
     if(!this.peers.includes(pid)) this.peers.push(pid);
+    if(!this._hostWd) this._hostWd={}; this._hostWd[pid]=Date.now();
     conn.on('data',m=>{ if(this._iAmHost) this._relay(pid,m); this._recv(m,pid); });
     conn.on('close',()=>{ if(this.conns[pid]===conn) this._dropConn(pid); });
     conn.on('error',()=>{});
@@ -2907,8 +2911,13 @@ const NET={
     const nm=(this.names[pid]&&this.names[pid].n)||'Охотник';
     netDropRemote(pid); delete this.names[pid];
     chatMsg(nm+' ушёл с острова','·','sys'); updNetHud();
-    if(!this._iAmHost&&pid===this.PREFIX+this.code){ chatMsg('Связь с хостом потеряна','·','sys'); this.leave(); }
+    if(!this._iAmHost&&pid===this.PREFIX+this.code){
+      chatMsg('Хост вышел — пересобираю остров…','·','sys'); this.leave();
+      this._redial(2500+Math.random()*2000);        // миграция хоста: заходим заново — хостом станет кто-то из живых
+    }
   },
+  _redial(d){ if(this._rd) return; this._rd=setTimeout(()=>{ this._rd=null;
+    if(!this.on&&!this.joining&&G.state==='play') this.connect(this.code); },d); },
   // ---------- план Б: релей через публичный MQTT-брокер (WSS) ----------
   // Минимальный MQTT 3.1.1 на голом WebSocket (CONNECT/SUBSCRIBE/PUBLISH, QoS0).
   // Публичные брокеры принимают анонимов — свой сервер не нужен, работает за любым NAT.
@@ -2925,7 +2934,7 @@ const NET={
       try{ crypto.getRandomValues(sk); }catch(e){ for(let i=0;i<32;i++) sk[i]=(Math.random()*256)|0; }
       const key=jbKeygen(sk);
       const finish=v=>{ if(done) return; done=true; clearTimeout(giveUp); res(v); };
-      const giveUp=setTimeout(()=>{ if(!self.on){ hardStop(); finish(false); } },26000);
+      const giveUp=setTimeout(()=>{ if(!self.on){ hardStop(); finish(false); } },16000);
       if(!key){ hardStop(); finish(false); return; }
       const pkHex=jbHex(key.pk);
       const myId='n'+pkHex.slice(0,10);
@@ -2967,7 +2976,7 @@ const NET={
           else if(Array.isArray(arr)&&arr[0]==='OK'&&!arr[2]) console.log('JBOK rejected',(''+arr[1]).slice(0,8),(''+arr[3]).slice(0,60));
         };
         ws.onclose=()=>{ const ix=conns.indexOf(ws); if(ix>=0) conns.splice(ix,1);
-          if(self.on&&self._mode==='nostr'&&!conns.length){ try{ self.leave(); }catch(e){} } };
+          if(self.on&&self._mode==='nostr'&&!conns.length){ try{ self.leave(); }catch(e){} self._redial(4000); } };
         ws.onerror=()=>{};
       }
       function dialOne(url){
@@ -2991,14 +3000,16 @@ const NET={
                 else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
                   if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
               };
-              tickT=setInterval(()=>{
+              const pulse=()=>{                      // пульс присутствия: тут — интервал, в фоновой вкладке — воркер (NET.bgTick)
                 if(!self.on||self._mode!=='nostr') return;
                 publish({c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
                   s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:self.myNetId});
                 const now=Date.now();
-                for(const pid in seen){ if(now-seen[pid].t>13000){ delete seen[pid]; self._dropConn(pid); } }
+                for(const pid in seen){ if(now-seen[pid].t>30000){ delete seen[pid]; self._dropConn(pid); } }
                 elect();
-              },2000);
+              };
+              self._bgPulse=pulse;
+              tickT=setInterval(pulse,2000);
               self._nTick=tickT;
               setTimeout(()=>{ if(self.on) elect(); },400);
               chatMsg('Релей подключён — совместный режим (данные через nostr)','·','sys');
@@ -3024,7 +3035,7 @@ const NET={
       let done=false, ui=0, ws=null, buf=new Uint8Array(0), tickT=null;
       const seen={};
       const finish=v=>{ if(done) return; done=true; clearTimeout(giveUp); res(v); };
-      const giveUp=setTimeout(()=>{ hardStop(); finish(false); },34000);
+      const giveUp=setTimeout(()=>{ hardStop(); finish(false); },24000);
       function hardStop(){
         if(tickT){ clearInterval(tickT); tickT=null; }
         if(ws){ try{ ws.onclose=ws.onerror=ws.onmessage=ws.onopen=null; ws.close(); }catch(e){} ws=null; }
@@ -3082,7 +3093,7 @@ const NET={
           const u8=(ev.data instanceof ArrayBuffer)?new Uint8Array(ev.data):new TextEncoder().encode(''+ev.data);
           feed(u8); };
         ws.onerror=()=>{};
-        ws.onclose=()=>{ if(self.on&&self._mode==='mqtt'&&ws===self._mqttWs){ try{ self.leave(); }catch(e){} return; }
+        ws.onclose=()=>{ if(self.on&&self._mode==='mqtt'&&ws===self._mqttWs){ try{ self.leave(); }catch(e){} self._redial(4000); return; }
           if(done) return; advance(); };
       }
       function onConnack(body){
@@ -3105,15 +3116,17 @@ const NET={
           else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
             if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
         };
-        tickT=setInterval(()=>{
+        const pulse=()=>{                            // пульс присутствия: тут — интервал, в фоне — воркер (NET.bgTick)
           if(!self.on||self._mode!=='mqtt') return;
           const hel={c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
             s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:myId};
           self._mpub(base+'/b',JSON.stringify(hel));            // маячок присутствия (hi всем)
           const now=Date.now();
-          for(const pid in seen){ if(now-seen[pid].t>13000){ delete seen[pid]; self._dropConn(pid); } }
+          for(const pid in seen){ if(now-seen[pid].t>30000){ delete seen[pid]; self._dropConn(pid); } }
           elect();
-        },2000);
+        };
+        self._bgPulse=pulse;
+        tickT=setInterval(pulse,2000);
         self._mTick=tickT;
         setTimeout(()=>{ if(!done) elect(); },400);             // быстрый первый выбор хоста
         chatMsg('Релей подключён — совместный режим (для тяжёлых сетей)','·','sys');
@@ -3138,18 +3151,59 @@ const NET={
     if(this._nConns){ for(const ws2 of this._nConns){ try{ ws2.onclose=null; ws2.send(JSON.stringify(['CLOSE','jb0'])); ws2.close(); }catch(e){} } this._nConns=null; }
     this._nPub=null; this._nKey=null;
     this.on=false; this.peer=null; this.room=null; this.peers=[]; this._iAmHost=false; this._host=true; this._mode='peer';
+    this._lastMsg=0; this._hostWd={};
     for(let i=ENT.length-1;i>=0;i--) if(ENT[i].kind==='human'&&!ENT[i].isLocal){ scene.remove(ENT[i].mesh.g); ENT.splice(i,1); }
     updNetHud(); },
   emitIntent(type,payload){ if(!this.on) return;
     const o={t:type}; if(payload) for(const k in payload) o[k]=payload[k]; this.send('ev',o); }
 };
-// код комнаты: случайный при каждом заходе — приватность по умолчанию (ссылка с ?room= сильнее)
+// ---- фон-такт: воркер НЕ замораживается в фоновой вкладке ----
+// без него вкладка без фокуса умирает: игровой цикл стоит, синхронизация встаёт (друг «завис»),
+// а релей отсчитывает молчание и выкидывает игрока («ушёл с острова»)
+NET.bgTick=function(){
+  if(!this.on) return;
+  if(!document.hidden) return;                       // на переднем плане рулят игровой цикл и обычные интервалы
+  const now=Date.now();
+  if(this._bgLast&&now-this._bgLast<1100) return;
+  this._bgLast=now;
+  try{ const p=this.peer; if(p&&p.disconnected&&!p.destroyed) p.reconnect(); }catch(e){}  // брокер-сокет жив даже в фоне
+  try{ if(this._bgPulse) this._bgPulse(); }catch(e){}   // присутствие для релея (nostr/mqtt)
+  if(G.state==='play'){
+    try{ const f=this.tx.st;                          // пульс движения: друг видит, что ты просто стоишь
+      if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }catch(e){}
+  } else {
+    try{ this.send('ev',{t:'ping'}); }catch(e){}      // в меню — просто маячок «я жив»
+  }
+  try{ this.hostWatch(); }catch(e){}
+};
+NET.watchdog=function(){                             // клиент: хост молчит 13с — мигрируем к живым
+  if(!this.on||this._mode!=='peer'||this._iAmHost||this.joining) return;
+  if(Date.now()-(this._lastMsg||0)>13000){
+    this._lastMsg=Date.now();                        // чтобы не зациклиться, пока leave/redial
+    chatMsg('Хост молчит — пересобираю остров…','·','sys');
+    this.leave(); this._redial(1200);
+  }
+};
+NET.hostWatch=function(){                            // хост: клиент молчит 25с — снять призрака
+  if(!this.on||!this._iAmHost||this._mode!=='peer'||!this._hostWd) return;
+  const now=Date.now();
+  for(const pid in this._hostWd){
+    if(!this.peers.includes(pid)){ delete this._hostWd[pid]; continue; }
+    if(now-this._hostWd[pid]>25000){ delete this._hostWd[pid]; this._dropConn(pid); }
+  }
+};
+try{
+  NET._w=new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(1)},1000)'],{type:'text/javascript'})));
+  NET._w.onmessage=function(){ try{ NET.bgTick(); }catch(e){} };
+}catch(e){ NET._w=null; }
+addEventListener('visibilitychange',()=>{ if(!document.hidden&&NET.on){ NET.stT=0; NET._bgLast=0; try{NET.hello();}catch(e){} } });  // вернулся — мгновенный синк
+// остров один для всех: без кодов; ?room= остался только для отладки
 try{
   const nr=$('net-room');
   if(nr){
     const qm=location.search.match(/[?&]room=([0-9A-Za-zа-яА-ЯёЁ-]{1,18})/);
-    if(qm){ nr.value=qm[1]; const nt=$('net-on'); if(nt) nt.checked=true; }  // пришёл по ссылке — сеть сразу включена
-    else if(nr.value==='jurassic-blocky') nr.value=Math.random().toString(36).slice(2,8);
+    if(qm) nr.value=qm[1];                                  // ?room= — только для отладки
+    else nr.value='ostrov';                                 // ОДИН общий остров: без комнат и кодов
   }
 }catch(e){}
 function fallbackCopy(t){ const ta=document.createElement('textarea'); ta.value=t;
@@ -3158,9 +3212,8 @@ function fallbackCopy(t){ const ta=document.createElement('textarea'); ta.value=
 try{
   const bi=$('btn-invite');
   if(bi) bi.onclick=()=>{
-    const code=($('net-room').value||'jurassic-blocky').trim();
-    const url=location.origin+location.pathname+'?room='+encodeURIComponent(code);
-    const ok=()=>toast('Ссылка скопирована — отправь другу: он откроет её и нажмёт ИГРАТЬ','coin');
+    const url=location.origin+location.pathname;            // один общий остров: ссылка без кодов
+    const ok=()=>toast('Ссылка скопирована — друг откроет её, нажмёт ИГРАТЬ и будет рядом','coin');
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok,()=>{ fallbackCopy(url); ok(); });
     else { fallbackCopy(url); ok(); }
   };
@@ -3169,7 +3222,7 @@ function updNetHud(){
   const chip=$('net-chip'); if(chip) chip.classList.toggle('on',NET.on);
   const c=$('net-cnt'); if(c) c.textContent=playersOnServer();
   if(!NET.on){ NET.netStatus('одиночный режим · локальная симуляция'); return; }
-  NET.netStatus('в сети · комната «'+NET.code+'» · игроков: '+playersOnServer()+(NET._mode==='mqtt'?' · релей':' · P2P')+' · 🔗 в меню — ссылка другу');
+  NET.netStatus('в сети · общий остров «'+NET.code+'» · игроков: '+playersOnServer()+(NET._mode==='mqtt'?' · релей':' · P2P'));
 }
 function netEnsureRemote(pid,rebuild){
   let r=ENT.find(e=>e.kind==='human'&&e.id===pid);
@@ -4898,11 +4951,11 @@ $('btn-play').addEventListener('click',async ()=>{
     $('menu-tip').style.color='#ffb0a0';
     return;
   }
-  if($('net-on').checked&&!NET.on&&!NET.joining){    // кооп: комната по коду, без своего сервера
-    const code=($('net-room').value||'jurassic-blocky').trim().toLowerCase().replace(/[^0-9a-zа-яё-]/gi,'').slice(0,18)||'jurassic-blocky';
+  if(!NET.on&&!NET.joining){                         // общий остров: сеть всегда включена, комнат больше нет
+    const code=($('net-room').value||'ostrov').trim().toLowerCase().replace(/[^0-9a-zа-яё-]/gi,'').slice(0,18)||'ostrov';
     $('net-room').value=code;
     await NET.connect(code);
-  } else if(!$('net-on').checked&&NET.on){ NET.leave(); }
+  }
   if(NET.on) NET.hello();
   applyPlayerDino(d.id);
   G.state='play';
@@ -4991,9 +5044,10 @@ function step(dt){
   if(mouseDown&&G.state==='play') tryBite(); // удержание ЛКМ — серия укусов
   if(NET.on){
     NET.stT-=dt;
-    if(NET.stT<=0){ NET.stT=(NET._mode==='peer')?.1:.2; const f=NET.tx.st;   // своё состояние: P2P 10 Гц, релей 5 Гц
+    if(NET.stT<=0){ NET.stT=(NET._mode==='peer')?.1:.33; const f=NET.tx.st;   // своё состояние: P2P 10 Гц, релей 3 Гц (у релеев лимиты)
       if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }
     for(const e of ENT){ if(e.kind==='human'&&!e.isLocal) updRemote(e,dt); }
+    try{ NET.watchdog(); NET.hostWatch(); }catch(e){}   // контроль живости в P2P-звезде
   }
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
   if(BOSS.e) updBoss(BOSS.e,dt);              // рейд-босс: ИИ + клоак + рыки
