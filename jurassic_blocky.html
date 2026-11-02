@@ -157,6 +157,11 @@
   .set-row select,.set-row input[type=text]{width:100%;background:rgba(0,0,0,.5);border:2px solid var(--line);border-radius:9px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:8px 10px;outline:none}
   .set-row select:focus,.set-row input[type=text]:focus{border-color:var(--amb)}
   .set-val{float:right;color:var(--amb)}
+  .acc-row{display:flex;gap:8px;margin-top:2px}
+  .acc-row input{flex:1;min-width:0;background:rgba(0,0,0,.5);border:2px solid var(--line);border-radius:9px;color:#fff;font-family:inherit;font-size:13px;font-weight:800;letter-spacing:1.5px;padding:7px 9px;text-transform:uppercase;outline:none}
+  .acc-row input:focus{border-color:var(--amb)}
+  .acc-tip{font-size:10.5px;color:rgba(232,245,216,.55);margin-top:6px;line-height:1.5}
+  #acc-show,#acc-load{margin:0;white-space:nowrap}
   #set-back{display:block;margin:18px auto 0}
   .btn-row{display:flex;gap:10px;justify-content:center;margin-top:4px}
   #dc-skinrow{display:none;margin-top:9px;font-size:12px;font-weight:800;letter-spacing:.5px;color:rgba(232,245,216,.85);text-align:center}
@@ -207,6 +212,10 @@
     <div class="set-row"><label>ГРОМКОСТЬ <span class="set-val" id="set-vol-v">70%</span></label><input type="range" id="set-vol" min="0" max="100" step="5"></div>
     <div class="set-row"><label>ПОЛЕ ЗРЕНИЯ · FOV <span class="set-val" id="set-fov-v">62</span></label><input type="range" id="set-fov" min="50" max="90" step="1"></div>
     <div class="set-row"><label>КАЧЕСТВО ГРАФИКИ</label><select id="set-gfx"><option value="low">Низкое — максимальный FPS</option><option value="med">Среднее</option><option value="high">Высокое — тени и красота</option></select></div>
+    <div class="set-row"><label>АККАУНТ · ОБЛАКО <span class="set-val" id="acc-st">…</span></label>
+      <div class="acc-row"><button id="acc-show" class="jb-btn mini gray" title="Показать и скопировать код твоего аккаунта">МОЙ КОД</button><input type="text" id="acc-in" maxlength="12" placeholder="КОД АККАУНТА" spellcheck="false" autocomplete="off"><button id="acc-load" class="jb-btn mini" title="Загрузить прогресс этого аккаунта из облака">ВОЙТИ</button></div>
+      <div class="acc-tip">Код — это твой аккаунт: монеты, динозавры, скины и ник летают в облако сами. Введи его на любом устройстве — и весь прогресс с тобой. Запиши код и никому не давай!</div>
+    </div>
     <button id="set-back" class="jb-btn mini">ГОТОВО</button>
   </div>
 </div>
@@ -473,7 +482,8 @@ function loadProfile(){ try{ const s=JSON.parse(localStorage.getItem('jb_profile
     if(typeof s.mapOn==='boolean') G.mapOn=s.mapOn; } }catch(e){}
   $('coins-num').textContent=G.coins; }
 function saveProfile(){ try{ localStorage.setItem('jb_profile',JSON.stringify({coins:G.coins,owned:G.owned,set:G.set,
-  skins:G.skins,skinIndom:G.skinIndom,bossKills:G.bossKills,mapOn:G.mapOn})); }catch(e){} }
+  skins:G.skins,skinIndom:G.skinIndom,bossKills:G.bossKills,mapOn:G.mapOn})); }catch(e){}
+  try{ CLOUD.markDirty(); }catch(e){} }
 loadProfile();
 const ENT=[];
 function makeEnt(id,kind,dinoId,team){
@@ -2933,7 +2943,7 @@ const NET={
   _dialNostr(code){
     const self=this;
     return new Promise(res=>{
-      const REL=['wss://nos.lol','wss://relay.primal.net','wss://nostr.mutinywallet.com'];
+      const REL=['wss://nos.lol','wss://relay.primal.net','wss://offchain.pub'];
       const conns=[], seenIds=new Set(), seen={};
       let mySince=Date.now(), done=false, tickT=null;
       const sk=new Uint8Array(32);
@@ -3207,6 +3217,151 @@ try{
   NET._w.onmessage=function(){ try{ NET.bgTick(); }catch(e){} };
 }catch(e){ NET._w=null; }
 addEventListener('visibilitychange',()=>{ if(!document.hidden&&NET.on){ NET.stT=0; NET._bgLast=0; try{NET.hello();}catch(e){} } });  // вернулся — мгновенный синк
+// ================= ОБЛАЧНОЙ АККАУНТ (NIP-78: replaceable-события kind 30078 на nostr-релеях) =================
+// Код аккаунта (12 символов) → sha256 → приватный ключ BIP340. Профиль публикуется как
+// replaceable-событие: релей хранит ПОСЛЕДНЮЮ запись автора. Вход на другом устройстве =
+// тот же код. Своего сервера нет — хранение бесплатное и работает за любым NAT.
+const CLOUD={
+  // релеи с ОТКРЫТОЙ записью kind 30078 для новых ключей (проверено 2026-11):
+  // offchain.pub и relay.snort.social держат allowlist — новым игрокам пишут «Policy violated», поэтому их тут нет
+  REL:['wss://nos.lol','wss://relay.primal.net','wss://nostr-pub.wellorder.net'],
+  ws:[], code:'', key:null, pkHex:'', st:'…', _dirty:false, _pushT:null, _applied:0, _pushJson:'', _applyJson:'',
+  _uid:0, _manual:false, _pulled:false, _mt:null, _lastPushId:'', _okN:0, _rejN:0,
+  codeNew(){ const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ'; let s='';
+    const b=new Uint8Array(12); try{ crypto.getRandomValues(b); }catch(e){ for(let i=0;i<12;i++) b[i]=(Math.random()*256)|0; }
+    for(let i=0;i<12;i++) s+=A[b[i]%A.length]; return s; },
+  keyFrom(code){ const c=(''+code).toUpperCase().replace(/[^0-9A-Z]/g,'');
+    const h=jbSha256(new TextEncoder().encode('jblocky-account-v1:'+c)); return jbKeygen(h); },
+  open(code,manual){
+    const c=(''+code).toUpperCase().replace(/[^0-9A-Z]/g,'');
+    if(c.length<8){ this.st='код: 8+ символов'; accHud(); return false; }
+    this.key=this.keyFrom(c); if(!this.key){ this.st='код неверен'; accHud(); return false; }
+    this.code=c; this.pkHex=jbHex(this.key.pk);
+    try{ localStorage.setItem('jb_acc',c); }catch(e){}
+    this._manual=!!manual; this._pulled=false; this._applyJson='';
+    this._applied=(function(){ try{ return parseInt(localStorage.getItem('jb_acc_ts')||'0',10)||0; }catch(e){ return 0; } })();
+    this.st='подключаюсь…'; accHud();
+    this.close();
+    for(const url of this.REL) this._openOne(url);
+    if(!this._mt) this._mt=setInterval(()=>{ try{ this.maintain(); }catch(e){} },15000);   // держим ВСЕ релеи живыми
+    setTimeout(()=>{ if(this.key&&!this._pulled&&!this._manual) this.push(); },6000);   // новый аккаунт — первый сейв
+    return true;
+  },
+  _openOne(url){                                          // один релей: подписка на свой профиль + запись
+    try{
+      const code=this.code;
+      const ws=new WebSocket(url); this.ws.push(ws);
+      ws.onopen=()=>{ if(this.code!==code||!this.key){ try{ws.close();}catch(e){} return; }
+        try{ ws.send(JSON.stringify(['REQ','jbacc',{kinds:[30078],authors:[this.pkHex],'#d':['jb_profile'],limit:1}])); }catch(e){}
+        if(this.st.indexOf('недоступно')>=0||this.st.indexOf('подключаюсь')>=0){ this.st='в сети · облако'; accHud(); }
+        if(this._dirty) this.push(); };
+      ws.onmessage=ev=>{ let a; try{ a=JSON.parse(ev.data); }catch(e){ return; }
+        if(Array.isArray(a)&&a[0]==='EVENT'&&a[1]==='jbacc') this.onProfile(a[2]);
+        else if(Array.isArray(a)&&a[0]==='OK'&&a[1]===this._lastPushId){
+          if(a[2]){ this._okN++; this._pulled=true; }
+          else { this._rejN++; console.log('JBACC rejected',(''+a[3]).slice(0,60)); } }
+        else if(Array.isArray(a)&&a[0]==='OK'&&a[2]) { this._pulled=true; } };
+      ws.onclose=()=>{ const ix=this.ws.indexOf(ws); if(ix>=0) this.ws.splice(ix,1);
+        if(this.code===code&&this.key){
+          if(!this.ws.some(w=>w.readyState===0||w.readyState===1)){ this.st='облако недоступно · играю локально'; accHud(); }
+          setTimeout(()=>{ if(this.key&&this.code===code) this.maintain(); },5000); } };
+      ws.onerror=()=>{};
+    }catch(e){}
+  },
+  maintain(){                                             // живые сокеты ко ВСЕМ релеям + REQ-полл (страховка живой доставки)
+    if(!this.key) return;
+    const have={}; for(const w of this.ws){ if(w.readyState===0||w.readyState===1) have[w.url]=1; }
+    for(const url of this.REL){ if(!have[url]) this._openOne(url); }
+    const req=JSON.stringify(['REQ','jbacc',{kinds:[30078],authors:[this.pkHex],'#d':['jb_profile'],limit:1}]);
+    for(const w of this.ws){ try{ if(w.readyState===1) w.send(req); }catch(e){} }
+  },
+  close(){ const ws2=this.ws.slice();
+    for(const w of ws2){ try{ w.onclose=w.onerror=w.onmessage=w.onopen=null; w.close(); }catch(e){} }
+    this.ws.length=0;
+    if(this._mt){ try{ clearInterval(this._mt); }catch(e){} this._mt=null; } },
+  markDirty(){ this._dirty=true;
+    if(!this.key){ this.open(this.codeNew()); return; }
+    if(!this._pushT) this._pushT=setTimeout(()=>{ this._pushT=null; this.push(); },15000); },
+  snapshot(){ return { v:1, name:G.set.name, coins:G.coins, owned:G.owned, set:G.set,
+    skins:G.skins, skinIndom:G.skinIndom, bossKills:G.bossKills, mapOn:G.mapOn,
+    quest:(function(){ try{ return parseInt(localStorage.getItem('jb_quest')||'0',10)||0; }catch(e){ return 0; } })() }; },
+  push(){ if(!this.key) return;
+    let s; try{ s=JSON.stringify(this.snapshot()); }catch(e){ return; }
+    this._dirty=false;
+    if(s===this._pushJson) return;                       // не пушим то же самое (анти-эхо)
+    this._pushJson=s;
+    const created=Math.floor(Date.now()/1000);
+    const content=JSON.stringify(Object.assign(JSON.parse(s),{ts:Date.now()}));
+    try{
+      const ser=JSON.stringify([0,this.pkHex,created,30078,[['d','jb_profile']],content]);
+      const id=jbSha256(new TextEncoder().encode(ser));
+      const aux=new Uint8Array(32); try{ crypto.getRandomValues(aux); }catch(e){ for(let i=0;i<32;i++) aux[i]=(Math.random()*256)|0; }
+      const ev={pubkey:this.pkHex,created_at:created,kind:30078,tags:[['d','jb_profile']],content,id:jbHex(id),sig:jbHex(jbSign(id,this.key,aux))};
+      const wire=JSON.stringify(['EVENT',ev]);
+      const idHex=jbHex(id);
+      this._lastPushId=idHex; this._okN=0; this._rejN=0;
+      for(const ws of this.ws){ try{ if(ws.readyState===1) ws.send(wire); }catch(e){} }
+      try{ localStorage.setItem('jb_acc_ts',''+(content.ts|0)); }catch(e){}
+      setTimeout(()=>{                                    // честный статус: приняли ли релеи запись
+        if(this._lastPushId!==idHex) return;
+        if(this._okN>0){ if(this.st.indexOf('синхронизирован')<0){ this.st='в сети · облако'; accHud(); } }
+        else if(this._rejN>0){ this.st='облако отклоняет запись · играю локально'; accHud();
+          this._dirty=true; setTimeout(()=>{ try{ this.push(); }catch(e){} },30000); }
+      },6000);
+    }catch(e){}
+  },
+  onProfile(e2){
+    if(!e2||!e2.content) return;                        // ts-защита ниже отсекает и откаты, и эхо — ручной вход не блокирует дальнейший синк
+    let p; try{ p=JSON.parse(e2.content); }catch(e){ return; }
+    if(!p||typeof p.ts!=='number') return;
+    if(p.ts<=this._applied) return;                      // защита от отката старым устройством
+    this._applied=p.ts; this._pulled=true;
+    try{ localStorage.setItem('jb_acc_ts',''+p.ts); }catch(e){}
+    applyCloudProfile(p,this._manual);
+    this.st='в сети · синхронизирован'; accHud();
+  }
+};
+function applyCloudProfile(p,manual){
+  let changed=false;
+  try{
+    if(typeof p.coins==='number'&&p.coins!==G.coins){ G.coins=p.coins; changed=true; }
+    if(p.owned&&p.owned.raptor){ const o=JSON.stringify(G.owned), n=JSON.stringify(p.owned); if(o!==n){ G.owned=p.owned; changed=true; } }
+    if(p.set){ const m=Object.assign({},G.set,p.set);
+      if(m.name) m.name=(''+m.name).slice(0,14)||'Охотник';
+      if(JSON.stringify(m)!==JSON.stringify(G.set)){ G.set=m; changed=true; } }
+    if(p.skins&&p.skins.indom&&p.skins.indom.length&&JSON.stringify(p.skins)!==JSON.stringify(G.skins)){ G.skins=p.skins; changed=true; }
+    if(typeof p.skinIndom==='number'){ const si=clamp(p.skinIndom,0,G.skins.indom.length-1); if(si!==G.skinIndom){ G.skinIndom=si; changed=true; } }
+    if(p.bossKills&&p.bossKills!==G.bossKills){ G.bossKills=p.bossKills; changed=true; }
+    if(typeof p.mapOn==='boolean'&&p.mapOn!==G.mapOn){ G.mapOn=p.mapOn; changed=true; }
+    if(typeof p.quest==='number'){ const q=clamp(p.quest|0,0,3);
+      if(q!==(function(){ try{ return parseInt(localStorage.getItem('jb_quest')||'0',10)||0; }catch(e){ return 0; } })()){
+        localStorage.setItem('jb_quest',''+q); if(typeof QUEST!=='undefined'){ QUEST.step=q; } changed=true; } }
+    if(!changed) return;
+    $('coins-num').textContent=G.coins;
+    my.name=G.set.name||'Охотник';
+    if(G.state!=='play') applySettings();               // в меню обновим настройки и карточки
+    else { camera.fov=G.set.fov; camera.updateProjectionMatrix(); }
+    saveProfile();
+    if(manual) toast('Аккаунт загружен: '+(G.set.name||'Охотник')+' · '+G.coins+' монет','coin');
+  }catch(e){}
+}
+function accHud(){ const el=$('acc-st'); if(el) el.textContent=CLOUD.st; }
+try{
+  const savedAcc=localStorage.getItem('jb_acc');
+  if(savedAcc) CLOUD.open(savedAcc);
+  else { CLOUD.st='нет аккаунта — создам при первом сейве'; accHud(); }
+}catch(e){}
+$('acc-show').addEventListener('click',()=>{
+  const code=CLOUD.code||(localStorage.getItem('jb_acc')||'');
+  if(!code){ toast('Аккаунт ещё не создан — купи что-нибудь или смени имя','coin'); return; }
+  fallbackCopy(code); $('acc-in').value=code;
+  toast('Твой код: '+code+' — скопирован в буфер. Запиши его!','coin');
+});
+$('acc-load').addEventListener('click',()=>{
+  const v=$('acc-in').value.trim();
+  if(v.length<8){ toast('Код слишком короткий — минимум 8 символов','coin'); return; }
+  if(CLOUD.open(v,true)) toast('Вхожу в аккаунт…','coin');
+});
 // остров один для всех: без кодов; ?room= остался только для отладки
 try{
   const nr=$('net-room');
@@ -5010,6 +5165,7 @@ $('set-vol').addEventListener('change',()=>SFX.coin());
 $('set-fov').addEventListener('input',e=>{ G.set.fov=+e.target.value; $('set-fov-v').textContent=e.target.value; camera.fov=G.set.fov; camera.updateProjectionMatrix(); });
 $('set-gfx').addEventListener('change',e=>{ G.set.gfx=e.target.value; applySettings(); });
 $('set-name').addEventListener('input',e=>{ G.set.name=e.target.value.trim().slice(0,14)||'Охотник'; my.name=G.set.name; });
+$('set-name').addEventListener('change',()=>{ try{ if(NET.on) NET.hello(); }catch(e){} try{ CLOUD.markDirty(); }catch(e){} });
 applySettings();
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
@@ -5081,8 +5237,8 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
-addEventListener('beforeunload',()=>NET.leave());
+window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+addEventListener('beforeunload',()=>{ try{ NET.leave(); }catch(e){} try{ CLOUD.push(); }catch(e){} });
 requestAnimationFrame(frame);
 })();
 </script>
