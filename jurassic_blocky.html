@@ -24,6 +24,12 @@
   /* ---------- меню ---------- */
   .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}
   .ov.hidden{display:none}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(6,9,7,.36) 100%)}
+#mp-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
+#ov-menu>#menu-box{position:relative;z-index:2}
+.mp-img{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.07);transition:opacity 1.8s ease,transform 9s linear}
+.mp-img.show{opacity:1;transform:scale(1)}
+.mp-shade{position:absolute;inset:0;background:radial-gradient(1300px 780px at 50% 32%,rgba(12,20,14,.44),rgba(6,11,8,.88))}
   #menu-box{width:min(560px,94vw);background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:26px 30px 22px;box-shadow:0 18px 60px rgba(0,0,0,.6);text-align:center}
   #jb-title{font-size:44px;font-weight:900;letter-spacing:2px;line-height:1;text-shadow:0 3px 0 #143a18,0 6px 18px rgba(0,0,0,.7)}
   #jb-title .t1{color:var(--amb)} #jb-title .t2{color:var(--grn)}
@@ -248,10 +254,10 @@
   </div>
 </div>
 <!-- ================= МЕНЮ ================= -->
-<div id="ov-menu" class="ov">
+<div id="vig"></div><div id="ov-menu" class="ov"><div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div></div>
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 13: кооп по сети · рейд-босс · звук</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 14: постеры в меню · золотой час · длинные тени</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc"></div>
@@ -523,6 +529,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
+renderer.domElement.style.cssText+=';filter:saturate(1.16) contrast(1.07) brightness(1.01)';
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 // GFX: множитель дальности тумана от настройки «качество графики»
 const GFX={fogMul:1};
@@ -535,9 +542,17 @@ sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-90; sun.shadow.camera.right=90; sun.shadow.camera.top=90; sun.shadow.camera.bottom=-90;
 sun.shadow.camera.far=420; sun.shadow.bias=-0.0004;
 scene.add(sun); scene.add(sun.target);
+// мягкое свечение вокруг солнца — эффект золотого часа
+const _glowCv=document.createElement('canvas'); _glowCv.width=_glowCv.height=128;
+{const gc=_glowCv.getContext('2d'), gr=gc.createRadialGradient(64,64,0,64,64,64);
+ gr.addColorStop(0,'rgba(255,224,170,.9)'); gr.addColorStop(.3,'rgba(255,196,120,.32)'); gr.addColorStop(1,'rgba(255,170,80,0)');
+ gc.fillStyle=gr; gc.fillRect(0,0,128,128);}
+const sunGlow=new THREE.Mesh(new THREE.PlaneGeometry(210,210),
+  new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(_glowCv),fog:false,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+sunGlow.visible=false; scene.add(sunGlow);
 
 // ================= НЕБО: квадратные солнце/луна, звёзды, дождь =================
-const skyFog={ day:new THREE.Color(0x8ec8e8), night:new THREE.Color(0x0b1226), dusk:new THREE.Color(0xe08a52),
+const skyFog={ day:new THREE.Color(0x8ec8e8), night:new THREE.Color(0x0b1226), dusk:new THREE.Color(0xe8863e),
   storm:new THREE.Color(0x4c565f), eclipse:new THREE.Color(0x2a3140), fm:new THREE.Color(0x141d38) };
 const SKYQ={ sun:new THREE.MeshBasicMaterial({color:0xffe08a,fog:false,transparent:true}),
   moon:new THREE.MeshBasicMaterial({color:0xe6eef8,fog:false,transparent:true}),
@@ -599,7 +614,7 @@ function updEnv(dt){
   if(ENV.flashT>0) ENV.flashT-=dt;
   // цвет неба/тумана
   _skyC.copy(skyFog.day).lerp(skyFog.night,nf);
-  if(duskK>0) _skyC.lerp(skyFog.dusk,duskK*.55);
+  if(duskK>0) _skyC.lerp(skyFog.dusk,duskK*.8);
   if(ENV.eclipse&&nf<.5) _skyC.lerp(skyFog.eclipse,.8);
   if(ENV.storm) _skyC.lerp(skyFog.storm,.55*(1-nf*.5));
   if(ENV.flashT>0) _skyC.lerp(_flashC,ENV.flashT/.18*.85);
@@ -613,7 +628,7 @@ function updEnv(dt){
   ff*=GFX.fogMul; if(GFX.fogMul<1) fn*=.85;          // «низкое» качество — короче туман, меньше нагрузка
   scene.fog.near=lerp(scene.fog.near,fn,.04); scene.fog.far=lerp(scene.fog.far,ff,.04);
   // свет
-  let hi=.85*(1-nf*.78), su=1.15*(1-nf*.92);
+  let hi=.8*(1-nf*.78), su=1.42*(1-nf*.92);
   if(ENV.eclipse&&nf<.5){ hi*=.4; su*=.18; }
   if(ENV.storm){ hi*=.72; su*=.5; }
   if(ENV.flashT>0){ hi+=2.3*(ENV.flashT/.18); su+=1.2*(ENV.flashT/.18); }
@@ -622,19 +637,23 @@ function updEnv(dt){
   sun.intensity=lerp(sun.intensity,su,.08);
   hemi.color.setHex(nf>.5?0x35507e:0xcfe8ff);
   hemi.groundColor.setHex(nf>.5?0x101c14:0x3a5a2e);
-  sun.color.setHex(ENV.eclipse&&nf<.5?0xd88a5a:(nf>.5?0x9fb8ff:0xfff2d8));
+  sun.color.setHex(ENV.eclipse&&nf<.5?0xd88a5a:(nf>.5?0x9fb8ff:0xffe0ae));
   // квадратное солнце: восход на востоке — закат на западе
   const cp=camera.position;
+  sunGlow.visible=false;
   if(f<.53){
     const sa=(f/.53)*Math.PI, dx=Math.cos(sa), dy=Math.sin(sa);
     sunQ.visible=dy>-.06;
     sunQ.position.set(cp.x+dx*700,cp.y+dy*560-30,cp.z-260);
     sunQ.lookAt(cp);
+    sunGlow.position.set(cp.x+dx*703,cp.y+dy*563-30,cp.z-261.5);
+    sunGlow.lookAt(cp);
+    sunGlow.visible=!(ENV.eclipse&&nf<.5);
     if(ENV.eclipse&&nf<.5){
       SKYQ.sun.color.setHex(0xffb060); SKYQ.sun.opacity=.9;
       eclCorona.visible=sunQ.visible; eclCorona.position.set(cp.x+dx*703.5,cp.y+dy*563.5-30,cp.z-260.9); eclCorona.lookAt(cp);
       eclDisc.visible=sunQ.visible; eclDisc.position.set(cp.x+dx*696,cp.y+dy*556.5-30,cp.z-259); eclDisc.lookAt(cp);
-    } else { eclDisc.visible=eclCorona.visible=false; SKYQ.sun.color.setHex(0xffe08a); SKYQ.sun.opacity=1; }
+    } else { eclDisc.visible=eclCorona.visible=false; SKYQ.sun.color.setHex(0xffd27a); SKYQ.sun.opacity=1; }
   } else { sunQ.visible=eclDisc.visible=eclCorona.visible=false; }
   // квадратная луна: полная — когда квест ждёт убийство
   const fm=QUEST.step===2;
@@ -4749,7 +4768,11 @@ function updCamera(dt){
   if(shake>0){ camera.position.x+=rand(-1,1)*shake*.35; camera.position.y+=rand(-1,1)*shake*.35; }
   _camF.set(e.pos.x,camTYm,e.pos.z);
   camera.lookAt(_camF);
-  sun.position.set(e.pos.x+60,e.pos.y+95,e.pos.z+35);
+  // свет солнца ходит по небу: низко на рассвете/закате — длинные кинематографичные тени
+  {const ff2=ENV.t/ENV.dayLen; let lx=60,ly=95,lz=35;
+   if(ff2<.53){const sa2=(ff2/.53)*Math.PI, dx2=Math.cos(sa2), dy2=Math.max(.22,Math.sin(sa2));
+    const L2=Math.hypot(dx2,dy2,.371); lx=dx2/L2*150; ly=dy2/L2*150; lz=-.371/L2*150;}
+   sun.position.set(e.pos.x+lx,e.pos.y+ly,e.pos.z+lz);}
   sun.target.position.copy(e.pos);
 }
 function updPlayer(dt){
@@ -5030,6 +5053,29 @@ function updCloakFx(dt){
     else if(m.emissive.r) m.emissive.setRGB(0,0,0);
   }
 }
+
+// ---------- фон меню: постеры, смена каждые 7 секунд ----------
+const MP_BASE=[1,2,3,4,5].map(n=>'posters/wide_'+n+'.jpg');
+const MP_REMOTE='https://corsalet.github.io/Jurassic-Blocky/posters/';
+const MP_EL=[$('mp-a'),$('mp-b')];
+let MP_i=0,MP_show=0,MP_started=false;
+function MP_set(idx){
+  const im=new Image();
+  im.onload=()=>{
+    MP_EL[MP_show].style.backgroundImage='url("'+im.src+'")';
+    MP_EL[MP_show].classList.add('show');
+    MP_EL[1-MP_show].classList.remove('show');
+    MP_show=1-MP_show;
+  };
+  im.onerror=()=>{ if(!im.dataset.fb){ im.dataset.fb='1'; im.src=MP_REMOTE+MP_BASE[idx%MP_BASE.length].split('/').pop(); } };
+  im.src=MP_BASE[idx%MP_BASE.length];
+}
+function MP_tick(){
+  if(document.getElementById('ov-menu').classList.contains('hidden')) return;
+  MP_set(MP_i++);
+}
+setTimeout(()=>{ if(!MP_started){ MP_started=true; MP_set(MP_i++); } },700);
+setInterval(MP_tick,7000);
 
 // ================= МЕНЮ / СТАРТ =================
 function toMenu(){
