@@ -25,11 +25,18 @@
   .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}
   .ov.hidden{display:none}
 #vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(6,9,7,.36) 100%)}
-#mp-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
+#mp-bg{position:absolute;inset:0;overflow:hidden;z-index:0;transform:scale(1.05);transition:transform 1.1s cubic-bezier(.22,.61,.36,1)}
 #ov-menu>#menu-box{position:relative;z-index:2}
-.mp-img{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.07);transition:opacity 1.8s ease,transform 9s linear}
-.mp-img.show{opacity:1;transform:scale(1)}
+.mp-img{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.08);transition:opacity 2.2s ease}
+.mp-img.show{opacity:1;animation:mpkb 12s linear forwards}
+@keyframes mpkb{from{transform:scale(1.08) translate(.6%,.4%)}to{transform:scale(1) translate(0,0)}}
+.mp-img.show.kb2{animation-name:mpkb2}
+@keyframes mpkb2{from{transform:scale(1.08) translate(-.6%,-.5%)}to{transform:scale(1) translate(0,0)}}
 .mp-shade{position:absolute;inset:0;background:radial-gradient(1300px 780px at 50% 32%,rgba(12,20,14,.44),rgba(6,11,8,.88))}
+#mp-tag{position:absolute;left:22px;bottom:18px;z-index:1;font-family:monospace;font-size:10px;letter-spacing:2px;color:rgba(232,245,216,.55);opacity:0;transition:opacity 1.6s ease}
+#mp-tag.on{opacity:1}
+#grain{position:fixed;inset:-140px;pointer-events:none;z-index:7;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='260' height='260' filter='url(%23n)' opacity='0.62'/></svg>");background-size:260px 260px;animation:grain .8s steps(4) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-42px,26px)}50%{transform:translate(30px,-34px)}75%{transform:translate(-18px,-20px)}100%{transform:translate(0,0)}}
   #menu-box{width:min(560px,94vw);background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:26px 30px 22px;box-shadow:0 18px 60px rgba(0,0,0,.6);text-align:center}
   #jb-title{font-size:44px;font-weight:900;letter-spacing:2px;line-height:1;text-shadow:0 3px 0 #143a18,0 6px 18px rgba(0,0,0,.7)}
   #jb-title .t1{color:var(--amb)} #jb-title .t2{color:var(--grn)}
@@ -254,10 +261,10 @@
   </div>
 </div>
 <!-- ================= МЕНЮ ================= -->
-<div id="vig"></div><div id="ov-menu" class="ov"><div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div></div>
+<div id="grain"></div><div id="vig"></div><div id="ov-menu" class="ov"><div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div><div id="mp-tag">ОБЛОЖКА 1/5</div></div>
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 14: постеры в меню · золотой час · длинные тени</div>
+    <div id="jb-sub">блочный мир динозавров · итерация 15: кино-рендер · ACES · небо-градиент · пыль в лучах · живая вода</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc"></div>
@@ -528,20 +535,37 @@ renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;               // правильное цветовое пространство
+renderer.toneMapping=THREE.ACESFilmicToneMapping;         // кино-тонемаппинг как в filmic-рендерах
+renderer.toneMappingExposure=1.0;
 document.body.appendChild(renderer.domElement);
-renderer.domElement.style.cssText+=';filter:saturate(1.16) contrast(1.07) brightness(1.01)';
+renderer.domElement.style.cssText+=';filter:saturate(1.07) contrast(1.05)';
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 // GFX: множитель дальности тумана от настройки «качество графики»
 const GFX={fogMul:1};
 
+// небо-купол: вертикальный градиент — зенит глубже и холоднее, горизонт = цвет тумана (бесшовно)
+const skyUni={ cTop:{value:new THREE.Color(0x3f7fbf)}, cMid:{value:new THREE.Color(SKY)}, cBot:{value:new THREE.Color(SKY)} };
+const skyDome=new THREE.Mesh(new THREE.SphereGeometry(1180,24,12),
+  new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false, fog:false, uniforms:skyUni,
+    vertexShader:'varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader:'varying vec3 vP; uniform vec3 cTop; uniform vec3 cMid; uniform vec3 cBot;\n'+
+      'void main(){ float h=normalize(vP).y;\n'+
+      '  vec3 c = h<0.14 ? mix(cBot,cMid,smoothstep(-0.06,0.14,h)) : mix(cMid,cTop,smoothstep(0.14,0.72,h));\n'+
+      '  gl_FragColor=vec4(c,1.0);\n'+
+      '  #include <tonemapping_fragment>\n  #include <encodings_fragment>\n}' }));
+skyDome.renderOrder=-10; skyDome.frustumCulled=false; scene.add(skyDome);
+
 // свет: тёплое утро в джунглях
-const hemi=new THREE.HemisphereLight(0xcfe8ff,0x3a5a2e,.85); scene.add(hemi);
-const sun=new THREE.DirectionalLight(0xfff2d8,1.15);
+const hemi=new THREE.HemisphereLight(0xcfe8ff,0x3a5a2e,.62); scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff2d8,1.0);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-90; sun.shadow.camera.right=90; sun.shadow.camera.top=90; sun.shadow.camera.bottom=-90;
 sun.shadow.camera.far=420; sun.shadow.bias=-0.0004;
 scene.add(sun); scene.add(sun.target);
+// холодная заполнялка с противоположной стороны: тени не чёрные, а синие — как в кино
+const fill=new THREE.DirectionalLight(0xbcd4ff,.22); scene.add(fill); scene.add(fill.target);
 // мягкое свечение вокруг солнца — эффект золотого часа
 const _glowCv=document.createElement('canvas'); _glowCv.width=_glowCv.height=128;
 {const gc=_glowCv.getContext('2d'), gr=gc.createRadialGradient(64,64,0,64,64,64);
@@ -550,6 +574,24 @@ const _glowCv=document.createElement('canvas'); _glowCv.width=_glowCv.height=128
 const sunGlow=new THREE.Mesh(new THREE.PlaneGeometry(210,210),
   new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(_glowCv),fog:false,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
 sunGlow.visible=false; scene.add(sunGlow);
+// второй слой ореола + анаморфная горизонтальная искра — richer flare
+{const _cv2=document.createElement('canvas'); _cv2.width=_cv2.height=128;
+ const g2=_cv2.getContext('2d'), r2=g2.createRadialGradient(64,64,0,64,64,64);
+ r2.addColorStop(0,'rgba(255,190,110,.55)'); r2.addColorStop(.45,'rgba(255,160,80,.16)'); r2.addColorStop(1,'rgba(255,140,60,0)');
+ g2.fillStyle=r2; g2.fillRect(0,0,128,128);
+ const glow2=new THREE.Mesh(new THREE.PlaneGeometry(430,430),
+   new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(_cv2),fog:false,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:.8}));
+ glow2.position.z=-.5; sunGlow.add(glow2);
+ const _cv3=document.createElement('canvas'); _cv3.width=256; _cv3.height=32;
+ const g3=_cv3.getContext('2d'), r3=g3.createLinearGradient(0,0,256,0);
+ r3.addColorStop(0,'rgba(255,200,120,0)'); r3.addColorStop(.5,'rgba(255,224,170,.75)'); r3.addColorStop(1,'rgba(255,200,120,0)');
+ g3.fillStyle=r3; g3.fillRect(0,0,256,32);
+ const gy=g3.createLinearGradient(0,0,0,32);
+ gy.addColorStop(0,'rgba(0,0,0,0)'); gy.addColorStop(.5,'rgba(255,255,255,1)'); gy.addColorStop(1,'rgba(0,0,0,0)');
+ g3.globalCompositeOperation='destination-in'; g3.fillStyle=gy; g3.fillRect(0,0,256,32);
+ const streak=new THREE.Mesh(new THREE.PlaneGeometry(520,58),
+   new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(_cv3),fog:false,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:.4}));
+ streak.position.z=-.4; sunGlow.add(streak);}
 
 // ================= НЕБО: квадратные солнце/луна, звёзды, дождь =================
 const skyFog={ day:new THREE.Color(0x8ec8e8), night:new THREE.Color(0x0b1226), dusk:new THREE.Color(0xe8863e),
@@ -578,6 +620,28 @@ rainGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(RAIN_
 const rain=new THREE.LineSegments(rainGeo,new THREE.LineBasicMaterial({color:0xa8c0d8,transparent:true,opacity:.45}));
 rain.visible=false; rain.frustumCulled=false; scene.add(rain);
 const rainD=[]; for(let i=0;i<RAIN_N;i++) rainD.push({x:0,y:0,z:0,v:rand(38,52),init:false});
+// пыльца/споры в воздухе: ловят свет на рассвете и закате, дрожат и плывут
+const DUST_N=210, dustGeo=new THREE.BufferGeometry(), dustPos=new Float32Array(DUST_N*3), dustD=[];
+for(let i=0;i<DUST_N;i++) dustD.push({vx:rand(-.5,.5),vy:rand(.05,.35),vz:rand(-.5,.5),ph:rand(0,6.28),r:rand(40,62)});
+dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
+const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({color:0xffe4ae,size:.5,sizeAttenuation:true,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+dust.frustumCulled=false; dust.visible=false; scene.add(dust);
+function updDust(dt){
+  if(!dust.visible||!dust.material.opacity) return;
+  const cp=camera.position, arr=dustGeo.attributes.position.array;
+  for(let i=0;i<DUST_N;i++){
+    const d=dustD[i];
+    let x=arr[i*3], y=arr[i*3+1], z=arr[i*3+2];
+    if(!x&&!y&&!z){ x=cp.x+rand(-d.r,d.r); y=cp.y+rand(-6,22); z=cp.z+rand(-d.r,d.r); }
+    x+=d.vx*dt+Math.sin(ambT*.8+d.ph)*dt*.6;
+    y+=d.vy*dt; z+=d.vz*dt+Math.cos(ambT*.6+d.ph)*dt*.6;
+    if(y>cp.y+24) y=cp.y-4;
+    if(x<cp.x-d.r) x+=d.r*2; else if(x>cp.x+d.r) x-=d.r*2;
+    if(z<cp.z-d.r) z+=d.r*2; else if(z>cp.z+d.r) z-=d.r*2;
+    arr[i*3]=x; arr[i*3+1]=y; arr[i*3+2]=z;
+  }
+  dustGeo.attributes.position.needsUpdate=true;
+}
 
 // ================= ДЕНЬ/НОЧЬ + ПОГОДА (ясно · гроза · затмение · полнолуние) =================
 // Полнолуние — не случайная погода, а событие квеста тайны костей (QUEST.step===2).
@@ -621,6 +685,10 @@ function updEnv(dt){
   if(QUEST.step===2&&nf>.3) _skyC.lerp(skyFog.fm,.55);   // полнолуние: глубокий синий
   scene.background.copy(_skyC);
   scene.fog.color.copy(_skyC);
+  // небо-купол: горизонт = туман (бесшовно), зенит глубже и холоднее; на закате — сине-оранжевый градиент
+  skyUni.cBot.value.copy(_skyC);
+  skyUni.cMid.value.copy(_skyC).lerp(skyFog.night,.18);
+  skyUni.cTop.value.copy(_skyC).lerp(skyFog.night,nf>.5?.62:.5).multiplyScalar(nf>.5?.9:.8);
   let fn=180, ff=720;
   if(ENV.storm){ fn=46; ff=300; }
   else if(nf>.5){ fn=70; ff=520; }
@@ -628,7 +696,7 @@ function updEnv(dt){
   ff*=GFX.fogMul; if(GFX.fogMul<1) fn*=.85;          // «низкое» качество — короче туман, меньше нагрузка
   scene.fog.near=lerp(scene.fog.near,fn,.04); scene.fog.far=lerp(scene.fog.far,ff,.04);
   // свет
-  let hi=.8*(1-nf*.78), su=1.42*(1-nf*.92);
+  let hi=.62*(1-nf*.93), su=1.12*(1-nf*.965);   // ночь по-настоящему тёмная; sRGB поднимает тени сам
   if(ENV.eclipse&&nf<.5){ hi*=.4; su*=.18; }
   if(ENV.storm){ hi*=.72; su*=.5; }
   if(ENV.flashT>0){ hi+=2.3*(ENV.flashT/.18); su+=1.2*(ENV.flashT/.18); }
@@ -669,6 +737,14 @@ function updEnv(dt){
   stars.position.set(cp.x,0,cp.z);
   stars.material.opacity=nf*(ENV.storm?.15:.9);
   stars.visible=nf>.15;
+  // купол, пыльца и заполнялка следуют за камерой; пыльца ярче в золотой час
+  skyDome.position.set(cp.x,0,cp.z);
+  const dustK=G.set.gfx==='low'?0:(nf>.5?.07:.42*(.55+.45*duskK));
+  dust.visible=dustK>.02;
+  dust.material.opacity=lerp(dust.material.opacity,dustK,.05);
+  fill.intensity=lerp(fill.intensity,(nf>.5?.04:.24)*(ENV.eclipse&&nf<.5?.4:1)*(ENV.storm?.6:1),.06);
+  if(cloudMat){ const ce=.4*(1-nf*.78); if(Math.abs(cloudMat.emissiveIntensity-ce)>.01) cloudMat.emissiveIntensity=ce; }   // ночью облака не светятся
+  if(cloudMat&&cloudMat.fog!==ENV.storm){ cloudMat.fog=ENV.storm; cloudMat.needsUpdate=true; }   // в грозу облака тонут в серой пелене
   // дождь: полосы вокруг камеры
   rain.visible=ENV.storm;
   if(ENV.storm){
@@ -863,10 +939,12 @@ const FOREST_C=[-190,-170], FOREST_R=100;
   scene.add(mesh);
 })();
 // вода: полупрозрачный океан (заливает озеро, реку, пруд и океан вокруг)
+let waterMesh=null;
 (function buildWater(){
   const g=new THREE.PlaneGeometry(MAP_R*2.7,MAP_R*2.7);
-  const m=new THREE.MeshPhongMaterial({color:0x3f9edb,shininess:70,specular:0x335577,transparent:true,opacity:.6});
+  const m=new THREE.MeshPhongMaterial({color:0x3f9edb,shininess:110,specular:0x446688,transparent:true,opacity:.64});
   const w=new THREE.Mesh(g,m); w.rotation.x=-Math.PI/2; w.position.y=WATER_Y+.4;
+  waterMesh=w;
   w.receiveShadow=false; scene.add(w);
 })();
 // водопад с месы: отвесный скальный уступ на кромке пруда + ровная струя, пена и брызги
@@ -1331,15 +1409,17 @@ const flames=[];
 })();
 // облака — плывут всегда (и в меню)
 const clouds=[];
+let cloudMat=null;
 (function buildClouds(){
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x88929f,emissiveIntensity:.4});
+  cloudMat=m; m.fog=false;   // без тумана: белые пухлые блоки на фоне градиентного неба-купола
   for(let i=0;i<12;i++){
     const g=new THREE.Group(); const n=3+((srng()*3)|0);
     for(let j=0;j<n;j++){
       const b=new THREE.Mesh(new THREE.BoxGeometry(srand(7,15),srand(1.8,3),srand(4,9)),m);
       b.position.set(srand(-6,6),srand(-1,1),srand(-3,3)); g.add(b);
     }
-    g.position.set(srand(-MAP_R,MAP_R),srand(58,92),srand(-MAP_R,MAP_R));
+    g.position.set(srand(-MAP_R,MAP_R),srand(96,140),srand(-MAP_R,MAP_R));   // высоко — больше видно неба
     scene.add(g); clouds.push({g,sp:srand(1.2,3)});
   }
 })();
@@ -4772,8 +4852,10 @@ function updCamera(dt){
   {const ff2=ENV.t/ENV.dayLen; let lx=60,ly=95,lz=35;
    if(ff2<.53){const sa2=(ff2/.53)*Math.PI, dx2=Math.cos(sa2), dy2=Math.max(.22,Math.sin(sa2));
     const L2=Math.hypot(dx2,dy2,.371); lx=dx2/L2*150; ly=dy2/L2*150; lz=-.371/L2*150;}
-   sun.position.set(e.pos.x+lx,e.pos.y+ly,e.pos.z+lz);}
+   sun.position.set(e.pos.x+lx,e.pos.y+ly,e.pos.z+lz);
+   fill.position.set(e.pos.x-lx*.5,e.pos.y+42,e.pos.z-lz*.5);}
   sun.target.position.copy(e.pos);
+  fill.target.position.copy(e.pos);
 }
 function updPlayer(dt){
   const e=my;
@@ -5054,28 +5136,43 @@ function updCloakFx(dt){
   }
 }
 
-// ---------- фон меню: постеры, смена каждые 7 секунд ----------
+// ---------- фон меню: постеры · кроссфейд + Кен Бёрнс + параллакс · смена каждые 6–9 сек ----------
 const MP_BASE=[1,2,3,4,5].map(n=>'posters/wide_'+n+'.jpg');
 const MP_REMOTE='https://corsalet.github.io/Jurassic-Blocky/posters/';
 const MP_EL=[$('mp-a'),$('mp-b')];
-let MP_i=0,MP_show=0,MP_started=false;
+const MP_ORDER=(()=>{ const a=[0,1,2,3,4]; for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=a[i]; a[i]=a[j]; a[j]=t; } return a; })();
+const MP_tag=document.getElementById('mp-tag');
+let MP_i=0,MP_show=0,MP_timer=null;
+for(const s of MP_BASE){ const p=new Image(); p.src=s; }            // прогреть кэш
 function MP_set(idx){
   const im=new Image();
   im.onload=()=>{
-    MP_EL[MP_show].style.backgroundImage='url("'+im.src+'")';
-    MP_EL[MP_show].classList.add('show');
+    const el=MP_EL[MP_show];
+    el.style.backgroundImage='url("'+im.src+'")';
+    el.classList.toggle('kb2',(MP_i&1)===1);                       // чередуем направление панорамы
+    el.classList.add('show');
     MP_EL[1-MP_show].classList.remove('show');
     MP_show=1-MP_show;
+    if(MP_tag){ MP_tag.textContent='ОБЛОЖКА '+(idx+1)+'/5'; MP_tag.classList.add('on'); }
   };
   im.onerror=()=>{ if(!im.dataset.fb){ im.dataset.fb='1'; im.src=MP_REMOTE+MP_BASE[idx%MP_BASE.length].split('/').pop(); } };
   im.src=MP_BASE[idx%MP_BASE.length];
 }
-function MP_tick(){
-  if(document.getElementById('ov-menu').classList.contains('hidden')) return;
-  MP_set(MP_i++);
+function MP_loop(){
+  if(document.getElementById('ov-menu').classList.contains('hidden')){ MP_timer=setTimeout(MP_loop,1200); return; }
+  MP_i++;
+  MP_set(MP_ORDER[MP_i%MP_ORDER.length]);
+  MP_timer=setTimeout(MP_loop,6000+Math.random()*3000);            // 6–9 секунд, как договаривались
 }
-setTimeout(()=>{ if(!MP_started){ MP_started=true; MP_set(MP_i++); } },700);
-setInterval(MP_tick,7000);
+setTimeout(MP_loop,600);
+// параллакс: фон слегка плывёт за курсором
+(function(){ const bg=document.getElementById('mp-bg'); if(!bg) return;
+  addEventListener('mousemove',e=>{
+    if(document.getElementById('ov-menu').classList.contains('hidden')) return;
+    const mx=((e.clientX/innerWidth-.5)*-14).toFixed(1), my=((e.clientY/innerHeight-.5)*-9).toFixed(1);
+    bg.style.transform='translate('+mx+'px,'+my+'px) scale(1.06)';
+  },{passive:true});
+})();
 
 // ================= МЕНЮ / СТАРТ =================
 function toMenu(){
@@ -5203,7 +5300,15 @@ function applySettings(){
   const q=G.set.gfx;
   renderer.setPixelRatio(q==='low'?Math.max(.5,Math.min(devicePixelRatio,2)*.62):q==='med'?1:Math.min(devicePixelRatio,2));
   renderer.shadowMap.enabled=q!=='low';
+  const ms=q==='high'?4096:2048, ext=q==='high'?118:92;             // «Высокая»: 4K-тени и шире охват
+  if(sun.shadow.mapSize.x!==ms){
+    if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; }
+    sun.shadow.mapSize.set(ms,ms);
+    sun.shadow.camera.left=-ext; sun.shadow.camera.right=ext; sun.shadow.camera.top=ext; sun.shadow.camera.bottom=-ext;
+    sun.shadow.camera.far=q==='high'?520:420; sun.shadow.camera.updateProjectionMatrix();
+  }
   GFX.fogMul=q==='low'?.68:q==='high'?1.12:1;
+  const gr=document.getElementById('grain'); if(gr) gr.style.display=q==='low'?'none':'block';
   my.name=G.set.name||'Охотник';
 }
 function openSettings(){
@@ -5261,6 +5366,9 @@ function frame(now){
   for(let i=0;i<foam.length;i++){
     foam[i].position.y=13.8-((now*.004+i*5)%15.4);
   }
+  // живая вода: дышит приливом · пыльца в лучах
+  if(waterMesh) waterMesh.position.y=WATER_Y+.4+Math.sin(ambT*.65)*.07;
+  updDust(dt);
   for(let i=0;i<flames.length;i++){
     flames[i].scale.y=1+Math.sin(now*.011+i*2.1)*.22;
     flames[i].rotation.y+=dt*2.2;
