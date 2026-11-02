@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurassic Blocky — постер дня</title>
+<meta name="description" content="Живые постеры игры Jurassic Blocky: широкий и вертикальный постер меняются каждый день. Бесплатная браузерная игра про блочный мир динозавров.">
+<meta property="og:title" content="Jurassic Blocky — постер дня">
+<meta property="og:description" content="Постеры меняются каждый день. Игра бесплатная, прямо в браузере.">
+<meta property="og:image" content="posters/wide_1.jpg">
+<style>
+  :root { --bg:#0d0f0e; --card:#161a18; --accent:#E85D3A; --text:#f2ede8; --dim:#9aa39d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 24px 16px 48px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 28px; letter-spacing: 2px; text-align: center; margin: 8px 0 4px; }
+  h1 span { color: var(--accent); }
+  .sub { text-align: center; color: var(--dim); margin-bottom: 28px; font-size: 15px; }
+  .block { background: var(--card); border: 1px solid #232825; border-radius: 16px; padding: 20px; margin-bottom: 24px; }
+  .block h2 { font-size: 18px; margin-bottom: 4px; }
+  .block p.hint { color: var(--dim); font-size: 13px; margin-bottom: 14px; }
+  img.poster { width: 100%; height: auto; border-radius: 10px; display: block; }
+  img.poster.tall { max-width: 320px; margin: 0 auto; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  button, a.btn { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-block; }
+  button.ghost, a.ghost { background: transparent; border: 1px solid #39413c; color: var(--text); }
+  .play { text-align: center; margin-top: 8px; color: var(--dim); font-size: 14px; }
+  .play a { color: var(--accent); font-weight: bold; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>JURASSIC <span>BLOCKY</span></h1>
+  <div class="sub">постер дня · обновляется сам, каждый день новый</div>
+
+  <div class="block">
+    <h2>Широкий постер — для постов в Telegram и Discord</h2>
+    <p class="hint">Скачивай картинку и прикладывай к посту — завтра тут будет другая.</p>
+    <img class="poster" id="wideImg" alt="Широкий постер Jurassic Blocky">
+    <div class="row">
+      <button onclick="shuffleWide()">Другой постер</button>
+      <a class="btn ghost" id="wideDl" download="jurassic_blocky_poster.jpg" href="posters/wide_1.jpg">Скачать эту</a>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Вертикальный — обложка для TikTok и Shorts</h2>
+    <p class="hint">Формат 9:16, меняется вместе с широким.</p>
+    <img class="poster tall" id="tallImg" alt="Вертикальный постер Jurassic Blocky">
+    <div class="row">
+      <button class="ghost" onclick="shuffleTall()">Другой постер</button>
+      <a class="btn ghost" id="tallDl" download="jurassic_blocky_tall.jpg" href="posters/tall_1.jpg">Скачать эту</a>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Живой постер для Telegram</h2>
+    <p class="hint">Анимированная версия: арты мелькают сами. Прикрепляй к посту как GIF/видео.</p>
+    <video class="poster" id="loopVid" src="poster_loop.mp4" autoplay loop muted playsinline></video>
+    <div class="row"><a class="btn" id="loopDl" download="jurassic_blocky_loop.mp4" href="poster_loop.mp4">Скачать видео</a></div>
+  </div>
+
+  <div class="play">Играть → <a href="https://jurassic-blocky.tatnet.app/">jurassic-blocky.tatnet.app</a> · бесплатно, прямо в браузере</div>
+</div>
+
+<script>
+  const WIDE = ["posters/wide_1.jpg","posters/wide_2.jpg","posters/wide_3.jpg","posters/wide_4.jpg","posters/wide_5.jpg"];
+  const TALL = ["posters/tall_1.jpg","posters/tall_2.jpg"];
+  const day = Math.floor(Date.now() / 86400000); // UTC-дни
+  let wi = day % WIDE.length, ti = day % TALL.length;
+  function setWide(i) { wi = ((i % WIDE.length) + WIDE.length) % WIDE.length;
+    document.getElementById("wideImg").src = WIDE[wi];
+    document.getElementById("wideDl").href = WIDE[wi]; }
+  function setTall(i) { ti = ((i % TALL.length) + TALL.length) % TALL.length;
+    document.getElementById("tallImg").src = TALL[ti];
+    document.getElementById("tallDl").href = TALL[ti]; }
+  function shuffleWide() { setWide(wi + 1 + Math.floor(Math.random() * (WIDE.length - 1))); }
+  function shuffleTall() { setTall(ti + 1 + Math.floor(Math.random() * (TALL.length - 1))); }
+  setWide(wi); setTall(ti);
+</script>
+</body>
+</html>
