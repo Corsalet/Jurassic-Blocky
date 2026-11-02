@@ -2,17 +2,51 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>Jurassic Blocky</title>
-<meta http-equiv="refresh" content="0; url=jurassic_blocky.html">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurassic Blocky — блочный мир динозавров</title>
+<link rel="icon" type="image/png" sizes="64x64" href="icon-64.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="description" content="Jurassic Blocky — бесплатная браузерная игра про динозавров: выживание, охота, кооп с друзьями и босс Индоминус в блочном мире. Без регистрации и установки.">
+<meta property="og:title" content="Jurassic Blocky — блочный мир динозавров">
+<meta property="og:description" content="Выживание в блочном мире динозавров: кооп с друзьями, охота, босс Индоминус. Играй бесплатно прямо в браузере.">
+<meta property="og:image" content="https://corsalet.github.io/Jurassic-Blocky/og-cover.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
-  html,body{margin:0;height:100%;display:flex;align-items:center;justify-content:center;
-    background:#87ceeb;font-family:Arial,Helvetica,sans-serif}
-  a{font-size:22px;font-weight:bold;color:#1b5e20;text-decoration:none}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{min-height:100%}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(900px 600px at 50% 24%,#2a1414 0%,#160a0a 45%,#0a0606 100%);
+    font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;color:#f3e6d8}
+  .card{width:min(460px,94vw);text-align:center;background:rgba(20,10,10,.82);
+    border:1px solid rgba(255,90,74,.35);border-radius:20px;padding:30px 28px 26px;
+    box-shadow:0 24px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,120,90,.12)}
+  .card img{width:180px;height:180px;border-radius:26px;display:block;margin:0 auto 18px;
+    box-shadow:0 14px 40px rgba(255,60,40,.28),0 4px 14px rgba(0,0,0,.6)}
+  h1{font-size:36px;font-weight:900;letter-spacing:1.5px;line-height:1.1;
+    text-shadow:0 3px 0 #300,0 8px 22px rgba(0,0,0,.8)}
+  h1 .r{color:#ff5a4a} h1 .w{color:#f3e6d8}
+  .sub{font-size:12px;letter-spacing:3px;color:rgba(243,230,216,.55);margin:10px 0 16px;text-transform:uppercase}
+  .desc{font-size:14.5px;line-height:1.6;color:rgba(243,230,216,.85);margin-bottom:22px}
+  .play{display:inline-block;padding:15px 54px;font-size:19px;font-weight:900;letter-spacing:2px;
+    color:#fff;text-decoration:none;border-radius:14px;
+    background:linear-gradient(180deg,#ff6a54,#c62b1e);border:1px solid #ff8a70;
+    box-shadow:0 10px 30px rgba(230,50,30,.4),inset 0 1px 0 rgba(255,255,255,.25);
+    transition:transform .15s,box-shadow .15s}
+  .play:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(230,50,30,.55),inset 0 1px 0 rgba(255,255,255,.25)}
+  .foot{margin-top:16px;font-size:12px;color:rgba(243,230,216,.45)}
 </style>
 </head>
 <body>
-<a href="jurassic_blocky.html">🦖 Загрузить Jurassic Blocky…</a>
-<script>location.replace('jurassic_blocky.html');</script>
+<div class="card">
+  <img src="icon-512.png" alt="Jurassic Blocky — Индоминус рекс">
+  <h1><span class="w">JURASSIC</span> <span class="r">BLOCKY</span></h1>
+  <div class="sub">блочный мир динозавров</div>
+  <div class="desc">Выживай, охотись, расти. Кооп с друзьями на одном острове,
+    стада, хищники и босс Индоминус. Бесплатно, без регистрации — прямо в браузере.</div>
+  <a class="play" href="jurassic_blocky.html">ИГРАТЬ</a>
+  <div class="foot">работает на ПК и телефоне · интернет нужен только для кооператива</div>
+</div>
 </body>
 </html>
