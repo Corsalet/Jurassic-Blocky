@@ -348,7 +348,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=24;  // IB24: хребет на спине и шипы на хвосте Индоминуса утоплены в тело — больше не летают
+const JB_BUILD=25;  // IB25: Скорпиус E750 переделан целиком (горб, чистый ряд игл с сидящими кончиками, рожки, перекус с бивнями, бледный окрас); у стего пластины — отдельные ромбы с зазорами
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
 
@@ -479,7 +479,7 @@ const DINOS=[
     bite:[165,135,225], heavy:300, maul:48, pinTime:3.0, jumpV:9, scale:1.18, turn:2.4, model:'scorpius',
     q:'venom', qLabel:'Плевок ядом', qStat:'60 + ЯД 5с', qDmg:60, qSta:22, qCd:5, heavySta:30, heavyCd:6,
     heavyLabel:'Веер шипов',
-    pal:{body:0x2f3540, belly:0x8a9098, dark:0x1a1e26, head:0x38404c, stripe:0x181c22, eye:0xd0ff2e, claw:0x1a1c1a, accent:0xa6ff3a},
+    pal:{body:0x8e9682, belly:0xc4c9b6, dark:0x3f4638, head:0x98a08c, stripe:0x5a644e, eye:0xd0ff2e, claw:0x2a2e26, accent:0xa6ff3a},
     desc:'E750 — первый гибрид ИнГена (Монолофозавр + Карнотавр + скорпен), замороженный в туннелях задолго до Индоминуса. Пассивка «Ядовитые шипы»: каждый укус отравляет — яд добивает сам. Q — плевок ядом на расстоянии, E — веер шипов вокруг.' },
   { id:'indomWild', name:'Дикий Индоминус', cost:0, hp:5200, sta:130, walk:5.2, run:13.5,
     bite:[250,210,340], heavy:0, jumpV:8, scale:2.05, turn:1.65, model:'indom', coin:0, npc:true, ai:'boss', boss:true,
@@ -1743,11 +1743,13 @@ function buildStego(def){
   const mid=box(1.5,1.15,1.7,P.body); mid.position.set(0,.05,-.55); hips.add(mid);
   const chest=box(1.3,.95,1.15,P.body); chest.position.set(0,0,-1.62); hips.add(chest);
   const belly=box(1.35,.45,3.2,P.belly); belly.position.set(0,-.42,-.4); hips.add(belly);
-  // два ряда пластин-ромбов: к середине выше
-  for(let i=0;i<8;i++){
-    const t=i/7, h=.45+Math.sin(t*Math.PI)*.95, w=.5+Math.sin(t*Math.PI)*.45;
+  // пластины: ОТДЕЛЬНЫЕ ромбы двумя рядами вдоль хребта, с зазорами — не сплошной гребень (IB25)
+  const PZ=[1.2,.55,-.1,-.75,-1.4,-2.0], PT=[.7,.7,.66,.62,.5,.48], PB=[.5,.8,1.0,.95,.7,.5];
+  for(let i=0;i<6;i++){
+    const hB=PB[i]*.55, hT=PB[i]*.45, dB=.54-PB[i]*.12;
     for(const s of [-1,1]){
-      const pl=box(.12,h,w,AC); pl.position.set(s*.3,.6+h/2,1.25-t*3.0); pl.rotation.y=s*.06; hips.add(pl);
+      const base=box(.15,hB,dB,AC); base.position.set(s*.3,PT[i]-.14+hB/2,PZ[i]); base.rotation.y=s*.05; hips.add(base);
+      const top=box(.15,hT,.3,AC); top.position.set(s*.3,PT[i]-.14+hB+hT/2,PZ[i]); top.rotation.y=s*.05; hips.add(top);
     }
   }
   // короткая шея и маленькая голова
@@ -2557,66 +2559,63 @@ function buildScorpius(def){
   const gbox=(w,h,d)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),glow);
   const g=new THREE.Group();
   const hips=new THREE.Group(); hips.position.y=1.9; g.add(hips);
-  // корпус: горбатая капля — зад высокий, грудь опущена (дёрганая посадка E750)
-  const rump=box(1.34,1.24,1.5,P.body); rump.position.set(0,.1,.72); hips.add(rump);
-  const spine=box(1.22,1.1,1.5,P.body); spine.position.set(0,.22,-.5); spine.rotation.x=.12; hips.add(spine);
-  const chest=box(1.14,1.0,1.35,P.body); chest.position.set(0,-.14,-1.75); chest.rotation.x=.18; hips.add(chest);
-  const belly=box(1.1,.42,3.4,P.belly); belly.position.set(0,-.5,-.55); hips.add(belly);
-  // ЯДОВИТЫЕ ШИПЫ: двойной ряд игл от шеи до хвоста + светящиеся кончики
-  const QX=[.5,.62,.7,.72,.66,.56];
-  for(let i=0;i<6;i++){
+  // корпус: горбатая капля — компактный зад-горб, покатая спина к груди (IB25)
+  const rump=box(1.4,1.3,1.6,P.body); rump.position.set(0,.08,.65); hips.add(rump);
+  const hump=box(1.3,1.15,2.2,P.body); hump.position.set(0,.28,-.55); hips.add(hump);
+  const chest=box(1.18,.95,1.4,P.body); chest.position.set(0,-.12,-1.8); hips.add(chest);
+  const belly=box(1.15,.4,3.5,P.belly); belly.position.set(0,-.52,-.55); hips.add(belly);
+  // хребет: двойной ряд ВЕРТИКАЛЬНЫХ игл вдоль позвоночника; кислотный кончик сидит прямо на игле (IB25)
+  const SZ=[.85,.2,-.6,-1.2,-1.85], ST=[.73,.855,.855,.855,.355], SN=[.42,.5,.56,.5,.4];
+  for(let i=0;i<5;i++){
     for(const s of [-1,1]){
-      const q1=box(.1,.5+i*.04,.1,P.dark); q1.position.set(s*.3,QX[i]+.28,.85-i*.62); q1.rotation.x=-.28; q1.rotation.z=s*.3; hips.add(q1);
-      const tip=gbox(.07,.16,.07); tip.position.set(s*.44,QX[i]+.55,.93-i*.62); hips.add(tip);
+      const q1=box(.09,SN[i],.09,P.dark); q1.position.set(s*.24,ST[i]-.12+SN[i]/2,SZ[i]); hips.add(q1);
+      const tp=gbox(.08,.14,.08); tp.position.set(s*.24,ST[i]-.12+SN[i]+.07,SZ[i]); hips.add(tp);
     }
   }
-  // светящиеся железы на боках (след скорпена в ДНК)
-  for(const s of [-1,1]) for(let i=0;i<3;i++){ const gl=gbox(.15,.15,.15); gl.position.set(s*.62,.15-i*.3,-.1-i*.9); hips.add(gl); }
-  // дополнительные иглы на крестце со светящимися кончиками
-  for(let i=0;i<3;i++) for(const s of [-1,1]){
-    const q3=box(.08,.3,.08,P.dark); q3.position.set(s*.5,.62,.95-i*.5); q3.rotation.z=s*.4; hips.add(q3);
-    const t3=gbox(.06,.12,.06); t3.position.set(s*.6,.74,.97-i*.5); hips.add(t3);
-  }
-  // длинные кривые передние лапы с тремя когтями
+  // светящиеся поры на боках горба — наполовину утоплены в тело (IB25)
+  for(const s of [-1,1]) for(let i=0;i<2;i++){ const gl=gbox(.16,.16,.16); gl.position.set(s*.56,.3-.35*i,.15-.8*i); hips.add(gl); }
+  // длинные передние лапы с тремя когтями
   const arms=[];
   for(const s of [-1,1]){
     const arm=new THREE.Group(); arm.position.set(s*.56,-.42,-1.62); hips.add(arm);
-    const up=box(.2,.5,.2,P.body); up.position.set(0,-.2,.04); up.rotation.x=-.6; arm.add(up);
-    const fore=new THREE.Group(); fore.position.set(0,-.42,-.05); arm.add(fore);
-    const fm=box(.16,.44,.18,P.dark); fm.position.set(0,-.14,.1); fm.rotation.x=-.3; fore.add(fm);
-    for(let c2=0;c2<3;c2++){ const cl=box(.07,.22,.07,P.claw); cl.position.set((c2-1)*.09,-.4,.24); cl.rotation.x=-.55; fore.add(cl); }
+    const up=box(.24,.52,.24,P.body); up.position.set(0,-.2,.04); up.rotation.x=-.6; arm.add(up);
+    const fore=new THREE.Group(); fore.position.set(0,-.44,-.05); arm.add(fore);
+    const fm=box(.19,.46,.2,P.dark); fm.position.set(0,-.14,.1); fm.rotation.x=-.3; fore.add(fm);
+    for(let c2=0;c2<3;c2++){ const cl=box(.08,.24,.08,P.claw); cl.position.set((c2-1)*.1,-.42,.26); cl.rotation.x=-.55; fore.add(cl); }
     arms.push(arm);
   }
-  // кривая шея вперёд-вниз
-  const neck=new THREE.Group(); neck.position.set(0,.32,-2.3); hips.add(neck);
-  const neckM=box(.8,.78,1.0,P.body); neckM.rotation.x=.42; neckM.position.set(0,-.05,-.35); neck.add(neckM);
-  // голова: маленький злой череп, рожки Карнотавра, перекус с бивнями вверх
-  const head=new THREE.Group(); head.position.set(0,-.02,-.85); neck.add(head);
-  const skull=box(.82,.66,.95,P.head); skull.position.set(0,.05,-.25); head.add(skull);
-  for(const s of [-1,1]){                                                             // ядовитые иглы на черепе
-    const hq=box(.07,.22,.07,P.dark); hq.position.set(s*.2,.4,-.05); hq.rotation.x=-.5; head.add(hq);
-    const ht=gbox(.05,.1,.05); ht.position.set(s*.24,.52,-.12); ht.rotation.x=-.5; head.add(ht);
-  }
-  const snout=box(.7,.5,1.05,P.head); snout.position.set(0,-.04,-1.15); head.add(snout);
+  // шея вперёд-вниз
+  const neck=new THREE.Group(); neck.position.set(0,.3,-2.25); hips.add(neck);
+  const neckM=box(.8,.8,1.0,P.body); neckM.rotation.x=.35; neckM.position.set(0,.02,-.35); neck.add(neckM);
+  // голова: череп с рожками Карнотавра над глазами, перекус с костяными бивнями (IB25)
+  const head=new THREE.Group(); head.position.set(0,.02,-.9); neck.add(head);
+  const skull=box(.84,.7,1.0,P.head); skull.position.set(0,.06,-.3); head.add(skull);
   for(const s of [-1,1]){
-    const h1=box(.14,.3,.3,P.dark); h1.position.set(s*.3,.44,-.4); h1.rotation.x=-.4; head.add(h1);
-    const ew=box(.13,.15,.13,0x141410); ew.position.set(s*.4,.2,-.35); head.add(ew);
-    const ep=box(.07,.1,.08,P.eye); ep.position.set(s*.44,.19,-.38); head.add(ep);
+    const horn=box(.14,.3,.36,P.dark); horn.position.set(s*.3,.48,-.45); horn.rotation.x=-.25; head.add(horn);   // рожки над глазами
+    const ew=box(.13,.15,.13,0x141410); ew.position.set(s*.42,.22,-.5); head.add(ew);
+    const ep=box(.07,.1,.08,P.eye); ep.position.set(s*.46,.21,-.53); head.add(ep);
   }
-  const nostrM=box(.4,.09,.4,P.dark); nostrM.position.set(0,.24,-1.6); head.add(nostrM);
-  const lip=box(.6,.11,1.4,P.dark); lip.position.set(0,-.27,-1.0); head.add(lip);
-  for(const s of [-1,1]) for(let i=0;i<6;i++){ const t=box(.06,.16,.07,0xe8e2d0); t.position.set(s*.28,-.3,-.65-i*.17); head.add(t); }
-  for(const s of [-1,1]){ const tus=box(.09,.26,.09,P.claw); tus.position.set(s*.24,-.12,-1.55); head.add(tus); }
-  const jaw=new THREE.Group(); jaw.position.set(0,-.3,-.3); head.add(jaw);
-  const jawM=box(.6,.2,1.35,P.dark); jawM.position.set(0,-.07,-.5); jaw.add(jawM);
-  for(const s of [-1,1]) for(let i=0;i<5;i++){ const t=box(.05,.14,.06,0xe8e2d0); t.position.set(s*.23,.06,-.25-i*.19); jaw.add(t); }
-  // хвост с ядовитым жалом: 4 сегмента + иглы + светящееся жало
+  const snout=box(.72,.52,1.1,P.head); snout.position.set(0,-.06,-1.2); head.add(snout);
+  const noseTip=box(.58,.4,.45,P.head); noseTip.position.set(0,-.1,-1.85); head.add(noseTip);
+  for(const s of [-1,1]){ const ns=box(.09,.05,.14,0x1c1c1c); ns.position.set(s*.13,.12,-1.95); head.add(ns); }   // ноздри
+  // пасть: тёмный разрез с верхними зубами; перекус — бивни нижней челюсти торчат вверх (IB25)
+  const gap=box(.44,.16,1.55,0x4a0d08); gap.position.set(0,-.4,-1.1); head.add(gap);
+  for(const s of [-1,1]) for(let i=0;i<6;i++){ const t=box(.06,.18,.07,0xe8e2d0); t.position.set(s*.34,-.42,-.55-i*.18); head.add(t); }
+  const jaw=new THREE.Group(); jaw.position.set(0,-.48,-.25); head.add(jaw);
+  const jawM=box(.62,.18,1.55,P.dark); jawM.position.set(0,-.03,-.55); jaw.add(jawM);
+  const chin=box(.48,.16,.5,P.dark); chin.position.set(0,-.02,-1.5); jaw.add(chin);
+  for(const s of [-1,1]){
+    const tus=box(.09,.3,.09,0xe8e2d0); tus.position.set(s*.26,.17,-1.85); jaw.add(tus);     // бивни вверх мимо носа
+    for(let i=0;i<5;i++){ const t=box(.05,.13,.06,0xe8e2d0); t.position.set(s*.26,.08,-.4-i*.19); jaw.add(t); }
+  }
+  // хвост с ядовитым жалом: иглы по верху сидят в сегментах, на конце — светящееся жало (IB25)
   const tail=[]; let prev=hips; const tw=[1.0,.78,.54,.3];
   for(let i=0;i<4;i++){
     const seg=new THREE.Group(); seg.position.set(0,.06,i?1.0:.95); prev.add(seg);
     const tm=box(tw[i],Math.max(.15,tw[i]-.2),1.0,i<2?P.body:P.dark); tm.position.z=.5; seg.add(tm);
-    const q2=box(.09,.34,.09,P.dark); q2.position.set(0,tw[i]/2+.12,.4); q2.rotation.x=-.3; seg.add(q2);
-    if(i===3){ const sting=gbox(.1,.32,.1); sting.position.set(0,tw[i]/2+.28,.5); sting.rotation.x=-.5; seg.add(sting); }
+    const segTop=Math.max(.15,tw[i]-.2)/2;
+    const q2=box(.09,.3,.09,P.dark); q2.position.set(0,segTop+.07,.4); seg.add(q2);
+    if(i===3){ const sting=gbox(.12,.36,.12); sting.position.set(0,segTop+.22,.55); sting.rotation.x=-.35; seg.add(sting); }
     tail.push(seg); prev=seg;
   }
   const legs=[];
@@ -2632,7 +2631,7 @@ function buildScorpius(def){
     legs.push({hip,shin,foot});
   }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.3, hipsY:1.9, legReach:1.95, tagY:2.9 };
+  return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.25, hipsY:1.9, legReach:1.95, tagY:2.9 };
 }
 
 // ================= АНИМАЦИИ v3: походка с опорой на лапы, бег рывком, укус, смерть =================
