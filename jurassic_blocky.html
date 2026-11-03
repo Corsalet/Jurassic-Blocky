@@ -264,7 +264,7 @@
 <div id="grain"></div><div id="vig"></div><div id="ov-menu" class="ov"><div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div><div id="mp-tag">ОБЛОЖКА 1/5</div></div>
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
-    <div id="jb-sub">блочный мир динозавров · итерация 18: модельки по референсам · кино-рендер · общая погода · автообновление</div>
+    <div id="jb-sub">блочный мир динозавров · модельки по референсам и 3D-обмерам · кино-рендер · общая погода · автообновление</div>
     <div id="dino-card">
       <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
       <div id="dc-desc"></div>
@@ -292,7 +292,7 @@
     <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
     <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
-    <div style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">СБОРКА 18</div>
+    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">СБОРКА 26</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -348,7 +348,8 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=25;  // IB25: Скорпиус E750 переделан целиком (горб, чистый ряд игл с сидящими кончиками, рожки, перекус с бивнями, бледный окрас); у стего пластины — отдельные ромбы с зазорами
+const JB_BUILD=26;  // IB26: Тираннозавр по обмерам 3D-модели пользователя — мощный сужающийся хвост с прогибом, гладкий хребет вместо пилы, шея толще с двумя складками и мостом без провала, челюстные мышцы, крупнее ступни, холодный каменный окрас
+const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
 
@@ -397,7 +398,7 @@ const DINOS=[
     bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
     heavyLabel:'Челюсти',
-    pal:{body:0x7d7468, belly:0xcac2ae, dark:0x38342c, head:0x8c8274, stripe:0x5c5446, eye:0xffb02e, claw:0x2e2a20, accent:0x8d6f34},
+    pal:{body:0x6e6a62, belly:0xbdb5a2, dark:0x2f2c26, head:0x7b766c, stripe:0x4f4a40, eye:0xffb02e, claw:0x2e2a20, accent:0x8d6f34},
     desc:'Царь ящеров. E — челюсти судного дня: замах, рывок и хруст костей. Q — попрание: нога обрушивается, земля идёт волной.' },
   { id:'spino', name:'Спинозавр', cost:220, hp:2200, sta:95, walk:5.4, run:13.5,
     bite:[110,85,150], heavy:180, jumpV:8, scale:1.35, turn:2.2, model:'spino',
@@ -1654,9 +1655,10 @@ function buildRex(def){
   }
   const pk=box(.72,.34,.56,P.body); pk.position.set(0,-.52,-2.2); hips.add(pk);        // грудные
   const hump=box(.84,.32,1.05,P.body); hump.position.set(0,.74,-1.45); hump.rotation.x=.2; hips.add(hump);  // загривок
-  // спинные бугры — пила переменной высоты
-  const BH=[.24,.32,.26,.34,.28,.3,.22];
-  for(let i=0;i<7;i++){ const b=box(.52,BH[i],.5,P.dark); b.position.set(0,.8+BH[i]/2-.13,.8-i*.6); hips.add(b); }
+  const bridge=box(.95,.5,.8,P.body); bridge.position.set(0,.62,-2.3); hips.add(bridge);                    // мост тело-шея: провала нет (IB26)
+  // хребет низкий и гладкий: широкие пластины утоплены в спину на две трети, цвет мягкий (IB26)
+  const BH=[.18,.22,.2,.24,.18,.15];
+  for(let i=0;i<6;i++){ const b=box(.62,BH[i],.58,P.stripe); b.position.set(0,.8+BH[i]/2-.14,.8-i*.62); hips.add(b); }
   for(const s of [-1,1]) for(let i=0;i<3;i++){
     const st=box(.14,1.05,.45,P.stripe); st.position.set(s*.66,.05,.5-i*.85); hips.add(st);
   }
@@ -1670,21 +1672,22 @@ function buildRex(def){
     for(let c2=0;c2<2;c2++){ const cl=box(.07,.18,.07,P.claw); cl.position.set(c2?-.06:.06,-.3,.18); fore.add(cl); }
     arms.push(arm);
   }
-  // мощная короткая шея со складкой на горле
+  // мощная короткая шея: толще, с двумя складками на горле — как на референсе (IB26)
   const neck=new THREE.Group(); neck.position.set(0,.5,-2.45); hips.add(neck);
-  const neckM=box(1.0,.95,1.1,P.body); neckM.rotation.x=.32; neckM.position.set(0,.14,-.4); neck.add(neckM);
-  const fold=box(.9,.34,.5,P.belly); fold.position.set(0,-.24,-.55); neck.add(fold);
+  const neckM=box(1.08,1.02,1.2,P.body); neckM.rotation.x=.22; neckM.position.set(0,.2,-.42); neck.add(neckM);
+  const fold1=box(1.0,.22,.46,P.belly); fold1.position.set(0,-.2,-.5); neck.add(fold1);
+  const fold2=box(.9,.18,.4,P.belly); fold2.position.set(0,-.4,-.72); neck.add(fold2);
   // голова-таран: кубовая, щёки-жушки, тяжёлые надбровья, крупные зубы
-  const head=new THREE.Group(); head.position.set(0,.52,-.9); neck.add(head);
-  const skull=box(1.14,.92,1.05,P.head); skull.position.set(0,.05,-.35); head.add(skull);
+  const head=new THREE.Group(); head.position.set(0,.6,-.88); neck.add(head);
+  const skull=box(1.2,.96,1.1,P.head); skull.position.set(0,.05,-.35); head.add(skull);
   for(const s of [-1,1]){
-    const chk=box(.24,.62,.6,P.head); chk.position.set(s*.52,0,-.25); head.add(chk);
-    const brw=box(.46,.2,.4,P.dark); brw.position.set(s*.3,.5,-.6); head.add(brw);
+    const chk=box(.3,.7,.72,P.head); chk.position.set(s*.56,-.02,-.28); head.add(chk);   // челюстные мышцы — массивные щёки (IB26)
+    const brw=box(.48,.22,.42,P.dark); brw.position.set(s*.3,.52,-.6); head.add(brw);
   }
   const browC=box(.5,.16,.34,P.dark); browC.position.set(0,.54,-.52); head.add(browC);
-  const snout=box(.96,.68,1.15,P.head); snout.position.set(0,-.04,-1.3); head.add(snout);
+  const snout=box(1.04,.68,1.15,P.head); snout.position.set(0,-.04,-1.3); head.add(snout);
   const snR=box(.4,.14,.85,P.dark); snR.position.set(0,.32,-1.3); head.add(snR);       // носовой гребень
-  const nose=box(.78,.44,.55,P.head); nose.position.set(0,.12,-1.98); head.add(nose);
+  const nose=box(.84,.44,.55,P.head); nose.position.set(0,.12,-1.98); head.add(nose);
   const bump=box(.34,.18,.32,P.dark); bump.position.set(0,.4,-1.9); head.add(bump);
   for(const s of [-1,1]){ const nr=box(.1,.08,.12,P.dark); nr.position.set(s*.17,.24,-2.16); head.add(nr); }  // ноздри
   const lip=box(.84,.15,1.65,P.dark); lip.position.set(0,-.34,-1.15); head.add(lip);
@@ -1705,26 +1708,28 @@ function buildRex(def){
     const ew=box(.16,.18,.16,0xf5f2e0); ew.position.set(s*.52,.3,-.55); head.add(ew);
     const ep=box(.08,.13,.1,P.eye); ep.position.set(s*.57,.29,-.58); head.add(ep);
   }
-  // толстый хвост: 5 сегментов с тёмными кольцами
+  // мощный хвост: основание почти в высоту корпуса, перекрытие сегментов, лёгкий прогиб (по обмеру 3D-модели, IB26)
   const tail=[]; let prev=hips;
-  const tw=[1.2,.95,.7,.46,.26];
-  for(let i=0;i<5;i++){
-    const seg=new THREE.Group(); seg.position.set(0,.05,i?1.0:.95); prev.add(seg);
-    const tm=box(tw[i],Math.max(.16,tw[i]-.22),1.05,i<2?P.body:P.dark); tm.position.z=.52; seg.add(tm);
-    if(i===1||i===3){ const ring=box(tw[i]+.06,.15,1.07,P.stripe); ring.position.set(0,.02,.52); seg.add(ring); }
+  const tw=[1.4,1.1,.85,.6,.38,.2], ty=[.14,.08,.02,-.04,-.09,-.13];
+  for(let i=0;i<6;i++){
+    const seg=new THREE.Group(); seg.position.set(0,ty[i],i?.9:.8); prev.add(seg);
+    const th=Math.max(.16,tw[i]-.15);
+    const tm=box(tw[i],th,1.0,P.body); tm.position.z=.45; seg.add(tm);
+    if(i<3){ const rg=box(Math.max(.3,tw[i]*.45),.16,1.0,P.stripe); rg.position.set(0,th/2-.02,.45); seg.add(rg); }  // гребень продолжается по хвосту, низ утоплен
+    if(i===1||i===3){ const ring=box(tw[i]+.06,.16,1.02,P.stripe); ring.position.set(0,.02,.45); seg.add(ring); }
     tail.push(seg); prev=seg;
   }
-  // столбы-ноги с крупными ступнями
+  // столбы-ноги: окорочок шире, ступня крупнее с тремя когтями (IB26)
   const legs=[];
   for(const s of [-1,1]){
-    const hip=new THREE.Group(); hip.position.set(s*.62,-.05,.5); hips.add(hip);
-    const thigh=box(.9,1.2,1.1,P.body); thigh.position.set(0,-.52,.08); hip.add(thigh);
-    const knee=box(.66,.62,.8,P.body); knee.position.set(0,-1.02,-.1); hip.add(knee);
+    const hip=new THREE.Group(); hip.position.set(s*.66,-.05,.5); hips.add(hip);
+    const thigh=box(.98,1.25,1.18,P.body); thigh.position.set(0,-.52,.08); hip.add(thigh);
+    const knee=box(.7,.64,.86,P.body); knee.position.set(0,-1.02,-.1); hip.add(knee);
     const shin=new THREE.Group(); shin.position.set(0,-1.05,-.05); hip.add(shin);
-    const shinM=box(.44,.95,.56,P.dark); shinM.position.set(0,-.36,.08); shin.add(shinM);
+    const shinM=box(.48,.95,.6,P.dark); shinM.position.set(0,-.36,.08); shin.add(shinM);
     const foot=new THREE.Group(); foot.position.set(0,-.8,-.06); shin.add(foot);
-    const footM=box(.62,.22,1.1,P.body); footM.position.set(0,-.07,-.24); foot.add(footM);
-    for(let t=0;t<3;t++){ const cl=box(.13,.13,.42,P.claw); cl.position.set((t-1)*.2,-.12,-.88); foot.add(cl); }
+    const footM=box(.68,.24,1.22,P.body); footM.position.set(0,-.07,-.28); foot.add(footM);
+    for(let t=0;t<3;t++){ const cl=box(.14,.14,.46,P.claw); cl.position.set((t-1)*.22,-.13,-.94); foot.add(cl); }
     legs.push({hip,shin,foot});
   }
   g.scale.setScalar(sc);
