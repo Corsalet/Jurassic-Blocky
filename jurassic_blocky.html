@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=27;  // IB27: Индоминус — настоящая Hunyuan3D-модель игрока (GLB 500k трис, квантование, 11.5МБ): шкура с чешуёй и normal-картой, белый окрас по референсу, разрезка на риг (голова/челюсть/хвост×3) с пивотами, блочные глаза в цвет окраса, скины-тинты, тени normalBias против acne
+const JB_BUILD=28;  // IB28: GLB-Индоминус стоит точно на земле (был подъём на 2 блока), глаза у виска и мельче, хвост/шея цельные без разрывов шкуры, живой галоп корпуса (пружина+наклон+крен+рывок укуса), ник над макушкой
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1492,22 +1492,22 @@ function buildIndomGLB(def){
   const body=new THREE.Group(); body.scale.setScalar(U); body.add(root);
   const g=new THREE.Group();
   const hips=new THREE.Group(); hips.position.y=2.15; g.add(hips);   // те же метрики, что у блокового Инда
-  body.position.y=-2.15/U;                        // ступни стоят на земле
+  body.position.y=-2.15;                          // ступни точно на земле (модель стоит с y=0)
   hips.add(body);
   const head=root.getObjectByName('headG'), jaw=root.getObjectByName('jawG');
   const tail=['tail1G','tail2G','tail3G'].map(n=>root.getObjectByName(n));
   const neck=new THREE.Group(); root.add(neck);   // пустышка для совместимости анимации
-  // блочные глаза поверх шкуры: радужка в цвет окраса, чёрный зрачок
+  // блочные глаза поверх шкуры: у виска (выше и компактнее по разметке пользователя)
   const eyeM=new THREE.MeshLambertMaterial({color:P.eye}); mats.push(eyeM);
   const pupM=new THREE.MeshLambertMaterial({color:0x141414}); mats.push(pupM);
-  for(const zz of [.034,-.040]){
-    const eg=new THREE.Group(); eg.position.set(-.073,-.012,zz); head.add(eg);
-    const ew=new THREE.Mesh(new THREE.BoxGeometry(.03,.024,.012),eyeM); ew.castShadow=true; eg.add(ew);
-    const ep=new THREE.Mesh(new THREE.BoxGeometry(.013,.016,.007),pupM); ep.position.z=(zz>0?1:-1)*.007; eg.add(ep);
+  for(const zz of [.036,-.044]){
+    const eg=new THREE.Group(); eg.position.set(-.067,.017,zz); head.add(eg);
+    const ew=new THREE.Mesh(new THREE.BoxGeometry(.019,.015,.009),eyeM); ew.castShadow=true; eg.add(ew);
+    const ep=new THREE.Mesh(new THREE.BoxGeometry(.008,.01,.005),pupM); ep.position.z=(zz>0?1:-1)*.005; eg.add(ep);
   }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs:[], arms:[], mats, glb:true, uLen:1/U,
-    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, tagY:3.4 };
+  return { g, hips, neck, head, jaw, tail, legs:[], arms:[], mats, glb:true, uLen:1/U, jawK:1,
+    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, tagY:4.5 };
 }
 
 function buildRaptor(def){
@@ -2702,7 +2702,8 @@ const SPEC={
       Q.hipsY-=.2*k; Q.hrx=.3; Q.armX=-1.55*k; Q.reach=.12; Q.jawX=.35*k; }
     e.spinY=smoothT(clamp(ph/.85,0,1))*Math.PI*4;
     const out=Math.sin(ph*Math.PI);
-    for(let i=0;i<md.tail.length;i++){ const v=1.15*(1-i/md.tail.length)*out; md.tail[i].rotation.y=md.glb?-v:v; }
+    if(md.glb){ for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.z=0; md.tail[i].rotation.x=0; } }
+    else for(let i=0;i<md.tail.length;i++){ const v=1.15*(1-i/md.tail.length)*out; md.tail[i].rotation.y=v; }
   },
   gore(e,md,ph,Q,late){                               // трицератопс E: скребёт землю и бодает с подбросом
     if(!late){
@@ -2855,7 +2856,7 @@ const SPEC={
     const w=smoothT(Math.min(ph/.25,1))*(1-smoothT(Math.max(0,(ph-.78)/.22)));
     Q.neckRx=-.6*w; Q.jawX=.55*w; Q.hrx=-.06*w;
     Q.hipsY+=Math.sin(ph*26)*.045*w;
-    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.x=-.28*w*(1-i/md.tail.length);
+    if(!md.glb) for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.x=-.28*w*(1-i/md.tail.length);
   },
   roar3(e,md,ph,Q,late){                              // ЯРОСТЬ [3]: вздымается — дрожит — хлёст вперёд
     if(late) return;
@@ -2874,14 +2875,15 @@ function animDino(e,md,dt){
     e.deathT+=dt;
     const k=smoothT(clamp(e.deathT/.55,0,1));
     md.g.rotation.set(0,e.yaw,e.deathDir*1.52*k);
-    md.hips.position.y=lerp(md.hipsY,.55,k);
+    md.hips.position.y=lerp(md.hipsY,md.glb?md.hipsY-.3:.55,k);
     md.hips.rotation.x=.12*k;
-    md.jaw.rotation.x=.45*k;
+    if(md.glb) md.jaw.rotation.z=-(.45*k); else md.jaw.rotation.x=.45*k;
     md.neck.rotation.x=.3*k; md.neck.position.z=md.neckZ;
     if(md.neckSegs&&md.neckBase){ const DP=[-.24,-.36,-.44,-.46,-.44,-.38];   // шея складывается вперёд-вниз
       for(let i=0;i<md.neckSegs.length;i++) md.neckSegs[i].rotation.x=md.neckBase[i]+(DP[i]||0)*k; }
     md.head.rotation.x=0; md.head.rotation.y=0;
-    for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
+    if(md.glb) for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=0; md.tail[i].rotation.z=0; }
+    else for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
     for(const L of md.legs){
       L.hip.rotation.x=.3*k; L.shin.rotation.x=.25; L.foot.rotation.x=-.3*k; }
     for(const a of md.arms) a.rotation.x=0;
@@ -2963,10 +2965,17 @@ function animDino(e,md,dt){
       hipsY=Q.hipsY; hrx=Q.hrx; jawX=Q.jawX; neckRx=Q.neckRx; reach=Q.reach; armX=Q.armX;
     }
   }
+  if(md.glb){                        // цельная анимация корпуса: галоп-пружина + рывок корпусом
+    const bk=e.attackT>0?Math.sin(clamp((.32-e.attackT)/.32,0,1)*Math.PI):0;
+    hipsY+=moving?Math.sin(2*p+1.1)*(run?.16:.05):Math.sin(ambT*1.6)*.03;
+    hrx+=(moving?Math.sin(2*p+.4)*(run?.07:.03):Math.sin(ambT*1.6)*.012)+bk*.22;
+    md.hips.rotation.z=moving?(run?.045:.08)*Math.sin(p):lerp(md.hips.rotation.z||0,0,.12);
+    md.hips.position.z=-bk*.9-(e.specId==='whirl'&&e.specT>=0?Math.sin(clamp(e.specT/e.specDur,0,1)*Math.PI)*.35:0);
+  }
   md.hips.position.y=hipsY;
   md.hips.rotation.x=specOn?hrx:lerp(md.hips.rotation.x,hrx,.18);
   if(md.glb) md.jaw.rotation.z=-(jawX==null?0:jawX); else md.jaw.rotation.x=jawX==null?0:jawX;
-  if(md.glb) md.head.position.x=md.headBaseX-reach*md.uLen; else md.neck.position.z=md.neckZ-reach;
+  if(md.glb) md.head.position.x=md.headBaseX; else md.neck.position.z=md.neckZ-reach;
   md.neck.rotation.x=specOn?neckRx:lerp(md.neck.rotation.x,neckRx,.25);
   if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
   for(const a2 of md.arms) a2.rotation.x=specOn?armX:lerp(a2.rotation.x,armX,.2);
@@ -2975,7 +2984,7 @@ function animDino(e,md,dt){
   for(let i=0;i<md.tail.length;i++){
     const ty=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
     const tx=Math.sin(p-i*.5+1.1)*(run?.05:.03)+(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
-    if(md.glb){ md.tail[i].rotation.y=-ty; md.tail[i].rotation.z=-tx; md.tail[i].rotation.x=0; }
+    if(md.glb){ md.tail[i].rotation.y=0; md.tail[i].rotation.z=0; md.tail[i].rotation.x=0; }   // хвост цельный — не рвём шкуру
     else { md.tail[i].rotation.y=ty; md.tail[i].rotation.x=tx; }
   }
   // длинная шея брахиозавра: сегменты колышутся в такт шагам и дыханию
@@ -2992,8 +3001,8 @@ function animDino(e,md,dt){
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
   else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
   if(md.glb){
-    md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
-    md.head.rotation.z=lerp(md.head.rotation.z,-(-md.neck.rotation.x*.6+(moving?0:a.lkP)),.08);
+    md.head.rotation.y=lerp(md.head.rotation.y,0,.08);
+    md.head.rotation.z=lerp(md.head.rotation.z,0,.08);
   } else {
     md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
     md.head.rotation.x=lerp(md.head.rotation.x,(md.headBaseX||0)-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
