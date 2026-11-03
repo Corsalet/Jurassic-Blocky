@@ -373,19 +373,19 @@ const DINOS=[
     bite:[65,50,100], heavy:110, maul:35, pinTime:3.2, jumpV:8.5, scale:.95, turn:2.6, model:'raptor',
     q:'pounce', qLabel:'Захват', qStat:'35×7', qDmg:35, qSta:20, qCd:5, heavySta:22, heavyCd:6,
     heavyLabel:'Вихрь когтей',
-    pal:{body:0xded6bc, belly:0xecead8, dark:0x554c3e, head:0x8a5a34, stripe:0x8a5a34, eye:0x9ccf3a, claw:0x2c2822, accent:0xb87a42},
+    pal:{body:0xa89a78, belly:0xe6e2cc, dark:0x5a503c, head:0x7d7258, stripe:0x564e36, eye:0x9ccf3a, claw:0x2c2822, accent:0x8a715a},
     desc:'Засадный хищник. E — вихрь когтей: два оборота на 360° со ударом по всем вокруг. Q — прыжок: прижми жертву и грызи, пока держишь Q.' },
   { id:'trike', name:'Трицератопс', cost:100, hp:2100, sta:85, walk:4.8, run:12,
     bite:[90,70,130], heavy:200, jumpV:6.5, scale:1.28, turn:2.0, model:'trike',
     q:'charge', qLabel:'Таран', qStat:'160 + отброс', qDmg:160, qSta:30, qCd:6, heavySta:40, heavyCd:7,
     heavyLabel:'Бодание',
-    pal:{body:0x9a7d54, belly:0xe8dcc0, dark:0x5c452a, head:0xa98a5e, stripe:0x7a5f38, eye:0x2b2013, claw:0x4a3a26, accent:0xe0b25c},
+    pal:{body:0x5d6470, belly:0x9aa0a8, dark:0x2e3846, head:0x6a7280, stripe:0x83898f, eye:0x1a1410, claw:0x9a9484, accent:0xb8ac9c},
     desc:'Живой танк. E — бодание: скребёт землю и подбрасывает рогами в воздух. Q — таран: разгон с пылью, отбрасывает и оглушает всех на пути.' },
   { id:'stego', name:'Стегозавр', cost:120, hp:1900, sta:80, walk:4.4, run:10.5,
     bite:[75,60,110], heavy:150, jumpV:5.5, scale:1.22, turn:1.9, model:'stego',
     q:'thago', qLabel:'Вихрь шипов', qStat:'170 по кругу', qDmg:170, qSta:32, qCd:6.5, heavySta:30, heavyCd:6,
     heavyLabel:'Хвост-хлыст',
-    pal:{body:0x5f7a4a, belly:0xd8d2b0, dark:0x3a4a2c, head:0x6a8552, stripe:0x4a5c38, eye:0xffc23d, claw:0x3a352a, accent:0xd8a84a},
+    pal:{body:0x5c6e46, belly:0xd4ceb0, dark:0x39482b, head:0x688050, stripe:0x485836, eye:0xffc23d, claw:0x3a352a, accent:0xb08d54},
     desc:'Ходячая крепость с гребнем пластин. E — хвост-хлыст: широкая дуга с отбросом. Q — вихрь шипов: полный оборот хвостом, бьёт вокруг.' },
   { id:'anky', name:'Анкилозавр', cost:150, hp:2400, sta:75, walk:4.0, run:9.0,
     bite:[60,50,85], heavy:130, jumpV:4.5, scale:1.12, turn:1.8, model:'anky',
@@ -397,25 +397,25 @@ const DINOS=[
     bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
     heavyLabel:'Челюсти',
-    pal:{body:0x8b8172, belly:0xcfc8b4, dark:0x3e3a30, head:0x9a9080, stripe:0x655c4c, eye:0xffb02e, claw:0x2e2a20, accent:0x8d6f34},
+    pal:{body:0x7d7468, belly:0xcac2ae, dark:0x38342c, head:0x8c8274, stripe:0x5c5446, eye:0xffb02e, claw:0x2e2a20, accent:0x8d6f34},
     desc:'Царь ящеров. E — челюсти судного дня: замах, рывок и хруст костей. Q — попрание: нога обрушивается, земля идёт волной.' },
   { id:'spino', name:'Спинозавр', cost:220, hp:2200, sta:95, walk:5.4, run:13.5,
     bite:[110,85,150], heavy:180, jumpV:8, scale:1.35, turn:2.2, model:'spino',
     q:'dash', qLabel:'Косой рывок', qStat:'90×3', qDmg:90, qSta:28, qCd:5.5, heavySta:36, heavyCd:7,
     heavyLabel:'Двойной укус',
-    pal:{body:0x4a6a7a, belly:0xd0d8c8, dark:0x2c3e48, head:0x557888, stripe:0x243842, eye:0xffd24a, claw:0x2e3438, accent:0xe06a3a},
+    pal:{body:0x5a5f6a, belly:0xb4b8ba, dark:0x333848, head:0x68707c, stripe:0x3d4452, eye:0xffd24a, claw:0x2e3438, accent:0xc2402a},
     desc:'Речной охотник с парусом. E — двойной щелчок пасти. Q — косой рывок: проносится сквозь бой и косит до трёх жертв.' },
   { id:'allo', name:'Аллозавр', cost:200, hp:2000, sta:85, walk:5.0, run:12.5,
     bite:[140,110,190], heavy:240, maul:42, pinTime:2.6, jumpV:7.5, scale:1.35, turn:2.0, model:'allo',
     q:'pounce', qLabel:'Преследование', qStat:'42×6', qDmg:42, qSta:22, qCd:5.5, heavySta:30, heavyCd:6.5,
     heavyLabel:'Вихрь когтей',
-    pal:{body:0x46525e, belly:0xe8e0cc, dark:0x2a323c, head:0x828c96, stripe:0x1f262e, eye:0xff4a2e, claw:0xdde2e4, accent:0xd84a2a},
+    pal:{body:0x3e4854, belly:0xb9bcc2, dark:0x22262f, head:0x747a84, stripe:0x2a3038, eye:0xff4a2e, claw:0xdde2e4, accent:0xd84a2a},
     desc:'Засадный гигант с парой рогов над глазами. E — вихрь когтей. Q — прыжок: сшиби жертву с ног и рви, пока держишь Q.' },
   { id:'carno', name:'Карнотавр', cost:160, hp:1500, sta:90, walk:5.8, run:14.5,
     bite:[120,95,160], heavy:190, jumpV:8.5, scale:1.05, turn:2.7, model:'carno',
     q:'dash', qLabel:'Таранный рывок', qStat:'85×3', qDmg:85, qSta:26, qCd:5, heavySta:24, heavyCd:6,
     heavyLabel:'Вихрь когтей',
-    pal:{body:0x9a6f4a, belly:0xe0d0b8, dark:0x4f3a26, head:0xa67a52, stripe:0x3e2c1c, eye:0xffe14a, claw:0x2e2a20, accent:0xd8d0c0},
+    pal:{body:0x6e4a44, belly:0xb8a494, dark:0x3a2628, head:0x7d5750, stripe:0x462c30, eye:0xffe14a, claw:0x2e2a20, accent:0x9a8a80},
     desc:'Бык среди ящеров: рога и спринтер. E — вихрь когтей. Q — таранный рывок: проносится сквозь бой и косит до трёх жертв.' },
   { id:'pachy', name:'Пахицефалозавр', cost:150, hp:1600, sta:88, walk:5.4, run:13.5,
     bite:[85,70,120], heavy:160, jumpV:8, scale:1.0, turn:2.6, model:'pachy',
@@ -427,7 +427,7 @@ const DINOS=[
     bite:[70,55,100], heavy:130, jumpV:7, scale:1.18, turn:2.1, model:'para',
     q:'stomp', qLabel:'Топот стада', qStat:'140 AoE', qDmg:140, qSta:26, qCd:6, heavySta:24, heavyCd:5.5,
     heavyLabel:'Удар хвостом',
-    pal:{body:0x6a7a8a, belly:0xd0d8c8, dark:0x3c4652, head:0x78889a, stripe:0x46525e, eye:0x241a0e, claw:0x3a352a, accent:0xd87a3a},
+    pal:{body:0xc0a887, belly:0xdcd6c4, dark:0x534637, head:0xb09a78, stripe:0x6a5a44, eye:0x241a0e, claw:0x3a352a, accent:0x8a3a30},
     desc:'Трубач саванны с изогнутым гребнем. E — удар хвостом. Q — топот стада: земля идёт волной, все вокруг отлетают.' },
   { id:'raptorJungle', name:'Стадный раптор', cost:0, hp:520, sta:60, walk:5.2, run:13,
     bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', coin:15, npc:true, ai:'pack',
@@ -437,19 +437,19 @@ const DINOS=[
     bite:[52,44,70], heavy:90, jumpV:8.5, scale:.68, turn:3.0, model:'dilo',
     q:'spit', qLabel:'Плевок кислоты', qStat:'50 + замедл.', qDmg:50, qSta:20, qCd:3.5, heavySta:20, heavyCd:5,
     heavyLabel:'Вихрь когтей',
-    pal:{body:0x42562a, belly:0xe8e4c8, dark:0x283818, head:0x4e6632, stripe:0x9aa878, eye:0xd8e04a, claw:0x2e2a20, accent:0xe04a2e},
+    pal:{body:0xc9bda0, belly:0xe2d9c2, dark:0x5a4a34, head:0xb5a684, stripe:0x6e5c40, eye:0xd8e04a, claw:0x2e2a20, accent:0xc2482a},
     desc:'Дерзкий вояка с алым гребнем. E — вихрь когтей. Q — кислотный плевок: жжёт и замедляет жертв на расстоянии.' },
   { id:'brachi', name:'Брахиозавр', cost:280, hp:4800, sta:70, walk:2.6, run:5.2,
     bite:[120,100,150], heavy:280, jumpV:0, scale:2.4, turn:1.0, model:'brachi',
     q:'neckslam', qLabel:'Удар шеей', qStat:'240 + отброс', qDmg:240, qSta:30, qCd:6, heavySta:45, heavyCd:8,
     heavyLabel:'Топот титана',
-    pal:{body:0xa88a5a, belly:0xd8ccae, dark:0x6b5432, head:0xb0965f, stripe:0x7a6136, eye:0x33291a, claw:0x5a4a34, accent:0xc79a48},
+    pal:{body:0x8a7458, belly:0xd8d2c6, dark:0x54452f, head:0x947e5e, stripe:0x6b5840, eye:0x33291a, claw:0x5a4a34, accent:0xa88a5a},
     desc:'Ходячая гора с длинной шеей. E — топот титана: ударная волна вокруг. Q — хлёсткий удар шеей, сметает всех впереди.' },
   { id:'indom', name:'Индоминус Рекс', cost:0, hp:4200, sta:100, walk:5.8, run:15,
     bite:[230,190,320], heavy:420, maul:62, pinTime:3.6, jumpV:9, scale:1.6, turn:1.9, model:'indom',
     q:'pounce', qLabel:'Засада', qStat:'62×8', qDmg:62, qSta:18, qCd:4.5, heavySta:34, heavyCd:7,
     heavyLabel:'Вихрь когтей',
-    pal:{body:0xdcdeda, belly:0xeceeea, dark:0x9ba0a2, head:0xe6e8e2, stripe:0x8f8b7e, eye:0xff2e1e, claw:0x2c2822, accent:0x5a6a7a},
+    pal:{body:0xc6cbcf, belly:0xe8ebed, dark:0x8b959e, head:0xd8dcdf, stripe:0xa5adb4, eye:0xff2e1e, claw:0x2c2822, accent:0x5a6a7a},
     desc:'Белоснежный гибрид из «Мира юрского периода» — сильнейший охотник острова. C — маскировка: становишься почти невидимым, удар из тени бьёт ×1.5. Q — засада с удержанием, E — вихрь когтей.' },
   { id:'diloWild', name:'Дикий дилофозавр', cost:0, hp:380, sta:65, walk:5.0, run:12.5,
     bite:[26,20,38], heavy:55, jumpV:8.5, scale:.62, turn:2.9, model:'dilo', coin:20, npc:true, ai:'spitter',
@@ -479,7 +479,7 @@ const DINOS=[
     bite:[165,135,225], heavy:300, maul:48, pinTime:3.0, jumpV:9, scale:1.18, turn:2.4, model:'scorpius',
     q:'venom', qLabel:'Плевок ядом', qStat:'60 + ЯД 5с', qDmg:60, qSta:22, qCd:5, heavySta:30, heavyCd:6,
     heavyLabel:'Веер шипов',
-    pal:{body:0x2c302e, belly:0x8a907c, dark:0x191b19, head:0x353836, stripe:0x151615, eye:0xd0ff2e, claw:0x1a1c1a, accent:0xa6ff3a},
+    pal:{body:0x2f3540, belly:0x8a9098, dark:0x1a1e26, head:0x38404c, stripe:0x181c22, eye:0xd0ff2e, claw:0x1a1c1a, accent:0xa6ff3a},
     desc:'E750 — первый гибрид ИнГена (Монолофозавр + Карнотавр + скорпен), замороженный в туннелях задолго до Индоминуса. Пассивка «Ядовитые шипы»: каждый укус отравляет — яд добивает сам. Q — плевок ядом на расстоянии, E — веер шипов вокруг.' },
   { id:'indomWild', name:'Дикий Индоминус', cost:0, hp:5200, sta:130, walk:5.2, run:13.5,
     bite:[250,210,340], heavy:0, jumpV:8, scale:2.05, turn:1.65, model:'indom', coin:0, npc:true, ai:'boss', boss:true,
@@ -1873,11 +1873,12 @@ function buildSpino(def){
   const mid=box(1.1,.95,1.4,P.body); mid.position.set(0,.02,-.68); hips.add(mid);
   const chest=box(.92,.85,1.2,P.body); chest.position.set(0,-.04,-1.82); hips.add(chest);
   const belly=box(1.05,.42,2.9,P.belly); belly.position.set(0,-.36,-.62); hips.add(belly);
-  // ПАРУС: два ряда высоких пластин + тёмная мембрана
+  // ПАРУС: два ряда высоких пластин + тёмная мембрана, алые верхушки (как на референсе)
   for(let i=0;i<8;i++){
     const t=i/7, h=.5+Math.sin(t*Math.PI)*1.45;
     for(const s of [-1,1]){
-      const pl=box(.1,h,.34,i%2?AC:P.stripe); pl.position.set(s*.13,.62+h/2,.85-t*2.5); hips.add(pl);
+      const pl=box(.1,h,.34,P.stripe); pl.position.set(s*.13,.62+h/2,.85-t*2.5); hips.add(pl);
+      const tip=box(.12,.22,.36,AC); tip.position.set(s*.13,.62+h+.08,.85-t*2.5); hips.add(tip);
     }
   }
   const memb=box(.05,.9,2.6,P.dark); memb.position.set(0,1.6,-.4); hips.add(memb);
@@ -1935,7 +1936,7 @@ function buildSpino(def){
   return { g, hips, neck, head, jaw, tail, legs, arms, mats, neckZ:-2.28, hipsY:1.9, legReach:1.9 };
 }
 
-// ================= ДИЛОФОЗАВР: дерзкий вояка — алый воротник-веер и двойной хохол =================
+// ================= ДИЛОФОЗАВР: кремовый вояка — алый веер-воротник вокруг шеи (IB18-CREAMFRILL) =================
 function buildDilo(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye;
   const mats=[], cache={};
@@ -1992,23 +1993,27 @@ function buildDilo(def){
     const ew=box(.11,.13,.11,0xf5f2e0); ew.position.set(s*.29,.17,-.36); head.add(ew);
     const ep=box(.06,.09,.07,P.eye); ep.position.set(s*.33,.16,-.38); head.add(ep);
   }
-  // двойной хохол-полумесяц
+  // двойной хохол: два параллельных алых гребня, идущих вдоль морды от ноздрей к затылку
   for(const s of [-1,1]){
-    const cr=box(.08,.38,.48,AC); cr.position.set(s*.14,.4,-.18); cr.rotation.z=s*.5; head.add(cr);
+    const c1=box(.09,.12,.5,AC); c1.position.set(s*.12,.2,-.75); head.add(c1);
+    const c2=box(.09,.16,.5,AC); c2.position.set(s*.12,.3,-.1); head.add(c2);
+    const c3=box(.08,.14,.3,AC); c3.position.set(s*.11,.4,.28); c3.rotation.x=-.35; head.add(c3);
   }
-  // воротник-веер: два крыла, раскрытые назад-вверх за головой
-  for(const s of [-1,1]){
-    const fan=new THREE.Group(); fan.position.set(s*.2,.3,.18); fan.rotation.x=-.78; fan.rotation.y=s*.72; head.add(fan);
-    const f1=box(.6,.5,.08,AC); f1.position.set(0,.16,.02); fan.add(f1);
-    const f2=box(.9,.42,.08,AC); f2.position.set(s*.06,.5,-.02); f2.rotation.z=s*.14; fan.add(f2);
-    const f3=box(1.0,.38,.08,AC); f3.position.set(s*.14,.76,-.08); f3.rotation.z=s*.26; fan.add(f3);
-    const f4=box(.62,.28,.08,AC); f4.position.set(s*.22,1.0,-.16); f4.rotation.z=s*.4; fan.add(f4);
-    const d1=box(.1,.1,.03,0xe8d88a); d1.position.set(s*.16,.48,.08); fan.add(d1);       // кремовые пятна на веере
-    const d2=box(.09,.09,.03,0xe8d88a); d2.position.set(-s*.12,.68,.06); fan.add(d2);
-    const d3=box(.09,.09,.03,0xe8d88a); d3.position.set(s*.24,.9,-.02); fan.add(d3);
-    const d4=box(.09,.09,.03,0xe8d88a); d4.position.set(s*.02,.62,.09); fan.add(d4);
-    const d5=box(.08,.08,.03,0xe8d88a); d5.position.set(-s*.04,.84,.04); fan.add(d5);
-    const d6=box(.08,.08,.03,0xe8d88a); d6.position.set(s*.3,1.04,-.1); fan.add(d6);
+  // воротник-веер: широкий полукруглый веер вокруг шеи за головой, алый с тёмной каймой и кремовыми пятнами
+  const fan=new THREE.Group(); fan.position.set(0,.15,-.3); fan.rotation.x=.25; neck.add(fan);
+  const FS=[-1.2,-.8,-.4,0,.4,.8,1.2], R=.42;
+  for(let i=0;i<FS.length;i++){                            // задний слой — тёмная кайма
+    const a=FS[i], seg=new THREE.Group();
+    seg.position.set(Math.sin(a)*.46,Math.cos(a)*.46,.08); seg.rotation.z=-a; fan.add(seg);
+    const b0=box(.5,.66,.08,0x8a2c16); b0.position.y=.08; seg.add(b0);
+  }
+  for(let i=0;i<FS.length;i++){                            // передний слой — алые перья веера
+    const a=FS[i], edge=(i===0||i===FS.length-1);
+    const seg=new THREE.Group();
+    seg.position.set(Math.sin(a)*R,Math.cos(a)*R,0); seg.rotation.z=-a; fan.add(seg);
+    const b1=box(edge?.4:.54,.74,.09,edge?0x8a2c16:AC); b1.position.y=.1; seg.add(b1);
+    if(!edge&&i%2===1){ const sp=box(.1,.1,.04,0xe8d88a); sp.position.set(.09,.24,.06); seg.add(sp); }
+    if(!edge&&i%2===0){ const sp=box(.09,.09,.04,0xe8d88a); sp.position.set(-.1,-.02,.06); seg.add(sp); }
   }
   // хвост: 6 сегментов с тёмными кольцами
   const tail=[]; let prev=hips;
@@ -5400,10 +5405,10 @@ function toMenu(){
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
 const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса';
-const SKIN_PALS={
-  'Полночный':{body:0x23232e,belly:0x3c3c50,dark:0x101018,head:0x2a2a3a,stripe:0x8a7cff,eye:0x9a7cff,accent:0x554a8a},
-  'Кровавый':{body:0x3a1e1e,belly:0x6a3a34,dark:0x1e0e0e,head:0x46241f,stripe:0xd82a1a,eye:0xff4a2a,accent:0xa82418},
-  'Изумрудный':{body:0x1e3a2c,belly:0x3a6a4c,dark:0x0e1e16,head:0x24462f,stripe:0x2ee88a,eye:0x7affb0,accent:0x1a8a52} };
+const SKIN_PALS={                                                    // окрасы Индоминуса под новую модель (IB18)
+  'Полночный':{body:0x2c2c3a,belly:0x4a4a62,dark:0x16161e,head:0x36364e,stripe:0x565080,eye:0x9a7cff,accent:0x3a3454},
+  'Кровавый':{body:0x442020,belly:0x6e3c32,dark:0x200d0d,head:0x522824,stripe:0xa82818,eye:0xff4028,accent:0x7c1c10},
+  'Изумрудный':{body:0x1e4432,belly:0x3c6e50,dark:0x0d2116,head:0x285440,stripe:0x1f9a58,eye:0x54ff96,accent:0x15523c} };
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
@@ -5452,9 +5457,11 @@ $('dc-skinnext').addEventListener('click',()=>{ G.skinIndom=(G.skinIndom+1)%G.sk
 renderDinoCard();
 function applyPlayerDino(id){
   let d=dinoDef(id);
-  if(id==='indom'&&G.skinIndom>0&&SKIN_PALS[G.skins.indom[G.skinIndom]])   // выбранный окрас
-    d=Object.assign({},d,{pal:Object.assign({},d.pal,SKIN_PALS[G.skins.indom[G.skinIndom]])});
-  if(my.dinoId===id&&myMesh&&myMesh.g.parent) return;   // уже этот вид
+  const sk=(id==='indom'&&G.skinIndom>0)?(G.skins.indom[G.skinIndom]||''):'';   // выбранный окрас
+  if(sk&&SKIN_PALS[sk])
+    d=Object.assign({},d,{pal:Object.assign({},d.pal,SKIN_PALS[sk])});
+  if(my.dinoId===id&&myMesh&&myMesh.g.parent&&my.skinKey===sk) return;   // уже этот вид и этот окрас
+  my.skinKey=sk;                                       // смена окраса — пересобрать меш, а не выйти раньше
   releasePin(my);
   my.dinoId=id; my.def=d;
   my.hp=my.hpMax=d.hp; my.sta=my.staMax=d.sta;
