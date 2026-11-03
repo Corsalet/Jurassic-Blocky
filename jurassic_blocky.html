@@ -348,7 +348,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=19;
+const JB_BUILD=21;                                 // IB21: скины Индоминуса — тело по референсу (серебро), окрас в полосах/гребне/глазах
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
 
@@ -3708,14 +3708,14 @@ function netEnsureRemote(pid,rebuild){
   const info=NET.names[pid]||{n:'Охотник',d:'raptor',s:''};
   if(!r){
     const d=dinoDef(info.d);
-    r=makeEnt(pid,'human',d.id,'friend'); r.isLocal=false; r.name=info.n;
+    r=makeEnt(pid,'human',d.id,'friend'); r.isLocal=false; r.name=info.n; r.skinName=info.s||'';
     r.hp=r.hpMax=d.hp; r.sta=r.staMax=d.sta;
     r.mesh=buildRemoteDino(d,info.s); scene.add(r.mesh.g); ENT.push(r);
     const a=Math.random()*6.283; r.pos.set(my.pos.x+Math.cos(a)*7,0,my.pos.z+Math.sin(a)*7);
     placeOnGround(r,r.pos.x,r.pos.z);
   } else if(rebuild){
-    const d=dinoDef(info.d);
-    if(r.dinoId!==d.id){ scene.remove(r.mesh.g); r.dinoId=d.id; r.def=d;
+    const d=dinoDef(info.d), sk=info.s||'';
+    if(r.dinoId!==d.id||r.skinName!==(sk||'')){ scene.remove(r.mesh.g); r.dinoId=d.id; r.def=d; r.skinName=sk;   // смена вида ИЛИ окраса — пересобрать
       r.hpMax=r.hp=d.hp; r.sta=r.staMax=d.sta; r.mesh=buildRemoteDino(d,info.s); scene.add(r.mesh.g); }
     r.name=info.n;
   }
@@ -5278,7 +5278,7 @@ function updPlates(){
     pl.style.opacity=1;
     pl.style.left=((v.x+1)/2*innerWidth)+'px';
     pl.style.top=((-v.y+1)/2*innerHeight)+'px';
-    pl.querySelector('.pn').textContent=(e.kind==='boss'?'☠ ':(e.aggroT>0?'⚠ ':''))+e.name;
+    pl.querySelector('.pn').textContent=(e.kind==='boss'?'☠ ':(e.aggroT>0?'⚠ ':''))+e.name+((e.kind==='human'&&e.skinName&&e.skinName!=='Классический')?' · '+e.skinName:'');
     pl.querySelector('.phb>div').style.width=(e.hp/e.hpMax*100)+'%';
   }
 }
@@ -5405,10 +5405,10 @@ function toMenu(){
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
 const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса';
-const SKIN_PALS={                                                    // окрасы Индоминуса под новую модель (IB18)
-  'Полночный':{body:0x2c2c3a,belly:0x4a4a62,dark:0x16161e,head:0x36364e,stripe:0x565080,eye:0x9a7cff,accent:0x3a3454},
-  'Кровавый':{body:0x442020,belly:0x6e3c32,dark:0x200d0d,head:0x522824,stripe:0xa82818,eye:0xff4028,accent:0x7c1c10},
-  'Изумрудный':{body:0x1e4432,belly:0x3c6e50,dark:0x0d2116,head:0x285440,stripe:0x1f9a58,eye:0x54ff96,accent:0x15523c} };
+const SKIN_PALS={                                                    // окрасы: тело по референсу (IB21), окрас — акценты
+  'Полночный':{body:0x9aa2c2,belly:0xc6cce2,dark:0x2c3454,head:0xa8b0cc,stripe:0x5a5488,eye:0x9a7cff,accent:0x3a3f66},
+  'Кровавый':{body:0xd0c2be,belly:0xe9dedb,dark:0x7c1c10,head:0xd9cbc8,stripe:0xa82818,eye:0xff4028,accent:0x8a2015},
+  'Изумрудный':{body:0xc4d2c6,belly:0xe7f0e8,dark:0x2a6a4a,head:0xd2e0d4,stripe:0x1f9a58,eye:0x54ff96,accent:0x157a44} };
 function renderDinoCard(){
   const d=PLAYABLE[G.selIdx];
   $('dc-title').textContent=d.name.toUpperCase();
@@ -5474,7 +5474,7 @@ function applyPlayerDino(id){
   myMesh=buildDino(d); scene.add(myMesh.g);
   const [rx,rz]=spawnSpot(); placeOnGround(my,rx,rz);
   if(NET.on) NET.hello();                           // смена вида — сообщить острову
-  $('dino-tag').textContent=d.name.toUpperCase();
+  $('dino-tag').textContent=d.name.toUpperCase()+((sk&&sk!=='Классический')?' · '+sk.toUpperCase():'');   // свой окрас — видно в HUD
   $('ab-pounce').querySelector('span').textContent=d.qLabel||'Приём';
   $('ab-heavy').querySelector('span').textContent=d.heavyLabel||'Тяжёлый';
 }
