@@ -348,7 +348,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=23;  // IB23: пасть Индоминуса начисто — тёмная щель с клыками, кончик морды клином, без красной полосы и квадратов
+const JB_BUILD=24;  // IB24: хребет на спине и шипы на хвосте Индоминуса утоплены в тело — больше не летают
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
 
@@ -2469,10 +2469,10 @@ function buildIndom(def){
   for(const s of [-1,1]) for(let i=0;i<3;i++){
     const st=box(.13,.9,.5,P.stripe); st.position.set(s*.63,.06,.55-i*.88); st.rotation.x=(i-1)*.12; hips.add(st);
   }
-  // зубчатый хребет по позвоночнику
-  const RY=[.82,.86,.9,.86,.8,.72,.62];
-  for(let i=0;i<7;i++){ const h2=.2+(i%2)*.2;
-    const b=box(.34,h2,.44,P.dark); b.position.set(0,RY[i],.95-i*.56); b.rotation.x=-.15; hips.add(b); }
+  // зубчатый хребет по позвоночнику — низ каждого бугра утоплен в спину, ничего не летает (IB24)
+  const BB=[.56,.56,.56,.49,.49,.43,.43], BH=[.36,.5,.44,.5,.41,.49,.29];
+  for(let i=0;i<7;i++){
+    const b=box(.34,BH[i],.44,P.dark); b.position.set(0,BB[i]+BH[i]/2,.95-i*.56); b.rotation.x=-.15; hips.add(b); }
   // длинные обезьяньи лапы с тройными когтями (визитная карточка Индоминуса)
   const arms=[];
   for(const s of [-1,1]){
@@ -2524,7 +2524,7 @@ function buildIndom(def){
   for(let i=0;i<5;i++){
     const seg=new THREE.Group(); seg.position.set(0,.05,i?1.0:.95); prev.add(seg);
     const tm=box(tw[i],Math.max(.16,tw[i]-.22),1.05,i<2?P.body:P.dark); tm.position.z=.52; seg.add(tm);
-    if(i<5){ const sp=box(.12,.26,.3,P.dark); sp.position.set(0,tw[i]/2+.06,.5); seg.add(sp); }
+    if(i<5){ const sp=box(.12,.26,.3,P.dark); sp.position.set(0,tw[i]/2-.02,.5); seg.add(sp); }   // низ шипа утоплен в сегмент
     tail.push(seg); prev=seg;
   }
   // столбы-ноги
