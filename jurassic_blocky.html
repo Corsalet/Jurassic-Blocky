@@ -300,6 +300,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>/* фолбэк: если CDN недоступен — локальная копия рядом с файлом (THREE в r128 — объект) */
 if(typeof THREE==='undefined') document.write('<script src="three.r128.min.js"><\/script>');
+if(typeof THREE!=='undefined'&&typeof THREE.GLTFLoader==='undefined') document.write('<script src="GLTFLoader.js"><\/script>');
 </script>
 <script>/* PeerJS 1.5.4 — вшит в файл, чтобы сеть работала без CDN */
 var PeerLib=(()=>{var ar=Object.create;var ne=Object.defineProperty;var cr=Object.getOwnPropertyDescriptor;var fr=Object.getOwnPropertyNames;var hr=Object.getPrototypeOf,pr=Object.prototype.hasOwnProperty;var ur=(t,e)=>()=>{try{return e||t((e={exports:{}}).exports,e),e.exports}catch(r){throw e=0,r}},j=(t,e)=>{for(var r in e)ne(t,r,{get:e[r],enumerable:!0})},Dt=(t,e,r,n)=>{if(e&&typeof e=="object"||typeof e=="function")for(let i of fr(e))!pr.call(t,i)&&i!==r&&ne(t,i,{get:()=>e[i],enumerable:!(n=cr(e,i))||n.enumerable});return t};var It=(t,e,r)=>(r=t!=null?ar(hr(t)):{},Dt(e||!t||!t.__esModule?ne(r,"default",{value:t,enumerable:!0}):r,t)),lr=t=>Dt(ne({},"__esModule",{value:!0}),t);var at=ur((on,ot)=>{"use strict";var u={};u.generateIdentifier=function(){return Math.random().toString(36).substring(2,12)};u.localCName=u.generateIdentifier();u.splitLines=function(t){return t.trim().split(`
@@ -348,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=26;  // IB26: Тираннозавр по обмерам 3D-модели пользователя — мощный сужающийся хвост с прогибом, гладкий хребет вместо пилы, шея толще с двумя складками и мостом без провала, челюстные мышцы, крупнее ступни, холодный каменный окрас
+const JB_BUILD=27;  // IB27: Индоминус — настоящая Hunyuan3D-модель игрока (GLB 500k трис, квантование, 11.5МБ): шкура с чешуёй и normal-картой, белый окрас по референсу, разрезка на риг (голова/челюсть/хвост×3) с пивотами, блочные глаза в цвет окраса, скины-тинты, тени normalBias против acne
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -566,7 +567,7 @@ const sun=new THREE.DirectionalLight(0xfff2d8,1.0);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 sun.shadow.camera.left=-90; sun.shadow.camera.right=90; sun.shadow.camera.top=90; sun.shadow.camera.bottom=-90;
-sun.shadow.camera.far=420; sun.shadow.bias=-0.0004;
+sun.shadow.camera.far=420; sun.shadow.bias=-0.0004; sun.shadow.normalBias=.05;
 scene.add(sun); scene.add(sun.target);
 // холодная заполнялка с противоположной стороны: тени не чёрные, а синие — как в кино
 const fill=new THREE.DirectionalLight(0xbcd4ff,.22); scene.add(fill); scene.add(fill.target);
@@ -1464,7 +1465,51 @@ function buildDino(def){ const m=def.model||'raptor';
   return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):m==='stego'?buildStego(def):m==='anky'?buildAnky(def):
     m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):
     m==='allo'?buildAllo(def):m==='carno'?buildCarno(def):m==='pachy'?buildPachy(def):m==='para'?buildPara(def):
-    m==='indom'?buildIndom(def):m==='scorpius'?buildScorpius(def):buildRaptor(def); }
+    m==='indom'?(INDOM_GLB?buildIndomGLB(def):buildIndom(def)):m==='scorpius'?buildScorpius(def):buildRaptor(def); }
+
+// ================= GLB-ИНДОМИНУС: Hunyuan3D-модель игрока (IB27) =================
+// Настоящая AI-модель от пользователя: форма, шкура и окрас как на Hunyuan3D.
+// Риг разрезан на части (тело/голова/челюсть/хвост×3) прямо в GLB — анимация живая.
+let INDOM_GLB=null; const INDOM_WAITERS=[];
+try{ new THREE.GLTFLoader().load('indom.glb?v='+JB_BUILD,
+  g=>{ INDOM_GLB=g.scene; INDOM_GLB.traverse(o=>{ if(o.isMesh){ o.frustumCulled=true; } });
+    const w=INDOM_WAITERS.splice(0); for(const f of w) try{f();}catch(e){}
+    try{ if(G.state!=='menu'&&my&&my.dinoId==='indom'&&myMesh&&!myMesh.glb) applyPlayerDino('indom'); }catch(e){} },
+  undefined, ()=>{}); }catch(e){}
+function buildIndomGLB(def){
+  const P=def.pal, sc=def.scale||1;
+  const root=INDOM_GLB.clone(true);
+  let map=null, nmap=null;
+  root.traverse(o=>{ if(o.isMesh&&!map){ map=o.material.map||null; nmap=o.material.normalMap||null; } });
+  const mat=new THREE.MeshPhongMaterial({map:map||null, normalMap:nmap||null, normalScale:new THREE.Vector2(.85,.85),
+    color:P.body, shininess:14, specular:0x0e0e10, transparent:true, opacity:1, side:THREE.DoubleSide});
+  const mats=[mat];
+  root.traverse(o=>{ if(o.isMesh){ o.material=mat; o.castShadow=true; o.receiveShadow=true; } });
+  // модель: длина .89 по X (морда -X), низ y=0; поворот мордой в -Z, изгиб хвоста уходит вбок
+  const U=12.8;                                   // модельных юнитов в одном блок-юните
+  root.rotation.y=-Math.PI/2;
+  root.position.set(-.04,0,-.06);
+  const body=new THREE.Group(); body.scale.setScalar(U); body.add(root);
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=2.15; g.add(hips);   // те же метрики, что у блокового Инда
+  body.position.y=-2.15/U;                        // ступни стоят на земле
+  hips.add(body);
+  const head=root.getObjectByName('headG'), jaw=root.getObjectByName('jawG');
+  const tail=['tail1G','tail2G','tail3G'].map(n=>root.getObjectByName(n));
+  const neck=new THREE.Group(); root.add(neck);   // пустышка для совместимости анимации
+  // блочные глаза поверх шкуры: радужка в цвет окраса, чёрный зрачок
+  const eyeM=new THREE.MeshLambertMaterial({color:P.eye}); mats.push(eyeM);
+  const pupM=new THREE.MeshLambertMaterial({color:0x141414}); mats.push(pupM);
+  for(const zz of [.034,-.040]){
+    const eg=new THREE.Group(); eg.position.set(-.073,-.012,zz); head.add(eg);
+    const ew=new THREE.Mesh(new THREE.BoxGeometry(.03,.024,.012),eyeM); ew.castShadow=true; eg.add(ew);
+    const ep=new THREE.Mesh(new THREE.BoxGeometry(.013,.016,.007),pupM); ep.position.z=(zz>0?1:-1)*.007; eg.add(ep);
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs:[], arms:[], mats, glb:true, uLen:1/U,
+    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, tagY:3.4 };
+}
+
 function buildRaptor(def){
   const P=def.pal, sc=def.scale||1, AC=P.accent||P.eye, KG=def.rig||{}, bulk=KG.bulk||1, hd=KG.head||1;
   const mats=[], cache={};
@@ -2657,7 +2702,7 @@ const SPEC={
       Q.hipsY-=.2*k; Q.hrx=.3; Q.armX=-1.55*k; Q.reach=.12; Q.jawX=.35*k; }
     e.spinY=smoothT(clamp(ph/.85,0,1))*Math.PI*4;
     const out=Math.sin(ph*Math.PI);
-    for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=1.15*(1-i/md.tail.length)*out;
+    for(let i=0;i<md.tail.length;i++){ const v=1.15*(1-i/md.tail.length)*out; md.tail[i].rotation.y=md.glb?-v:v; }
   },
   gore(e,md,ph,Q,late){                               // трицератопс E: скребёт землю и бодает с подбросом
     if(!late){
@@ -2920,17 +2965,18 @@ function animDino(e,md,dt){
   }
   md.hips.position.y=hipsY;
   md.hips.rotation.x=specOn?hrx:lerp(md.hips.rotation.x,hrx,.18);
-  md.jaw.rotation.x=jawX==null?0:jawX;
-  md.neck.position.z=md.neckZ-reach;
+  if(md.glb) md.jaw.rotation.z=-(jawX==null?0:jawX); else md.jaw.rotation.x=jawX==null?0:jawX;
+  if(md.glb) md.head.position.x=md.headBaseX-reach*md.uLen; else md.neck.position.z=md.neckZ-reach;
   md.neck.rotation.x=specOn?neckRx:lerp(md.neck.rotation.x,neckRx,.25);
   if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
   for(const a2 of md.arms) a2.rotation.x=specOn?armX:lerp(a2.rotation.x,armX,.2);
   // ---- хвост: баланс на шагу, поток на бегу, дрейф в прыжке ----
   const twA=run?.12:walk?.22:.12;
   for(let i=0;i<md.tail.length;i++){
-    md.tail[i].rotation.y=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
-    md.tail[i].rotation.x=Math.sin(p-i*.5+1.1)*(run?.05:.03)
-      +(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
+    const ty=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
+    const tx=Math.sin(p-i*.5+1.1)*(run?.05:.03)+(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
+    if(md.glb){ md.tail[i].rotation.y=-ty; md.tail[i].rotation.z=-tx; md.tail[i].rotation.x=0; }
+    else { md.tail[i].rotation.y=ty; md.tail[i].rotation.x=tx; }
   }
   // длинная шея брахиозавра: сегменты колышутся в такт шагам и дыханию
   if(md.neckSegs&&md.neckBase){
@@ -2945,8 +2991,13 @@ function animDino(e,md,dt){
   if(!moving){ a.lkT-=dt;
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
   else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
-  md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
-  md.head.rotation.x=lerp(md.head.rotation.x,(md.headBaseX||0)-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
+  if(md.glb){
+    md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
+    md.head.rotation.z=lerp(md.head.rotation.z,-(-md.neck.rotation.x*.6+(moving?0:a.lkP)),.08);
+  } else {
+    md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
+    md.head.rotation.x=lerp(md.head.rotation.x,(md.headBaseX||0)-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
+  }
   // наклон в поворот
   const dy=wrapA(e.yaw-e.prevYaw); e.prevYaw=e.yaw;
   e.leanV=lerp(e.leanV,clamp(-dy/Math.max(dt,.001)*.05,-.22,.22),.18);
