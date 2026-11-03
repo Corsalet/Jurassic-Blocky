@@ -24,7 +24,7 @@
   /* ---------- меню ---------- */
   .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}
   .ov.hidden{display:none}
-#vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(6,9,7,.36) 100%)}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at 50% 42%,transparent 52%,rgba(6,9,7,.46) 100%)}
 #mp-bg{position:absolute;inset:0;overflow:hidden;z-index:0;transform:scale(1.05);transition:transform 1.1s cubic-bezier(.22,.61,.36,1)}
 #ov-menu>#menu-box{position:relative;z-index:2}
 .mp-img{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.08);transition:opacity 2.2s ease}
@@ -526,7 +526,7 @@ ENT.push(my);
 
 // ================= СЦЕНА =================
 const scene=new THREE.Scene();
-const SKY=0x8ec8e8;
+const SKY=0x7db8e2;   // глубже и синее — никакой молочности
 scene.background=new THREE.Color(SKY);
 scene.fog=new THREE.Fog(SKY,215,780);
 const camera=new THREE.PerspectiveCamera(G.set.fov||62,innerWidth/innerHeight,.1,1600);
@@ -537,9 +537,9 @@ renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;               // правильное цветовое пространство
 renderer.toneMapping=THREE.ACESFilmicToneMapping;         // кино-тонемаппинг как в filmic-рендерах
-renderer.toneMappingExposure=1.05;
+renderer.toneMappingExposure=1.14;   // контрастный кино-грейд по референсу
 document.body.appendChild(renderer.domElement);
-renderer.domElement.style.cssText+=';filter:saturate(1.15) contrast(1.06)';   // сочно, по-тропически
+renderer.domElement.style.cssText+=';filter:saturate(1.34) contrast(1.12)';   // сочные насыщенные цвета, глубокий контраст
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
 // GFX: множитель дальности тумана от настройки «качество графики»
 const GFX={fogMul:1};
@@ -557,7 +557,7 @@ const skyDome=new THREE.Mesh(new THREE.SphereGeometry(1180,24,12),
 skyDome.renderOrder=-10; skyDome.frustumCulled=false; scene.add(skyDome);
 
 // свет: тёплое утро в джунглях
-const hemi=new THREE.HemisphereLight(0xcfe8ff,0x3a5a2e,.62); scene.add(hemi);
+const hemi=new THREE.HemisphereLight(0xbcd8f0,0x2f4a22,.58); scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,1.0);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
@@ -647,7 +647,7 @@ function updDust(dt){
 // Полнолуние — не случайная погода, а событие квеста тайны костей (QUEST.step===2).
 const ENV={ t:38, dayLen:170, nightF:0, phase:'день', weather:'ясно', wTimer:75,
   flashT:0, boltT:rand(4,9), isNight:false, eclipse:false, storm:false };
-const _skyC=new THREE.Color(), _flashC=new THREE.Color(0xdfe9ff);
+const _skyC=new THREE.Color(), _flashC=new THREE.Color(0xdfe9ff), _sunC=new THREE.Color(0xff9c4a);
 function pickWeather(){
   const r=Math.random();
   ENV.weather=ENV.isNight?(r<.6?'ясно':'гроза'):(r<.5?'ясно':(r<.8?'гроза':'затмение'));
@@ -678,7 +678,7 @@ function updEnv(dt){
   if(ENV.flashT>0) ENV.flashT-=dt;
   // цвет неба/тумана
   _skyC.copy(skyFog.day).lerp(skyFog.night,nf);
-  if(duskK>0) _skyC.lerp(skyFog.dusk,duskK*.8);
+  if(duskK>0) _skyC.lerp(skyFog.dusk,duskK*.92);   // вся сцена тонет в янтаре, как на референсе
   if(ENV.eclipse&&nf<.5) _skyC.lerp(skyFog.eclipse,.8);
   if(ENV.storm) _skyC.lerp(skyFog.storm,.55*(1-nf*.5));
   if(ENV.flashT>0) _skyC.lerp(_flashC,ENV.flashT/.18*.85);
@@ -691,21 +691,25 @@ function updEnv(dt){
   skyUni.cTop.value.copy(_skyC).lerp(skyFog.night,nf>.5?.62:.5).multiplyScalar(nf>.5?.9:.8);
   let fn=215, ff=780;
   if(ENV.storm){ fn=46; ff=300; }
-  else if(nf>.5){ fn=70; ff=520; }
+  else if(nf>.5){ fn=56; ff=430; }   // синяя мгла у земли — атмосферная ночь
   else if(ENV.eclipse){ fn=70; ff=460; }
   ff*=GFX.fogMul; if(GFX.fogMul<1) fn*=.85;          // «низкое» качество — короче туман, меньше нагрузка
   scene.fog.near=lerp(scene.fog.near,fn,.04); scene.fog.far=lerp(scene.fog.far,ff,.04);
   // свет
-  let hi=.62*(1-nf*.93), su=1.12*(1-nf*.965);   // ночь по-настоящему тёмная; sRGB поднимает тени сам
+  let hi=.58*(1-nf*.93), su=1.34*(1-nf*.965);   // яркое солнце = глубокие тени; ночь тёмная, но читается
+  if(nf>.5) hi=Math.max(hi,.105);   // ночью синие силуэты видны, как в референсе
+  if(duskK>0) su*=1+duskK*.5;   // на закате солнце разгорается — золотой час
   if(ENV.eclipse&&nf<.5){ hi*=.4; su*=.18; }
   if(ENV.storm){ hi*=.72; su*=.5; }
   if(ENV.flashT>0){ hi+=2.3*(ENV.flashT/.18); su+=1.2*(ENV.flashT/.18); }
   if(QUEST.step===2&&nf>.6){ hi=Math.max(hi,.34); su=Math.max(su,.30); }   // свет полной луны
   hemi.intensity=lerp(hemi.intensity,hi,.08);
   sun.intensity=lerp(sun.intensity,su,.08);
-  hemi.color.setHex(nf>.5?0x35507e:0xcfe8ff);
-  hemi.groundColor.setHex(nf>.5?0x101c14:0x3a5a2e);
-  sun.color.setHex(ENV.eclipse&&nf<.5?0xd88a5a:(nf>.5?0x9fb8ff:0xffe0ae));
+  hemi.color.setHex(nf>.5?0x2c4470:0xbcd8f0);
+  hemi.groundColor.setHex(nf>.5?0x0e1a12:0x2f4a22);
+  sun.color.setHex(ENV.eclipse&&nf<.5?0xd88a5a:(nf>.5?0x9fb8ff:0xffd894));
+  if(nf<=.5&&duskK>0) sun.color.lerp(_sunC,duskK);   // к закату солнце наливается янтарём
+  fill.color.setHex(nf>.5?0x93b4ea:0xbcd4ff);   // ночью заполнялка = холодный лунный контровой свет
   // квадратное солнце: восход на востоке — закат на западе
   const cp=camera.position;
   sunGlow.visible=false;
@@ -739,10 +743,10 @@ function updEnv(dt){
   stars.visible=nf>.15;
   // купол, пыльца и заполнялка следуют за камерой; пыльца ярче в золотой час
   skyDome.position.set(cp.x,0,cp.z);
-  const dustK=G.set.gfx==='low'||ENV.storm?0:(nf>.5?.04:.06+.3*duskK);   // днём лёгкое мерцание, в золотой час — густая пыльца, в грозу нет
+  const dustK=G.set.gfx==='low'||ENV.storm?0:(nf>.5?.04:.08+.38*duskK);   // в золотой час — пыль в лучах, как на референсе заката
   dust.visible=dustK>.02;
   dust.material.opacity=lerp(dust.material.opacity,dustK,.05);
-  fill.intensity=lerp(fill.intensity,(nf>.5?.04:.24)*(ENV.eclipse&&nf<.5?.4:1)*(ENV.storm?.6:1),.06);
+  fill.intensity=lerp(fill.intensity,(nf>.5?.13:.22)*(ENV.eclipse&&nf<.5?.4:1)*(ENV.storm?.6:1),.06);
   if(cloudMat){ const ce=.4*(1-nf*.78); if(Math.abs(cloudMat.emissiveIntensity-ce)>.01) cloudMat.emissiveIntensity=ce; }   // ночью облака не светятся
   if(cloudMat&&cloudMat.fog!==ENV.storm){ cloudMat.fog=ENV.storm; cloudMat.needsUpdate=true; }   // в грозу облака тонут в серой пелене
   // дождь: полосы вокруг камеры
@@ -913,14 +917,14 @@ const FOREST_C=[-190,-170], FOREST_R=100;
     const ny=(nrm.getY(f)+nrm.getY(f+1)+nrm.getY(f+2))/3;   // крутизна фасетки
     const t=vnoise(cx*.05,cz*.05);
     if(cy<WATER_Y-3) c.setHex(0x867a52).multiplyScalar(.85+t*.2);        // дно
-    else if(cy<WATER_Y+1.1) c.setHex(0xd9c47e).multiplyScalar(.86+t*.2); // песок пляжа/отмели
-    else if(ny<.6||cy>16.5) c.setHex(0x8d8a80).multiplyScalar(.85+t*.22);// скалы на обрывах
+    else if(cy<WATER_Y+1.1) c.setHex(0xdcc070).multiplyScalar(.86+t*.2); // песок пляжа/отмели — тёплый
+    else if(ny<.6||cy>16.5) c.setHex(0x85827a).multiplyScalar(.85+t*.22);// скалы на обрывах
     else{
-      c.setHex(0x55963c).multiplyScalar(.86+t*.24);
+      c.setHex(0x4e9c36).multiplyScalar(.86+t*.24);   // сочная трава
       const dry=clamp((0.42-bioAt(cx,cz))/.32,0,1);
       const jung=clamp((bioAt(cx,cz)-.58)/.32,0,1);
-      if(dry>0) c.lerp(c2.setHex(0xa89a4e),dry*.7);                      // саванна
-      if(jung>0) c.lerp(c2.setHex(0x2d6b27),jung*.62);                   // чаща
+      if(dry>0) c.lerp(c2.setHex(0xb08a3e),dry*.7);                      // саванна — золотистая, не блёклая
+      if(jung>0) c.lerp(c2.setHex(0x27651f),jung*.62);                   // чаща — глубокая зелень
       const dirt=clamp((vnoise(cx*.09+31,cz*.09+7)-.6)/.15,0,1);         // проплешины земли
       if(dirt>0) c.lerp(c2.setHex(0x8a6b42),dirt*.8);
       const fo=Math.max(0,1-Math.hypot(cx-FOREST_C[0],cz-FOREST_C[1])/FOREST_R);   // хвойная подстилка леса
