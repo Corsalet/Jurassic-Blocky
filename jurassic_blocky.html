@@ -654,6 +654,7 @@ function pickWeather(){
   ENV.wTimer=rand(50,90);
   ENV.storm=ENV.weather==='гроза'; ENV.eclipse=ENV.weather==='затмение';
   if(ENV.storm) for(const d of rainD) d.init=false;
+  if(NET.on) NET.send('en',envPacket());   // сменили погоду — сразу сообщаем острову
 }
 function updEnv(dt){
   ENV.t=(ENV.t+dt)%ENV.dayLen;
@@ -667,7 +668,7 @@ function updEnv(dt){
   ENV.nightF=nf; ENV.isNight=nf>.6;
   ENV.phase=nf>.6?'ночь':(duskK>.25?'сумерки':'день');
   if(ENV.isNight&&ENV.eclipse){ ENV.weather='ясно'; ENV.eclipse=false; ENV.storm=false; ENV.wTimer=Math.min(ENV.wTimer,20); }   // затмение кончается с наступлением ночи
-  ENV.wTimer-=dt; if(ENV.wTimer<=0) pickWeather();
+  ENV.wTimer-=dt; if(ENV.wTimer<=0){ if(!NET.on||NET.amHost()) pickWeather(); else ENV.wTimer=6; }   // погоду выбирает только хост, остальные ждут его пакет
   if(ENV.storm&&!ENV.isNight) duskK=Math.max(duskK,.3);
   // гроза: молнии + гром
   if(ENV.storm){
@@ -2927,8 +2928,10 @@ const NET={
       if(fresh&&!this._iAmHost) this.hello(pid);   // клиент отвечает новичку — тот узнаёт его имя
       if(fresh&&this._iAmHost&&this._mode!=='peer'&&BOSS.e&&BOSS.e.alive)
         this.send('bx',{k:'sp',hpMax:BOSS.e.hpMax,mul:BOSS.dmgMul,p:[+BOSS.e.pos.x.toFixed(1),0,+BOSS.e.pos.z.toFixed(1)]},pid);
+      if(fresh&&this._iAmHost) this.send('en',envPacket(),pid);   // новичку сразу выставляем общее время и погоду
       updNetHud(); });
     wire('ev',(d,pid)=>netOnEvent(d,pid));
+    wire('en',(d,pid)=>netApplyEnv(d,pid));            // общая погода/время для всего острова
     wire('bx',d=>netOnBoss(d));
     wire('bd',n=>hostApplyBossDmg(n));
     wire('bh',n=>{ if(my.alive&&BOSS.e) applyDamage(my,Math.max(1,Math.round(n)||1),BOSS.e,true); });
@@ -3116,7 +3119,7 @@ const NET={
             if(!self.on){
               self.on=true; self._mode='nostr'; self.myNetId=myId; self._iAmHost=false; self._host=false;
               self._nPub=publish; self._nConns=conns;
-              for(const ch of ['st','hi','ev','bx','bd','bh'])
+              for(const ch of ['st','hi','ev','en','bx','bd','bh'])
                 self.tx[ch]=(d,t2)=>{ const m={c:ch,d:d,f:self.myNetId}; if(t2) m.to=t2; publish(m); };
               const elect=()=>{
                 let bid=myId, bs=mySince;
@@ -3234,7 +3237,7 @@ const NET={
         self._iAmHost=false; self._host=false; self._mBase=base; self._mSeen=seen; self._mHostId=null;
         self._mpub=(t2,p2)=>{ try{ if(ws&&ws.readyState===1)
           ws.send(pkt(0x30,0,[...encStr(t2),...new TextEncoder().encode(p2)])); }catch(e){} };
-        for(const ch of ['st','hi','ev','bx','bd','bh']) self.tx[ch]=(d,t2)=>self._mpubRoute(ch,d,t2);
+        for(const ch of ['st','hi','ev','en','bx','bd','bh']) self.tx[ch]=(d,t2)=>self._mpubRoute(ch,d,t2);
         try{ ws.send(pkt(0x82,0,[0,1,...encStr(base+'/+'),0])); }catch(e){}
         const elect=()=>{
           let bid=myId, bs=mySince;
@@ -3528,6 +3531,16 @@ function netDropRemote(pid){
   const r=ENT.find(e=>e.kind==='human'&&e.id===pid);
   if(r){ scene.remove(r.mesh.g); const ix=ENT.indexOf(r); if(ix>=0) ENT.splice(ix,1); }
   NET.peers=NET.peers.filter(p=>p!==pid);
+}
+function envPacket(){ return {ts:+ENV.t.toFixed(1),dl:ENV.dayLen,w:ENV.weather,wt:Math.max(3,Math.round(ENV.wTimer))}; }   // образец часов/погоды для сети
+function netApplyEnv(d,pid){                        // общее время суток и погода: образец — от хоста
+  if(!NET.on||NET.amHost()) return;                 // одиночка и хост живут по своим часам
+  ENV.dayLen=+d.dl||ENV.dayLen;
+  ENV.t=((+d.ts||0)%ENV.dayLen+ENV.dayLen)%ENV.dayLen;   // привязка часов: пакеты каждые 5с — дрейфа не видно
+  ENV.weather=(''+(d.w||'ясно')).slice(0,12);
+  ENV.storm=ENV.weather==='гроза'; ENV.eclipse=ENV.weather==='затмение';
+  ENV.wTimer=Math.max(8,+d.wt||30)+4;               // запас на задержку пакета
+  if(ENV.storm) for(const p of rainD) p.init=false;
 }
 function netOnEvent(d,pid){
   const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r||!r.alive) return;
@@ -5390,6 +5403,7 @@ function step(dt){
       if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }
     for(const e of ENT){ if(e.kind==='human'&&!e.isLocal) updRemote(e,dt); }
     try{ NET.watchdog(); NET.hostWatch(); }catch(e){}   // контроль живости в P2P-звезде
+    NET.envT=(NET.envT||0)-dt; if(NET.envT<=0&&NET.amHost()){ NET.envT=5; NET.send('en',envPacket()); }   // часы и погода — от хоста, раз в 5с
   }
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
   if(BOSS.e) updBoss(BOSS.e,dt);              // рейд-босс: ИИ + клоак + рыки
