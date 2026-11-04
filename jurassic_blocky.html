@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=30;  // IB30: ноги GLB-Индоминуса двигаются — голени+ступни вырезаны в шарниры коленей прямо в GLB (реза внутри бедра, щелей нет), походка/бег/прыжок/смерть на новых шарнирах, части не отрываются; глаза — красные светящиеся как в референсе (emissive), чуть крупнее
+const JB_BUILD=31;  // IB31: Настоящий СКЕЛЕТ Индоминуса — цельная шкура со skinning'ом (19 костей, веса по анатомии, ничего не разрезано и не отрывается) + 6 скелетных анимаций в GLB (IDLE/WALK/RUN/BITE/ROAR/DEAD) через AnimationMixer с кроссфейдами; лапы, шея, голова, хвост и челюсть двигаются плавно — процедурные вращения шарниров для GLB отключены; скелет перепривязывается при клоне (сетевые игроки с ригом); децимация 260k tris, JPEG-текстуры
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1469,23 +1469,34 @@ function buildDino(def){ const m=def.model||'raptor';
 
 // ================= GLB-ИНДОМИНУС: Hunyuan3D-модель игрока (IB27) =================
 // Настоящая AI-модель от пользователя: форма, шкура и окрас как на Hunyuan3D.
-// Риг разрезан на части (тело/голова/челюсть/хвост×3) прямо в GLB — анимация живая.
-let INDOM_GLB=null; const INDOM_WAITERS=[];
+// IB31: ЦЕЛЬНАЯ шкура со СКЕЛЕТОМ (19 костей, skinning) + анимации IDLE/WALK/RUN/BITE/ROAR/DEAD,
+// запечённые в GLB — вершины тянутся костями весами, ничего не отрывается и не разрезается.
+let INDOM_GLB=null, INDOM_CLIPS=null; const INDOM_WAITERS=[];
 try{ new THREE.GLTFLoader().load('indom.glb?v='+JB_BUILD,
-  g=>{ INDOM_GLB=g.scene; INDOM_GLB.traverse(o=>{ if(o.isMesh){ o.frustumCulled=true; } });
+  g=>{ INDOM_GLB=g.scene; INDOM_CLIPS=g.animations||[];
+    INDOM_GLB.traverse(o=>{ if(o.isMesh){ o.frustumCulled=false; } });
     const w=INDOM_WAITERS.splice(0); for(const f of w) try{f();}catch(e){}
     try{ if(G.state!=='menu'&&my&&my.dinoId==='indom'&&myMesh&&!myMesh.glb) applyPlayerDino('indom'); }catch(e){} },
   undefined, ()=>{}); }catch(e){}
 function buildIndomGLB(def){
   const P=def.pal, sc=def.scale||1;
   const root=INDOM_GLB.clone(true);
+  // r128: SkinnedMesh.clone() теряет bindMatrix/bindMatrixInverse — берём их с исходного меша
+  let srcSkin=null; INDOM_GLB.traverse(o=>{ if(o.isSkinnedMesh&&!srcSkin) srcSkin=o; });
+  // клон делит skeleton с исходником — перепривязываем кости к клонированным узлам (иначе все Индоминусы двигаются синхронно)
+  root.traverse(o=>{ if(o.isSkinnedMesh&&srcSkin){
+    const bones=o.skeleton.bones.map(b=>root.getObjectByName(b.name)||b);
+    o.bindMatrix.copy(srcSkin.bindMatrix);
+    o.bindMatrixInverse.copy(srcSkin.bindMatrixInverse);
+    o.skeleton=new THREE.Skeleton(bones, srcSkin.skeleton.boneInverses.slice());
+    o.bind(o.skeleton, srcSkin.bindMatrix); } });
   let map=null, nmap=null;
   root.traverse(o=>{ if(o.isMesh&&!map){ map=o.material.map||null; nmap=o.material.normalMap||null; } });
   const mat=new THREE.MeshPhongMaterial({map:map||null, normalMap:nmap||null, normalScale:new THREE.Vector2(.85,.85),
-    color:P.body, shininess:14, specular:0x0e0e10, transparent:true, opacity:1, side:THREE.DoubleSide});
+    color:P.body, shininess:14, specular:0x0e0e10, transparent:true, opacity:1, side:THREE.DoubleSide, skinning:true});
   const mats=[mat];
   root.traverse(o=>{ if(o.isMesh){ o.material=mat; o.castShadow=true; o.receiveShadow=true; } });
-  // модель: длина .89 по X (морда -X), низ y=0; поворот мордой в -Z, изгиб хвоста уходит вбок
+  // модель: длина .89 по X (морда -X), низ y=0; тело смещено к z+0.23 (поза Hunyuan), поворот мордой в -Z
   const U=12.8;                                   // модельных юнитов в одном блок-юните
   root.rotation.y=-Math.PI/2;
   root.position.set(-.04,0,-.06);
@@ -1496,21 +1507,31 @@ function buildIndomGLB(def){
   hips.add(body);
   const head=root.getObjectByName('headG'), jaw=root.getObjectByName('jawG');
   const tail=['tail1G','tail2G','tail3G'].map(n=>root.getObjectByName(n));
-  // ноги: голень+ступня вырезаны в шарниры коленей прямо в GLB (IB30) — качаются цельно
   const legAG=root.getObjectByName('legAG'), legBG=root.getObjectByName('legBG');
   const legs=[]; for(const L of [legAG,legBG]) if(L) legs.push({hip:L,shin:L,foot:L});
   const neck=new THREE.Group(); root.add(neck);   // пустышка для совместимости анимации
   // глаза как в референсе: красные светящиеся, компактные, на скуле над углом пасти (IB30)
   const eyeM=new THREE.MeshLambertMaterial({color:P.eye, emissive:P.eye, emissiveIntensity:.72}); mats.push(eyeM);
   const pupM=new THREE.MeshLambertMaterial({color:0x141414}); mats.push(pupM);
-  for(const zz of [.033,-.042]){
-    const eg=new THREE.Group(); eg.position.set(-.07,.002,zz); head.add(eg);
+  for(const zz of [.035,-.042]){
+    const eg=new THREE.Group(); eg.position.set(-.075,.030,zz); head.add(eg);
     const ew=new THREE.Mesh(new THREE.BoxGeometry(.021,.016,.010),eyeM); ew.castShadow=true; eg.add(ew);
     const ep=new THREE.Mesh(new THREE.BoxGeometry(.008,.010,.005),pupM); ep.position.z=(zz>0?1:-1)*.006; eg.add(ep);
   }
+  // скелетная анимация: свой mixer на каждого игрока, кроссфейды по состоянию
+  let mixer=null, act=null, glbState='';
+  if(INDOM_CLIPS&&INDOM_CLIPS.length){
+    mixer=new THREE.AnimationMixer(root); act={};
+    for(const c of INDOM_CLIPS){
+      const a=mixer.clipAction(c);
+      if(c.name==='DEAD'){ a.setLoop(THREE.LoopOnce,1); a.clampWhenFinished=true; }
+      a.play(); a.setEffectiveWeight(c.name==='IDLE'?1:0);
+      act[c.name]=a;
+    }
+  }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, glb:true, uLen:1/U, jawK:1,
-    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, legMax:.40, tagY:4.5 };
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, glb:true, glbAnim:true, mixer, act,
+    glbState, uLen:1/U, jawK:1, headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, legMax:.40, tagY:4.5 };
 }
 
 function buildRaptor(def){
@@ -2873,12 +2894,22 @@ const SPEC={
 };
 function animDino(e,md,dt){
   md.g.position.copy(e.pos);
+  if(md.glbAnim&&md.mixer){                                  // IB31: скелетные анимации GLB — кроссфейды
+    const roar=e.specId&&String(e.specId).indexOf('roar')===0;
+    const want=!e.alive?'DEAD':(roar?'ROAR':(e.attackT>0?'BITE':(e.moveMode===2?'RUN':(e.moveMode===1?'WALK':'IDLE'))));
+    if(md.glbState!==want){ md.glbState=want;
+      for(const k in md.act){ const a=md.act[k];
+        if(k===want){ a.enabled=true; a.reset(); a.setEffectiveWeight(1); a.fadeIn(.12); }
+        else if(a.enabled) a.fadeOut(.12); } }
+    md.mixer.update(dt);
+  }
   // ---- смерть: падение набок, расслабленная поза ----
   if(!e.alive){
     e.deathT+=dt;
     const k=smoothT(clamp(e.deathT/.55,0,1));
     md.g.rotation.set(0,e.yaw,e.deathDir*1.52*k);
     md.hips.position.y=lerp(md.hipsY,md.glb?md.hipsY-.3:.55,k);
+    if(md.glbAnim){ md.g.visible=e.kind==='npc'?e.deathT<3.4:true; flash(e,md,dt); return; }   // IB31: поза смерти — клип DEAD
     md.hips.rotation.x=.12*k;
     if(md.glb) md.jaw.rotation.z=-(.45*k); else md.jaw.rotation.x=.45*k;
     md.neck.rotation.x=.3*k; md.neck.position.z=md.neckZ;
@@ -2909,14 +2940,9 @@ function animDino(e,md,dt){
   const targetA=moving?Math.asin(clamp(stride/(2*md.legReach),0,.95)):.04;
   a.legA=lerp(a.legA,targetA,.16);
   const A=a.legA;
-  // ---- ноги: мах (колено поднимает лапу) и опора (лапа под телом) ----
-  if(md.glb){                    // GLB: голени качаются на шарнирах коленей вокруг Z (IB30)
-    const Ag=Math.min(A,md.legMax||.4)*(run?1:.85);
-    for(let i=0;i<md.legs.length;i++){
-      const L=md.legs[i], ph=p+i*Math.PI;
-      L.hip.rotation.z=-Math.sin(ph)*Ag+(run?.10:walk?.04:0);   // противофаза + лёгкий наклон назад на бегу
-    }
-  } else for(let i=0;i<md.legs.length;i++){
+  // ---- ноги: мах (колено поднимает лапу) и опора (лапа под телом) — только для блоковых моделей,
+  // у GLB-Индоминуса лапы двигает скелетная анимация (IB31), части не отрываются
+  if(!md.glbAnim) for(let i=0;i<md.legs.length;i++){
     const L=md.legs[i], ph=p+i*(Math.PI*2/md.legs.length);
     const swing=Math.max(0,Math.cos(ph));         // лапа переносится вперёд
     const stance=Math.max(0,-Math.cos(ph));       // лапа на земле
@@ -2925,8 +2951,9 @@ function animDino(e,md,dt){
     L.foot.rotation.x=-(L.hip.rotation.x+L.shin.rotation.x)*.5-stance*.3+.06;
   }
   if(!e.grounded){ // в прыжке поджимаем лапы
-    if(md.glb) for(const L of md.legs) L.hip.rotation.z=lerp(L.hip.rotation.z,.55,.4);
-    else for(const L of md.legs){
+    if(md.glbAnim){                                              // IB31: поджатие поверх скелетной позы
+      for(const L of md.legs) L.hip.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-.34));
+    } else if(!md.glb) for(const L of md.legs){
       L.hip.rotation.x=lerp(L.hip.rotation.x,-.55,.4);
       L.shin.rotation.x=lerp(L.shin.rotation.x,1.15,.4);
       L.foot.rotation.x=lerp(L.foot.rotation.x,.45,.4); }
@@ -2941,8 +2968,8 @@ function animDino(e,md,dt){
     e.landT=Math.max(0,e.landT-dt);
     const k=e.landT/.22;
     hipsY-=k*.34; hrx+=k*.18;
-    if(md.glb) for(const L of md.legs) L.hip.rotation.z+=k*.16;  // GLB: присед на лапы
-    else for(const L of md.legs){ L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
+    if(md.glb&&!md.glbAnim) for(const L of md.legs) L.hip.rotation.z+=k*.16;  // присед на лапы (шарнирный GLB)
+    else if(!md.glbAnim) for(const L of md.legs){ L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
   }
   if(e.resting){                       // отдых (R): прилёг, тело расслаблено
     hipsY-=.5; hrx+=.15;
@@ -2987,19 +3014,23 @@ function animDino(e,md,dt){
   }
   md.hips.position.y=hipsY;
   md.hips.rotation.x=specOn?hrx:lerp(md.hips.rotation.x,hrx,.18);
-  // glb: скульпт пасти и так раскрыт — клампим угол, чтобы зубы не прошивали череп (IB29)
-  if(md.glb) md.jaw.rotation.z=-clamp(jawX==null?0:jawX,-.32,.72); else md.jaw.rotation.x=jawX==null?0:jawX;
-  if(md.glb) md.head.position.x=md.headBaseX; else md.neck.position.z=md.neckZ-reach;
+  // glb-шарнирная версия: клампим угол пасти; IB31: у скин-рига пасть двигает клип BITE
+  if(md.glbAnim){ /* пасть — в клипе */ }
+  else if(md.glb) md.jaw.rotation.z=-clamp(jawX==null?0:jawX,-.32,.72);
+  else md.jaw.rotation.x=jawX==null?0:jawX;
+  if(md.glb&&!md.glbAnim) md.head.position.x=md.headBaseX; if(!md.glb) md.neck.position.z=md.neckZ-reach;
   md.neck.rotation.x=specOn?neckRx:lerp(md.neck.rotation.x,neckRx,.25);
   if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
   for(const a2 of md.arms) a2.rotation.x=specOn?armX:lerp(a2.rotation.x,armX,.2);
-  // ---- хвост: баланс на шагу, поток на бегу, дрейф в прыжке ----
+  // ---- хвост: баланс на шагу, поток на бегу, дрейф в прыжке (блоковые; у IB31 хвост в клипах) ----
+  if(!md.glbAnim){
   const twA=run?.12:walk?.22:.12;
   for(let i=0;i<md.tail.length;i++){
     const ty=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
     const tx=Math.sin(p-i*.5+1.1)*(run?.05:.03)+(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
     if(md.glb){ md.tail[i].rotation.y=ty*.42; md.tail[i].rotation.z=tx*.6; }   // хвост течёт на верных шарнирах (IB29)
     else { md.tail[i].rotation.y=ty; md.tail[i].rotation.x=tx; }
+  }
   }
   // длинная шея брахиозавра: сегменты колышутся в такт шагам и дыханию
   if(md.neckSegs&&md.neckBase){
@@ -3009,12 +3040,13 @@ function animDino(e,md,dt){
         +Math.sin(ambT*.8-i*.55)*.014;
     }
   }
-  if(specOn&&e.specId&&SPEC[e.specId]) SPEC[e.specId](e,md,clamp(e.specT/e.specDur,0,1),null,true);
+  if(specOn&&e.specId&&SPEC[e.specId]&&!md.glbAnim) SPEC[e.specId](e,md,clamp(e.specT/e.specDur,0,1),null,true);
   // ---- голова: стабилизация + живой взгляд по сторонам, когда стоишь ----
   if(!moving){ a.lkT-=dt;
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
   else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
-  if(md.glb){                        // голова: кивки в такт галопа + клевок в укусе + живой взгляд (IB29)
+  if(md.glb&&md.glbAnim){ /* головой управляет скелетный клип (IB31) */ }
+  else if(md.glb){                        // голова: кивки в такт галопа + клевок в укусе + живой взгляд (IB29)
     const nod=moving?Math.sin(2*p+1.3)*(run?.05:.028):Math.sin(ambT*1.2)*.02;
     const dip=e.attackT>0?.07*Math.sin(clamp((.32-e.attackT)/.32,0,1)*Math.PI):0;
     md.head.rotation.z=lerp(md.head.rotation.z,nod+dip+(moving?0:a.lkP*.5),.12);
