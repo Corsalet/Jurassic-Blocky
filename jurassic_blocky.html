@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=29;  // IB29: шарниры рига GLB пересажены на анатомические места (челюсть была в воздухе перед мордой — улетала при укусе, «когти» с ней); глаз — компактный, на скуле над углом пасти; хвост и голова текут на верных шарнирах (кивки галопа, взгляд, поток хвоста), кламп укуса
+const JB_BUILD=30;  // IB30: ноги GLB-Индоминуса двигаются — голени+ступни вырезаны в шарниры коленей прямо в GLB (реза внутри бедра, щелей нет), походка/бег/прыжок/смерть на новых шарнирах, части не отрываются; глаза — красные светящиеся как в референсе (emissive), чуть крупнее
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1496,19 +1496,21 @@ function buildIndomGLB(def){
   hips.add(body);
   const head=root.getObjectByName('headG'), jaw=root.getObjectByName('jawG');
   const tail=['tail1G','tail2G','tail3G'].map(n=>root.getObjectByName(n));
+  // ноги: голень+ступня вырезаны в шарниры коленей прямо в GLB (IB30) — качаются цельно
+  const legAG=root.getObjectByName('legAG'), legBG=root.getObjectByName('legBG');
+  const legs=[]; for(const L of [legAG,legBG]) if(L) legs.push({hip:L,shin:L,foot:L});
   const neck=new THREE.Group(); root.add(neck);   // пустышка для совместимости анимации
-  // блочные глаза поверх шкуры: на скуле, сразу над углом пасти (разметка игрока),
-  // компактные и заподлицо со шкурой — поверхность черепа тут z≈±(.050/.030) (IB29)
-  const eyeM=new THREE.MeshLambertMaterial({color:P.eye}); mats.push(eyeM);
+  // глаза как в референсе: красные светящиеся, компактные, на скуле над углом пасти (IB30)
+  const eyeM=new THREE.MeshLambertMaterial({color:P.eye, emissive:P.eye, emissiveIntensity:.72}); mats.push(eyeM);
   const pupM=new THREE.MeshLambertMaterial({color:0x141414}); mats.push(pupM);
   for(const zz of [.033,-.042]){
     const eg=new THREE.Group(); eg.position.set(-.07,.002,zz); head.add(eg);
-    const ew=new THREE.Mesh(new THREE.BoxGeometry(.015,.012,.009),eyeM); ew.castShadow=true; eg.add(ew);
-    const ep=new THREE.Mesh(new THREE.BoxGeometry(.006,.008,.004),pupM); ep.position.z=(zz>0?1:-1)*.0055; eg.add(ep);
+    const ew=new THREE.Mesh(new THREE.BoxGeometry(.021,.016,.010),eyeM); ew.castShadow=true; eg.add(ew);
+    const ep=new THREE.Mesh(new THREE.BoxGeometry(.008,.010,.005),pupM); ep.position.z=(zz>0?1:-1)*.006; eg.add(ep);
   }
   g.scale.setScalar(sc);
-  return { g, hips, neck, head, jaw, tail, legs:[], arms:[], mats, glb:true, uLen:1/U, jawK:1,
-    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, tagY:4.5 };
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, glb:true, uLen:1/U, jawK:1,
+    headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, legMax:.40, tagY:4.5 };
 }
 
 function buildRaptor(def){
@@ -2885,7 +2887,9 @@ function animDino(e,md,dt){
     md.head.rotation.x=0; md.head.rotation.y=0; md.head.rotation.z=0;
     if(md.glb) for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=0; md.tail[i].rotation.z=0; }
     else for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
-    for(const L of md.legs){
+    if(md.glb){ for(let i=0;i<md.legs.length;i++){ const L=md.legs[i];       // GLB: лапы расслабленно врозь, шарнир гасится
+        L.hip.rotation.x=.3*k; L.hip.rotation.z=lerp(L.hip.rotation.z,i?.22:-.22,.2); } }
+    else for(const L of md.legs){
       L.hip.rotation.x=.3*k; L.shin.rotation.x=.25; L.foot.rotation.x=-.3*k; }
     for(const a of md.arms) a.rotation.x=0;
     md.g.visible=e.kind==='npc'?e.deathT<3.4:true;
@@ -2906,7 +2910,13 @@ function animDino(e,md,dt){
   a.legA=lerp(a.legA,targetA,.16);
   const A=a.legA;
   // ---- ноги: мах (колено поднимает лапу) и опора (лапа под телом) ----
-  for(let i=0;i<md.legs.length;i++){
+  if(md.glb){                    // GLB: голени качаются на шарнирах коленей вокруг Z (IB30)
+    const Ag=Math.min(A,md.legMax||.4)*(run?1:.85);
+    for(let i=0;i<md.legs.length;i++){
+      const L=md.legs[i], ph=p+i*Math.PI;
+      L.hip.rotation.z=-Math.sin(ph)*Ag+(run?.10:walk?.04:0);   // противофаза + лёгкий наклон назад на бегу
+    }
+  } else for(let i=0;i<md.legs.length;i++){
     const L=md.legs[i], ph=p+i*(Math.PI*2/md.legs.length);
     const swing=Math.max(0,Math.cos(ph));         // лапа переносится вперёд
     const stance=Math.max(0,-Math.cos(ph));       // лапа на земле
@@ -2915,7 +2925,8 @@ function animDino(e,md,dt){
     L.foot.rotation.x=-(L.hip.rotation.x+L.shin.rotation.x)*.5-stance*.3+.06;
   }
   if(!e.grounded){ // в прыжке поджимаем лапы
-    for(const L of md.legs){
+    if(md.glb) for(const L of md.legs) L.hip.rotation.z=lerp(L.hip.rotation.z,.55,.4);
+    else for(const L of md.legs){
       L.hip.rotation.x=lerp(L.hip.rotation.x,-.55,.4);
       L.shin.rotation.x=lerp(L.shin.rotation.x,1.15,.4);
       L.foot.rotation.x=lerp(L.foot.rotation.x,.45,.4); }
@@ -2930,7 +2941,8 @@ function animDino(e,md,dt){
     e.landT=Math.max(0,e.landT-dt);
     const k=e.landT/.22;
     hipsY-=k*.34; hrx+=k*.18;
-    for(const L of md.legs){ L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
+    if(md.glb) for(const L of md.legs) L.hip.rotation.z+=k*.16;  // GLB: присед на лапы
+    else for(const L of md.legs){ L.shin.rotation.x+=k*.5; L.hip.rotation.x-=k*.3; }
   }
   if(e.resting){                       // отдых (R): прилёг, тело расслаблено
     hipsY-=.5; hrx+=.15;
