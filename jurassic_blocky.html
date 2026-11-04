@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=28;  // IB28: GLB-Индоминус стоит точно на земле (был подъём на 2 блока), глаза у виска и мельче, хвост/шея цельные без разрывов шкуры, живой галоп корпуса (пружина+наклон+крен+рывок укуса), ник над макушкой
+const JB_BUILD=29;  // IB29: шарниры рига GLB пересажены на анатомические места (челюсть была в воздухе перед мордой — улетала при укусе, «когти» с ней); глаз — компактный, на скуле над углом пасти; хвост и голова текут на верных шарнирах (кивки галопа, взгляд, поток хвоста), кламп укуса
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1497,13 +1497,14 @@ function buildIndomGLB(def){
   const head=root.getObjectByName('headG'), jaw=root.getObjectByName('jawG');
   const tail=['tail1G','tail2G','tail3G'].map(n=>root.getObjectByName(n));
   const neck=new THREE.Group(); root.add(neck);   // пустышка для совместимости анимации
-  // блочные глаза поверх шкуры: у виска (выше и компактнее по разметке пользователя)
+  // блочные глаза поверх шкуры: на скуле, сразу над углом пасти (разметка игрока),
+  // компактные и заподлицо со шкурой — поверхность черепа тут z≈±(.050/.030) (IB29)
   const eyeM=new THREE.MeshLambertMaterial({color:P.eye}); mats.push(eyeM);
   const pupM=new THREE.MeshLambertMaterial({color:0x141414}); mats.push(pupM);
-  for(const zz of [.036,-.044]){
-    const eg=new THREE.Group(); eg.position.set(-.067,.017,zz); head.add(eg);
-    const ew=new THREE.Mesh(new THREE.BoxGeometry(.019,.015,.009),eyeM); ew.castShadow=true; eg.add(ew);
-    const ep=new THREE.Mesh(new THREE.BoxGeometry(.008,.01,.005),pupM); ep.position.z=(zz>0?1:-1)*.005; eg.add(ep);
+  for(const zz of [.033,-.042]){
+    const eg=new THREE.Group(); eg.position.set(-.07,.002,zz); head.add(eg);
+    const ew=new THREE.Mesh(new THREE.BoxGeometry(.015,.012,.009),eyeM); ew.castShadow=true; eg.add(ew);
+    const ep=new THREE.Mesh(new THREE.BoxGeometry(.006,.008,.004),pupM); ep.position.z=(zz>0?1:-1)*.0055; eg.add(ep);
   }
   g.scale.setScalar(sc);
   return { g, hips, neck, head, jaw, tail, legs:[], arms:[], mats, glb:true, uLen:1/U, jawK:1,
@@ -2702,8 +2703,8 @@ const SPEC={
       Q.hipsY-=.2*k; Q.hrx=.3; Q.armX=-1.55*k; Q.reach=.12; Q.jawX=.35*k; }
     e.spinY=smoothT(clamp(ph/.85,0,1))*Math.PI*4;
     const out=Math.sin(ph*Math.PI);
-    if(md.glb){ for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.z=0; md.tail[i].rotation.x=0; } }
-    else for(let i=0;i<md.tail.length;i++){ const v=1.15*(1-i/md.tail.length)*out; md.tail[i].rotation.y=v; }
+    // glb: хвост на верных шарнирах (IB29) — не гасим, поток сохраняется и в вихре
+    if(!md.glb) for(let i=0;i<md.tail.length;i++){ const v=1.15*(1-i/md.tail.length)*out; md.tail[i].rotation.y=v; }
   },
   gore(e,md,ph,Q,late){                               // трицератопс E: скребёт землю и бодает с подбросом
     if(!late){
@@ -2881,7 +2882,7 @@ function animDino(e,md,dt){
     md.neck.rotation.x=.3*k; md.neck.position.z=md.neckZ;
     if(md.neckSegs&&md.neckBase){ const DP=[-.24,-.36,-.44,-.46,-.44,-.38];   // шея складывается вперёд-вниз
       for(let i=0;i<md.neckSegs.length;i++) md.neckSegs[i].rotation.x=md.neckBase[i]+(DP[i]||0)*k; }
-    md.head.rotation.x=0; md.head.rotation.y=0;
+    md.head.rotation.x=0; md.head.rotation.y=0; md.head.rotation.z=0;
     if(md.glb) for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=0; md.tail[i].rotation.z=0; }
     else for(let i=0;i<md.tail.length;i++){ md.tail[i].rotation.y=0; md.tail[i].rotation.x=.18*k; }
     for(const L of md.legs){
@@ -2974,7 +2975,8 @@ function animDino(e,md,dt){
   }
   md.hips.position.y=hipsY;
   md.hips.rotation.x=specOn?hrx:lerp(md.hips.rotation.x,hrx,.18);
-  if(md.glb) md.jaw.rotation.z=-(jawX==null?0:jawX); else md.jaw.rotation.x=jawX==null?0:jawX;
+  // glb: скульпт пасти и так раскрыт — клампим угол, чтобы зубы не прошивали череп (IB29)
+  if(md.glb) md.jaw.rotation.z=-clamp(jawX==null?0:jawX,-.32,.72); else md.jaw.rotation.x=jawX==null?0:jawX;
   if(md.glb) md.head.position.x=md.headBaseX; else md.neck.position.z=md.neckZ-reach;
   md.neck.rotation.x=specOn?neckRx:lerp(md.neck.rotation.x,neckRx,.25);
   if(armX===null) armX=walk?Math.sin(p+Math.PI)*.12:run?.35:0;  // руки помогают балансу
@@ -2984,7 +2986,7 @@ function animDino(e,md,dt){
   for(let i=0;i<md.tail.length;i++){
     const ty=Math.sin(p*(run?.5:.8)-i*.55)*twA+Math.sin(ambT*.8-i*.5)*.05;
     const tx=Math.sin(p-i*.5+1.1)*(run?.05:.03)+(run?-.07:walk?0:.05)+(!e.grounded?.14:0);
-    if(md.glb){ md.tail[i].rotation.y=0; md.tail[i].rotation.z=0; md.tail[i].rotation.x=0; }   // хвост цельный — не рвём шкуру
+    if(md.glb){ md.tail[i].rotation.y=ty*.42; md.tail[i].rotation.z=tx*.6; }   // хвост течёт на верных шарнирах (IB29)
     else { md.tail[i].rotation.y=ty; md.tail[i].rotation.x=tx; }
   }
   // длинная шея брахиозавра: сегменты колышутся в такт шагам и дыханию
@@ -3000,9 +3002,11 @@ function animDino(e,md,dt){
   if(!moving){ a.lkT-=dt;
     if(a.lkT<=0){ a.lkT=rand(1.4,3.2); a.lkY=rand(-.55,.55); a.lkP=rand(-.18,.24); } }
   else { a.lkY=lerp(a.lkY,0,.1); a.lkP=lerp(a.lkP,0,.1); }
-  if(md.glb){
-    md.head.rotation.y=lerp(md.head.rotation.y,0,.08);
-    md.head.rotation.z=lerp(md.head.rotation.z,0,.08);
+  if(md.glb){                        // голова: кивки в такт галопа + клевок в укусе + живой взгляд (IB29)
+    const nod=moving?Math.sin(2*p+1.3)*(run?.05:.028):Math.sin(ambT*1.2)*.02;
+    const dip=e.attackT>0?.07*Math.sin(clamp((.32-e.attackT)/.32,0,1)*Math.PI):0;
+    md.head.rotation.z=lerp(md.head.rotation.z,nod+dip+(moving?0:a.lkP*.5),.12);
+    md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY*.6,.08);
   } else {
     md.head.rotation.y=lerp(md.head.rotation.y,moving?0:a.lkY,.08);
     md.head.rotation.x=lerp(md.head.rotation.x,(md.headBaseX||0)-md.neck.rotation.x*.6+(moving?0:a.lkP),.08);
