@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=31;  // IB31: Настоящий СКЕЛЕТ Индоминуса — цельная шкура со skinning'ом (19 костей, веса по анатомии, ничего не разрезано и не отрывается) + 6 скелетных анимаций в GLB (IDLE/WALK/RUN/BITE/ROAR/DEAD) через AnimationMixer с кроссфейдами; лапы, шея, голова, хвост и челюсть двигаются плавно — процедурные вращения шарниров для GLB отключены; скелет перепривязывается при клоне (сетевые игроки с ригом); децимация 260k tris, JPEG-текстуры
+const JB_BUILD=32;  // IB32: Настоящий СКЕЛЕТ Индоминуса — цельная шкура со skinning'ом (19 костей, веса по анатомии, ничего не разрезано и не отрывается) + 6 скелетных анимаций в GLB (IDLE/WALK/RUN/BITE/ROAR/DEAD) через AnimationMixer с кроссфейдами; лапы, шея, голова, хвост и челюсть двигаются плавно — процедурные вращения шарниров для GLB отключены; скелет перепривязывается при клоне (сетевые игроки с ригом); децимация 260k tris, JPEG-текстуры; финальные веса хвоста (дуга вверх) и исправленные translation-каналы
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -531,6 +531,7 @@ ENT.push(my);
 
 // ================= СЦЕНА =================
 const scene=new THREE.Scene();
+window.JB_SCENE=scene;   // DEBUG-хук (временно)
 const SKY=0x7db8e2;   // глубже и синее — никакой молочности
 scene.background=new THREE.Color(SKY);
 scene.fog=new THREE.Fog(SKY,215,780);
