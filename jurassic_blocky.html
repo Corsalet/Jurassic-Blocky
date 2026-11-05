@@ -1749,6 +1749,9 @@ try{ new THREE.GLTFLoader().load('indom.glb?v='+JB_BUILD,
     try{ if(G.state!=='menu'&&my&&my.dinoId==='indom'&&myMesh&&!myMesh.glb) applyPlayerDino('indom'); }catch(e){} },
   undefined, ()=>{}); }catch(e){}
 function buildIndomGLB(def){
+  // IB38: indom.glb теперь пак-модель (GLB_PACK) без bones headG/tail1G — старый Hunyuan-путь не применим, блоковый фолбэк
+  let _hasBones=false; INDOM_GLB.traverse(o=>{ if(o.name==='headG') _hasBones=true; });
+  if(!_hasBones) return buildIndom(def);
   const P=def.pal, sc=def.scale||1;
   const root=INDOM_GLB.clone(true);
   // r128: SkinnedMesh.clone() теряет bindMatrix/bindMatrixInverse — берём их с исходного меша
@@ -1812,7 +1815,8 @@ function buildIndomGLB(def){
 // Тот же пайплайн, что у GLB-Индоминуса (IB31): клон с перепривязкой скелета + свой mixer.
 const GLB_PACK={};
 const GLB_TARGET_H={raptor:2.5,rex:3.15,stego:2.9,para:2.5,brachi:4.0,                     // высота модели при scale=1 (блок-юниты), откалибрована по мировым костям
-  trike:3.81,spino:4.58,allo:3.24,carno:3.35,pachy:3.22,anky:1.97,dilo:3.13,scorpius:3.35}; // IB37: blocky_h/scale — точное совпадение с блоковыми размерами
+  trike:3.81,spino:4.58,allo:3.24,carno:3.35,pachy:3.22,anky:1.97,dilo:3.13,scorpius:3.35,   // IB37: blocky_h/scale — точное совпадение с блоковыми размерами
+  indom:4.1};                                                                               // IB38: Индоминус — Sketchfab walk-cycle (габарит прежнего GLB-Инда 6.55/1.6)
 const GLB_FACE={carno:0};   // переопределение разворота: карно уже смотрит в -Z (авто-определение по костям Head/Tail1 недоступно)
 for(const _sp in GLB_TARGET_H){ (function(sp){
   const rec={ok:false,waiters:[]}; GLB_PACK[sp]=rec;
@@ -6145,7 +6149,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,GLB_PACK,GLB_TARGET_H,buildDino,buildGLBDino,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 addEventListener('beforeunload',()=>{ try{ NET.leave(); }catch(e){} try{ CLOUD.push(); }catch(e){} });
 requestAnimationFrame(frame);
 })();
