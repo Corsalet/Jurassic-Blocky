@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=34;  // IB34: КАРТА v4 под качество Индоминуса — земля с детальной текстурой (крошка+травинки), слоистые скалы-страты, мокрая кромка песка; вода с бегущими волнами по вершинам (фасеточные блики); деревья: круглые стволы-цилиндры, 3-ярусные кроны, ели-конусы; валуны-додекаэдры и шпили-конусы; факелы у ворот лагеря, пелена брызг водопада; НОВОЕ: мёртвые деревья саванны, камешки-россыпи, далёкие острова на горизонте; травы 650→900 пучков; все ориентиры, коллизии и геймплей не тронуты
+const JB_BUILD=35;  // IB35: 5 видов пересажены на GLB-пак с готовыми скелетными анимациями (авториг пользователя): Раптор, Тираннозавр, Стегозавр, Паразауролоф, Брахиозавр (Апатозавр) — у каждого клипы Idle/Walk/Run/Attack/Jump/Death (29 костей, 1.2-2.3k tris, 0.3-0.4 МБ). Тот же пайплайн, что у GLB-Индоминуса: клон с перепривязкой скелета, свой AnimationMixer, кроссфейды 0.12с, JUMP в воздухе и при рывке, ROAR→Attack, укус ускорен в окно атаки, материалы пака → Lambert в стиле JB, дикие варианты тонированы по палитре вида. Горячая замена мешей у живых NPC при догрузке. Карта v4 (IB34) без изменений
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1591,6 +1591,7 @@ obsIndex();   // все преграды расставлены — строим
 // мощные бёдра, полосатые бока и маленькие прижатые руки. Одна сборка — для игрока,
 // NPC и будущих сетевых игроков. Материалы кэшируются по цвету внутри одной сборки.
 function buildDino(def){ const m=def.model||'raptor';
+  if(GLB_PACK[m]&&GLB_PACK[m].ok) return buildGLBDino(def);   // IB35: паковые виды — скелетные GLB-модели
   return m==='trike'?buildTrike(def):m==='rex'?buildRex(def):m==='stego'?buildStego(def):m==='anky'?buildAnky(def):
     m==='spino'?buildSpino(def):m==='dilo'?buildDilo(def):m==='brachi'?buildBrachi(def):
     m==='allo'?buildAllo(def):m==='carno'?buildCarno(def):m==='pachy'?buildPachy(def):m==='para'?buildPara(def):
@@ -1661,6 +1662,117 @@ function buildIndomGLB(def){
   g.scale.setScalar(sc);
   return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, glb:true, glbAnim:true, mixer, act,
     glbState, uLen:1/U, jawK:1, headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, legMax:.40, tagY:4.5 };
+}
+
+// ================= GLB-ПАК: 5 видов с готовыми анимациями (IB35) =================
+// Авториг-пак пользователя (FBX2glTF): единый скелет 29 костей с одинаковыми именами,
+// клипы Idle/Walk/Run/Attack/Jump/Death, 1.2-2.3k tris, цвет в материалах без текстур.
+// Тот же пайплайн, что у GLB-Индоминуса (IB31): клон с перепривязкой скелета + свой mixer.
+const GLB_PACK={};
+const GLB_TARGET_H={raptor:2.5,rex:3.15,stego:2.9,para:2.5,brachi:4.0};   // высота модели при scale=1 (блок-юниты), откалибровано по мировым костям   // высота модели при scale=1 (блок-юниты)
+for(const _sp in GLB_TARGET_H){ (function(sp){
+  const rec={ok:false,waiters:[]}; GLB_PACK[sp]=rec;
+  try{ new THREE.GLTFLoader().load(sp+'.glb?v='+JB_BUILD,
+    g=>{ rec.scene=g.scene; rec.clips=g.animations||[];
+      rec.scene.traverse(o=>{ if(o.isMesh) o.frustumCulled=false; });
+      rec.scene.updateMatrixWorld(true);
+      rec.box=new THREE.Box3().setFromObject(rec.scene);
+      rec.h=Math.max(.001,rec.box.max.y-rec.box.min.y);
+      let hb=null, tb=null;                                  // куда смотрит модель: сравниваем голову и хвост
+      rec.scene.traverse(o=>{ const n=o.name||'';
+        if(!hb&&n.indexOf('Head')===0) hb=o;
+        if(!tb&&n.indexOf('Tail1')===0) tb=o; });
+      rec.face=Math.PI;                                      // по умолчанию морда в +Z → разворот в -Z
+      if(hb&&tb){ const hp=hb.getWorldPosition(new THREE.Vector3()), tp=tb.getWorldPosition(new THREE.Vector3());
+        if(hp.z<tp.z) rec.face=0; }
+      rec.ok=true;
+      const w=rec.waiters.splice(0); for(const f of w) try{f();}catch(e){}
+      try{ if(G.state!=='menu'&&my&&my.dinoId&&myMesh&&!myMesh.glbAnim&&dinoDef(my.dinoId).model===sp) applyPlayerDino(my.dinoId); }catch(e){}
+      try{ for(let i=0;i<ENT.length;i++){                    // горячая замена: дикие/сетевые уже не пропустят новый вид
+        const e=ENT[i];
+        if(!e.mesh||e.mesh.glbAnim||!e.def) continue;
+        if(e.def.model!==sp) continue;
+        const old=e.mesh, nm=buildDino(e.def);
+        nm.g.position.copy(old.g.position); nm.g.rotation.copy(old.g.rotation);
+        scene.remove(old.g); scene.add(nm.g); e.mesh=nm;
+      } }catch(err){}
+    }, undefined, ()=>{});
+  }catch(e){}
+})(_sp); }
+
+function buildGLBDino(def){
+  const P=def.pal, sc=def.scale||1;
+  const rec=GLB_PACK[def.model];
+  const root=rec.scene.clone(true);
+  // r128: SkinnedMesh.clone() теряет bindMatrix — берём с исходника и перепривязываем кости к клонам
+  let srcSkin=null; rec.scene.traverse(o=>{ if(o.isSkinnedMesh&&!srcSkin) srcSkin=o; });
+  root.traverse(o=>{ if(o.isSkinnedMesh&&srcSkin){
+    const bones=o.skeleton.bones.map(b=>root.getObjectByName(b.name)||b);
+    o.bindMatrix.copy(srcSkin.bindMatrix);
+    o.bindMatrixInverse.copy(srcSkin.bindMatrixInverse);
+    o.skeleton=new THREE.Skeleton(bones, srcSkin.skeleton.boneInverses.slice());
+    o.bind(o.skeleton, srcSkin.bindMatrix); } });
+  // материалы пака → Lambert (фирменный матовый стиль JB); дикие варианты тонированы
+  // относительно базового вида той же модели (отношение палитр по каналам, чёрные зоны не трогает)
+  const basePal=(dinoDef(def.model)||def).pal;
+  const pb=new THREE.Color(basePal.body), vb=new THREE.Color(P.body);
+  const tr=clamp(vb.r/Math.max(.06,pb.r),.55,1.6),
+        tg=clamp(vb.g/Math.max(.06,pb.g),.55,1.6),
+        tb=clamp(vb.b/Math.max(.06,pb.b),.55,1.6);
+  const mats=[], mm=new Map();
+  root.traverse(o=>{ if(o.isMesh){
+    const wasArr=Array.isArray(o.material);
+    const nm=(wasArr?o.material:[o.material]).map(m0=>{
+      if(mm.has(m0)) return mm.get(m0);
+      const c=m0.color.clone(); c.r=Math.min(1,c.r*2.4); c.g=Math.min(1,c.g*2.4); c.b=Math.min(1,c.b*2.4);   // пак тёмный — поднимаем под свет JB
+      c.r*=tr; c.g*=tg; c.b*=tb;
+      const lm=new THREE.MeshLambertMaterial({color:c, skinning:true});
+      mm.set(m0,lm); mats.push(lm); return lm; });
+    o.material=wasArr?nm:nm[0];
+    o.castShadow=true; o.receiveShadow=true; } });
+  // масштаб и посадка: wrap нормирует высоту к блок-юнитам, корень центрирует и разворачивает морду в -Z
+  const U=GLB_TARGET_H[def.model]/rec.h;
+  root.rotation.y=rec.face;
+  const ctr=rec.box.getCenter(new THREE.Vector3());
+  const RQ=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),rec.face);
+  const off=ctr.clone().applyQuaternion(RQ).multiplyScalar(-1);
+  off.y=-rec.box.min.y;                                      // ступни точно на земле
+  root.position.copy(off);
+  const wrap=new THREE.Group(); wrap.scale.setScalar(U); wrap.add(root);
+  const hipsY=GLB_TARGET_H[def.model]*.55;
+  const g=new THREE.Group();
+  const hips=new THREE.Group(); hips.position.y=hipsY; g.add(hips);
+  wrap.position.y=-hipsY; hips.add(wrap);
+  // ссылки на кости для оверлеев и приёмов; шея/пасть — заглушки, кости ведут клипы
+  const head=root.getObjectByName('Head')||new THREE.Group();
+  const jaw=new THREE.Group();
+  const tail=['Tail1','Tail2','Tail3'].map(n=>root.getObjectByName(n)).filter(Boolean);
+  const legs=[];
+  for(const ln of ['BackUpLeg.R','BackUpLeg.L']){
+    const b=root.getObjectByName(ln); if(b) legs.push({hip:b,shin:b,foot:b}); }
+  const neck=new THREE.Group(); root.add(neck);
+  // скелетные анимации: Idle/Walk/Run/Attack/Jump/Death → IDLE/WALK/RUN/BITE/JUMP/DEAD
+  let mixer=null, act={}, glbState='';
+  if(rec.clips&&rec.clips.length){
+    mixer=new THREE.AnimationMixer(root);
+    const pick=suf=>{ suf='_'+suf;
+      let c=rec.clips.find(c2=>c2.name.toLowerCase().endsWith(suf));
+      return c||rec.clips.find(c2=>c2.name.toLowerCase().indexOf(suf)>=0); };
+    const slots={IDLE:'idle',WALK:'walk',RUN:'run',BITE:'attack',JUMP:'jump',DEAD:'death'};
+    for(const k in slots){
+      const c=pick(slots[k]); if(!c) continue;
+      const a=mixer.clipAction(c);
+      if(k==='DEAD'||k==='JUMP'){ a.setLoop(THREE.LoopOnce,1); a.clampWhenFinished=true; }
+      if(k==='BITE') a.timeScale=clamp(c.duration/.42,1,3.2);      // укус целиком в окно атаки
+      if(k==='JUMP') a.timeScale=clamp(c.duration/Math.max(.5,2*(def.jumpV||6)/24),.55,2.4);
+      a.play(); a.setEffectiveWeight(k==='IDLE'?1:0);
+      act[k]=a;
+    }
+    if(!act.ROAR&&act.BITE) act.ROAR=act.BITE;                     // рёв — агрессивный выпад из Attack
+  }
+  g.scale.setScalar(sc);
+  return { g, hips, neck, head, jaw, tail, legs, arms:[], mats, glb:true, glbAnim:true, mixer, act,
+    glbState, hipsY, legReach:hipsY*1.15, tagY:GLB_TARGET_H[def.model]+1.1 };
 }
 
 function buildRaptor(def){
@@ -3025,7 +3137,7 @@ function animDino(e,md,dt){
   md.g.position.copy(e.pos);
   if(md.glbAnim&&md.mixer){                                  // IB31: скелетные анимации GLB — кроссфейды
     const roar=e.specId&&String(e.specId).indexOf('roar')===0;
-    const want=!e.alive?'DEAD':(roar?'ROAR':(e.attackT>0?'BITE':(e.moveMode===2?'RUN':(e.moveMode===1?'WALK':'IDLE'))));
+    const want=!e.alive?'DEAD':(roar?'ROAR':(e.attackT>0?'BITE':(!e.grounded&&md.act.JUMP?'JUMP':(e.moveMode===2?'RUN':(e.moveMode===1?'WALK':'IDLE')))));
     if(md.glbState!==want){ md.glbState=want;
       for(const k in md.act){ const a=md.act[k];
         if(k===want){ a.enabled=true; a.reset(); a.setEffectiveWeight(1); a.fadeIn(.12); }
@@ -3080,7 +3192,7 @@ function animDino(e,md,dt){
     L.foot.rotation.x=-(L.hip.rotation.x+L.shin.rotation.x)*.5-stance*.3+.06;
   }
   if(!e.grounded){ // в прыжке поджимаем лапы
-    if(md.glbAnim){                                              // IB31: поджатие поверх скелетной позы
+    if(md.glbAnim&&!md.act.JUMP){                                              // IB31: поджатие поверх скелетной позы; с клипом JUMP не нужно (IB35)
       for(const L of md.legs) L.hip.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),-.34));
     } else if(!md.glb) for(const L of md.legs){
       L.hip.rotation.x=lerp(L.hip.rotation.x,-.55,.4);
