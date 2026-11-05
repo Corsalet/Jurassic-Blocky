@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=35;  // IB35: 5 видов пересажены на GLB-пак с готовыми скелетными анимациями (авториг пользователя): Раптор, Тираннозавр, Стегозавр, Паразауролоф, Брахиозавр (Апатозавр) — у каждого клипы Idle/Walk/Run/Attack/Jump/Death (29 костей, 1.2-2.3k tris, 0.3-0.4 МБ). Тот же пайплайн, что у GLB-Индоминуса: клон с перепривязкой скелета, свой AnimationMixer, кроссфейды 0.12с, JUMP в воздухе и при рывке, ROAR→Attack, укус ускорен в окно атаки, материалы пака → Lambert в стиле JB, дикие варианты тонированы по палитре вида. Горячая замена мешей у живых NPC при догрузке. Карта v4 (IB34) без изменений
+const JB_BUILD=36;  // IB36: растительность карты пересажена на low-poly GLB-пак Ultimate Nature Pack (Quaternius, CC0, 71 вариант, nature.glb ~4.9МБ): джунгли — CommonTree/Willow, саванна — ивы вместо акаций, пляж озера — палмы, чаща — сосны, сухие скелеты — Willow_Dead/CommonTree_Dead, валуны — Rock/Rock_Moss, брёвна/пни/кусты/трава/папоротники/цветы, лилии на воде (новое) и мёртвые белые берёзы у костяной арены (новое). Конвертер OBJ+MTL→GLB: цвета материалов запечены в вершины с подъёмом ×2.4 под свет JB, земля y=0, макс-габарит 1. Точки блочных скаттеров сохранены — препятствия и тропы не изменились; блочная растительность — фолбэк до загрузки GLB. Динозавры IB35 и карта v4 (рельеф/лагерь/арена) без изменений
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -828,9 +828,15 @@ TEX.ground.repeat.set(150,150);                    // тайл ~8.4 юнита: 
 // Деревья, камни, кости, брёвна и постройки — сплошные: сквозь них не пройти (как в JB).
 // Мультиплеер-задел: список OBST детерминирован (seed) — сервер отдаст те же преграды.
 const OBST=[];
-function addObs(x,z,r){ OBST.push({x,z,r}); }
+function addObs(x,z,r){ const o={x,z,r}; OBST.push(o);
+  // IB36: после obsIndex() (природный GLB-пак догружается асинхронно) новые
+  // препятствия сразу попадают в сетку коллизий
+  const k=Math.floor(x/OBS_CELL)+','+Math.floor(z/OBS_CELL);
+  let a=OBS_GRID.get(k); if(!a){ a=[]; OBS_GRID.set(k,a); }
+  a.push(o); }
 const OBS_GRID=new Map(), OBS_CELL=10;
 function obsIndex(){
+  OBS_GRID.clear();                                   // строим заново без дублей
   for(const o of OBST){
     const k=Math.floor(o.x/OBS_CELL)+','+Math.floor(o.z/OBS_CELL);
     let a=OBS_GRID.get(k); if(!a){ a=[]; OBS_GRID.set(k,a); }
@@ -1103,6 +1109,11 @@ const flames=[];
     flames.push(tf,tf2);
   }
 })();
+// ================= КАРТА v5: растительность из GLB-пака Quaternius (IB36) =================
+// Точки всех блочных скаттеров складываются в JB_NAT.spots (препятствия прежние),
+// сами скаттеры — в JB_NAT.old; после загрузки nature.glb они горячо заменяются на
+// low-poly модели пака. Блочная растительность — фолбэк, если GLB не загрузился.
+const JB_NAT={spots:{},old:[]};
 // джунгли: высокие деревья с двухъярусной кроной
 (function buildTrees(){
   const spots=[];
@@ -1118,6 +1129,7 @@ const flames=[];
     let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<7.5&&Math.abs(s[1]-z)<7.5){ ok=false; break; }
     if(ok) spots.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.jungle=spots;
   const dummy=new THREE.Object3D(), c=new THREE.Color();
   const trunkG=new THREE.CylinderGeometry(.55,.85,6.4,6), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026,map:TEX.bark});
   const crownG=new THREE.BoxGeometry(4.8,2.9,4.8), crownM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
@@ -1145,7 +1157,7 @@ const flames=[];
   crown.count=k2;
   crown.instanceMatrix.needsUpdate=true;
   if(crown.instanceColor) crown.instanceColor.needsUpdate=true;
-  scene.add(trunk); scene.add(crown);
+  JB_NAT.old.push(trunk,crown); scene.add(trunk); scene.add(crown);
 })();
 // саванна: акации с плоскими кронами
 (function buildAcacia(){
@@ -1161,6 +1173,7 @@ const flames=[];
     let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<16&&Math.abs(s[1]-z)<16){ ok=false; break; }
     if(ok) spots.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.acacia=spots;
   const dummy=new THREE.Object3D(), c=new THREE.Color();
   const trunkG=new THREE.CylinderGeometry(.34,.5,5,6), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30,map:TEX.bark});
   const topG=new THREE.BoxGeometry(7,.9,7), topM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
@@ -1183,7 +1196,7 @@ const flames=[];
   top.instanceMatrix.needsUpdate=true; top2.instanceMatrix.needsUpdate=true;
   if(top.instanceColor) top.instanceColor.needsUpdate=true;
   if(top2.instanceColor) top2.instanceColor.needsUpdate=true;
-  scene.add(trunk); scene.add(top); scene.add(top2);
+  JB_NAT.old.push(trunk,top,top2); scene.add(trunk); scene.add(top); scene.add(top2);
 })();
 // палмы на пляже у озера: наклонный ствол + веер листьев
 (function buildPalms(){
@@ -1195,6 +1208,7 @@ const flames=[];
     let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<6&&Math.abs(s[1]-z)<6){ ok=false; break; }
     if(ok) spots.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.palms=spots;
   const dummy=new THREE.Object3D(), c=new THREE.Color();
   const segG=new THREE.CylinderGeometry(.44,.62,2.2,6), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a,map:TEX.bark});
   const leafG=new THREE.BoxGeometry(.9,.14,4.2), leafM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
@@ -1231,7 +1245,7 @@ const flames=[];
   seg.count=ks; leaf.count=kl;
   seg.instanceMatrix.needsUpdate=true; leaf.instanceMatrix.needsUpdate=true;
   if(leaf.instanceColor) leaf.instanceColor.needsUpdate=true;
-  scene.add(seg); scene.add(leaf);
+  JB_NAT.old.push(seg,leaf); scene.add(seg); scene.add(leaf);
 })();
 // папоротники (3 лопасти), кустики травы, цветы, кусты, брёвна
 (function buildFlora(){
@@ -1251,6 +1265,7 @@ const flames=[];
     if(bioAt(x,z)<.5) continue;
     ferns.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.ferns=ferns;
   const fG=new THREE.BoxGeometry(.16,.1,2.1), fM=new THREE.MeshLambertMaterial({color:0xffffff});
   const fern=new THREE.InstancedMesh(fG,fM,ferns.length*3);
   let kf=0;
@@ -1258,7 +1273,7 @@ const flames=[];
     put(fern,kf++,s[0],s[2]+.45,s[1],-.55,j/3*6.283+s[3]*6,0,1,1,1,new THREE.Color().setHex(0x2f8f36).multiplyScalar(.8+s[3]*.4).getHex()); });
   fern.count=kf; fern.instanceMatrix.needsUpdate=true;
   if(fern.instanceColor) fern.instanceColor.needsUpdate=true;
-  scene.add(fern);
+  JB_NAT.old.push(fern); scene.add(fern);
   // трава на равнине/саванне
   const gr=[];
   for(let i=0;i<1700&&gr.length<900;i++){
@@ -1269,13 +1284,14 @@ const flames=[];
     if(pathAt(x,z)>.25) continue;
     gr.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.grass=gr;
   const gG=new THREE.BoxGeometry(.55,.6,.55), gM=new THREE.MeshLambertMaterial({color:0xffffff});
   const grass=new THREE.InstancedMesh(gG,gM,gr.length);
   gr.forEach((s,i)=>put(grass,i,s[0],s[2]+.25,s[1],0,s[3]*6.28,0,1,.7+s[3]*.8,1,
     new THREE.Color().setHex(s[3]>.55?0x8fae44:0x5fa040).multiplyScalar(.8+s[3]*.35).getHex()));
   grass.count=gr.length; grass.instanceMatrix.needsUpdate=true;
   if(grass.instanceColor) grass.instanceColor.needsUpdate=true;
-  scene.add(grass);
+  JB_NAT.old.push(grass); scene.add(grass);
   // цветы — акценты на равнине
   const fl=[];
   const FC=[0xe86a6a,0xf0d05a,0xdd8ae8,0xf0f0f0];
@@ -1286,12 +1302,13 @@ const flames=[];
     if(pathAt(x,z)>.25) continue;
     fl.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.flowers=fl;
   const cG=new THREE.BoxGeometry(.34,.34,.34), cM=new THREE.MeshLambertMaterial({color:0xffffff});
   const flow=new THREE.InstancedMesh(cG,cM,fl.length);
   fl.forEach((s,i)=>put(flow,i,s[0],s[2]+.55,s[1],0,0,0,1,1,1,FC[(s[3]*4)|0]));
   flow.count=fl.length; flow.instanceMatrix.needsUpdate=true;
   if(flow.instanceColor) flow.instanceColor.needsUpdate=true;
-  scene.add(flow);
+  JB_NAT.old.push(flow); scene.add(flow);
   // кусты
   const bu=[];
   for(let i=0;i<400&&bu.length<120;i++){
@@ -1301,6 +1318,7 @@ const flames=[];
     if(pathAt(x,z)>.3) continue;
     bu.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.bushes=bu;
   const bG=new THREE.BoxGeometry(1.8,1.4,1.8), bM=new THREE.MeshLambertMaterial({color:0xffffff});
   const bush=new THREE.InstancedMesh(bG,bM,bu.length*2);
   bush.castShadow=true;
@@ -1311,7 +1329,7 @@ const flames=[];
   });
   bush.count=kb; bush.instanceMatrix.needsUpdate=true;
   if(bush.instanceColor) bush.instanceColor.needsUpdate=true;
-  scene.add(bush);
+  JB_NAT.old.push(bush); scene.add(bush);
   // поваленные брёвна
   const lo=[];
   for(let i=0;i<200&&lo.length<34;i++){
@@ -1321,6 +1339,7 @@ const flames=[];
     if(pathAt(x,z)>.3) continue;
     lo.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.logs=lo;
   const lG=new THREE.BoxGeometry(1.1,1.1,1), lM=new THREE.MeshLambertMaterial({color:0x63452a,map:TEX.bark});
   const log=new THREE.InstancedMesh(lG,lM,lo.length);
   log.castShadow=true;
@@ -1332,7 +1351,7 @@ const flames=[];
     dummy.updateMatrix(); log.setMatrixAt(i,dummy.matrix);
   });
   log.count=lo.length; log.instanceMatrix.needsUpdate=true;
-  scene.add(log);
+  JB_NAT.old.push(log); scene.add(log);
 })();
 // валуны и скальные шпили
 (function buildRocks(){
@@ -1347,6 +1366,7 @@ const flames=[];
     if(pathAt(x,z)>.5) continue;
     rocks.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.rocks=rocks;
   const inst=new THREE.InstancedMesh(g,mm,rocks.length*2);
   inst.castShadow=true; inst.receiveShadow=true;
   const q=new THREE.Quaternion();
@@ -1365,7 +1385,7 @@ const flames=[];
   });
   inst.instanceMatrix.needsUpdate=true;
   if(inst.instanceColor) inst.instanceColor.needsUpdate=true;
-  scene.add(inst);
+  JB_NAT.old.push(inst); scene.add(inst);
   // шпили: стопки сужающихся блоков, ориентиры
   const sp=[];
   for(let i=0;i<120&&sp.length<7;i++){
@@ -1451,6 +1471,7 @@ const flames=[];
     let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<6.5&&Math.abs(s[1]-z)<6.5){ ok=false; break; }
     if(ok) spots.push([x,z,h,srng()]);
   }
+  JB_NAT.spots.firs=spots; JB_NAT.spots.stumps=[];
   const trunkG=new THREE.CylinderGeometry(.42,.62,9.5,6), trunkM=new THREE.MeshLambertMaterial({color:0x4a3520,map:TEX.bark});
   const layG=new THREE.ConeGeometry(2.95,2.7,7), layM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
@@ -1473,7 +1494,7 @@ const flames=[];
   });
   lay.count=k; lay.instanceMatrix.needsUpdate=true;
   if(lay.instanceColor) lay.instanceColor.needsUpdate=true;
-  scene.add(trunk); scene.add(lay);
+  JB_NAT.old.push(trunk,lay); scene.add(trunk); scene.add(lay);
   // поваленные стволы и пни в чаще — антураж + укрытия
   const stG=new THREE.BoxGeometry(1.3,1.3,1), stM=new THREE.MeshLambertMaterial({color:0x53402a,map:TEX.bark});
   const stump=new THREE.InstancedMesh(stG,stM,26);
@@ -1483,10 +1504,12 @@ const flames=[];
     const x=FOREST_C[0]+Math.cos(a)*d, z=FOREST_C[1]+Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+2){ dummy.scale.set(1,1,1); continue; }
     addObs(x,z,.9);
-    dummy.position.set(x,h+.55,z); dummy.rotation.set(0,srng()*6.28,0); dummy.scale.set(1,1,2.2+srng()*2);
+    const ry=srng()*6.28, ln=2.2+srng()*2;
+    dummy.position.set(x,h+.55,z); dummy.rotation.set(0,ry,0); dummy.scale.set(1,1,ln);
     dummy.updateMatrix(); stump.setMatrixAt(i,dummy.matrix);
+    JB_NAT.spots.stumps.push([x,z,h,ry,ln]);
   }
-  stump.instanceMatrix.needsUpdate=true; scene.add(stump);
+  JB_NAT.old.push(stump); stump.instanceMatrix.needsUpdate=true; scene.add(stump);
 })();
 // облака — плывут всегда (и в меню)
 const clouds=[];
@@ -1529,6 +1552,7 @@ const birds=[];
 // ================= КАРТА v4: мёртвые деревья · камешки · далёкие острова =================
 (function buildDeadTrees(){                        // сухие скелеты-деревья в саванне — киношный антураж
   const barkM=new THREE.MeshLambertMaterial({color:0x6f5a3c,map:TEX.bark});
+  JB_NAT.spots.dead=[];
   for(let i=0;i<12;i++){
     const a=srng()*6.283, d=60+srng()*(MAP_R-110);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
@@ -1537,6 +1561,7 @@ const birds=[];
     if(bioAt(x,z)>.42) continue;                   // только саванна
     addObs(x,z,.55);
     const g=new THREE.Group(); g.position.set(x,h,z); g.rotation.y=srng()*6.28; g.rotation.z=srand(-.08,.08);
+    JB_NAT.spots.dead.push([x,z,h,g.rotation.y]);
     const tr=new THREE.Mesh(new THREE.CylinderGeometry(.16,.42,srand(4.5,7),6),barkM);
     tr.position.y=tr.geometry.parameters.height/2; tr.castShadow=true; g.add(tr);
     for(let b2=0;b2<3;b2++){                       // голые сучья
@@ -1546,7 +1571,7 @@ const birds=[];
       br.rotation.z=ba; br.rotation.y=b2*2.1+srng();
       br.translateY(br.geometry.parameters.height/2); br.castShadow=true; g.add(br);
     }
-    scene.add(g);
+    JB_NAT.old.push(g); scene.add(g);
   }
 })();
 (function buildPebbles(){                          // камешки-россыпи: оживляют грунт у троп и русла
@@ -1585,6 +1610,121 @@ const birds=[];
 })();
 
 obsIndex();   // все преграды расставлены — строим сетку коллизий
+
+// ================= КАРТА v5: пересадка растительности на GLB-пак Quaternius (IB36) =================
+// 71 вариант из Ultimate Nature Pack (CC0): OBJ+MTL → GLB, цвета материалов запечены в
+// вершины с подъёмом ×2.4 под свет JB, земля y=0, центр xz=0, макс-габарит 1.
+// NAT_HR — доля высоты в макс-габарите: масштаб = целевая высота / HR (для «широких»
+// категорий — камни, пни, лилии — масштаб задаётся по ширине, mode 'w').
+// Точки берутся из JB_NAT.spots — препятствия и тропы не изменились ни на сантиметр.
+const NAT_HR={PalmTree_1:1.0,PalmTree_2:0.915,PalmTree_3:1.0,PalmTree_4:1.0,CommonTree_1:0.894,CommonTree_2:1.0,CommonTree_3:1.0,CommonTree_4:1.0,CommonTree_5:1.0,CommonTree_Dead_1:1.0,CommonTree_Dead_2:1.0,CommonTree_Dead_3:1.0,CommonTree_Dead_4:1.0,CommonTree_Dead_5:1.0,Willow_1:1.0,Willow_2:1.0,Willow_3:1.0,Willow_4:1.0,Willow_5:0.97,Willow_Dead_1:1.0,Willow_Dead_2:1.0,Willow_Dead_3:1.0,Willow_Dead_4:1.0,Willow_Dead_5:1.0,PineTree_1:1.0,PineTree_2:1.0,PineTree_3:1.0,PineTree_4:1.0,PineTree_5:1.0,BirchTree_1:1.0,BirchTree_2:1.0,BirchTree_3:1.0,BirchTree_4:1.0,BirchTree_5:1.0,BirchTree_Dead_1:1.0,BirchTree_Dead_2:1.0,BirchTree_Dead_3:1.0,BirchTree_Dead_4:1.0,BirchTree_Dead_5:1.0,Bush_1:0.735,Bush_2:0.825,BushBerries_1:0.742,BushBerries_2:0.844,Grass:1.0,Grass_2:1.0,Grass_Short:0.916,Plant_1:0.422,Plant_2:1.0,Plant_3:0.866,Plant_4:0.383,Plant_5:0.795,Flowers:1.0,Rock_1:1.0,Rock_2:1.0,Rock_3:0.842,Rock_4:0.627,Rock_5:0.714,Rock_6:0.62,Rock_7:0.773,Rock_Moss_1:1.0,Rock_Moss_2:1.0,Rock_Moss_3:0.694,Rock_Moss_4:0.627,Rock_Moss_5:0.63,Rock_Moss_6:0.62,Rock_Moss_7:0.705,TreeStump:0.457,TreeStump_Moss:0.457,WoodLog:0.28,WoodLog_Moss:0.258,Lilypad:0.184};
+(function loadNature(){
+  try{ new THREE.GLTFLoader().load('nature.glb?v='+JB_BUILD, glb=>{
+    if(!glb||!glb.scene) return;
+    const G={}; glb.scene.traverse(o=>{ if(o.isMesh&&o.name) G[o.name]=o.geometry; });
+    if(Object.keys(G).length<10) return;               // битый GLB — остаётся блочный фолбэк
+    const rng=Math.random, pick=a=>a[(rng()*a.length)|0];
+    const NAT_MAT=new THREE.MeshLambertMaterial({vertexColors:true});
+    const created=[];
+    // make: пул вариантов × точки → InstancedMesh на имя-вариант. sf(s) — целевой размер
+    // (высота | ширина | длина по mode), opts: dy/sink (× масштаб), tilt, rotY(s), shadow
+    function make(pool,spots,sf,opts){
+      opts=opts||{};
+      if(!pool.length||!spots||!spots.length) return;
+      const buckets=new Map();
+      spots.forEach(s=>{ const nm=pick(pool); if(!G[nm]) return;
+        if(!buckets.has(nm)) buckets.set(nm,[]); buckets.get(nm).push(s); });
+      buckets.forEach((list,nm)=>{
+        const k=opts.mode==='h'?(NAT_HR[nm]||1):1;     // mode 'w'/'len' — габарит уже 1
+        const inst=new THREE.InstancedMesh(G[nm],NAT_MAT,list.length);
+        inst.castShadow=!!opts.shadow; inst.receiveShadow=true;
+        inst.frustumCulled=false;                      // инстансы по всему острову
+        const d=new THREE.Object3D();
+        list.forEach((s,i)=>{
+          const sc=sf(s)/k;
+          d.position.set(s[0], s[2]+(opts.dy||0)*sc-(opts.sink||0)*sc, s[1]);
+          d.rotation.set((rng()-.5)*(opts.tilt||0), opts.rotY?opts.rotY(s):rng()*6.283, (rng()-.5)*(opts.tilt||0)*.7);
+          d.scale.setScalar(sc); d.updateMatrix(); inst.setMatrixAt(i,d.matrix);
+        });
+        inst.instanceMatrix.needsUpdate=true;
+        scene.add(inst); created.push(inst);
+      });
+    }
+    const S=JB_NAT.spots;
+    // джунгли: CommonTree 62% + Willow 38%
+    const JR=S.jungle||[];
+    make(['CommonTree_1','CommonTree_2','CommonTree_3','CommonTree_4','CommonTree_5'],
+      JR.filter(()=>rng()<.62), s=>9.5+s[3]*4.5, {mode:'h',shadow:1,tilt:.06});
+    make(['Willow_1','Willow_2','Willow_3','Willow_4','Willow_5'],
+      JR.filter(()=>rng()>=.62), s=>8.8+s[3]*3.4, {mode:'h',shadow:1,tilt:.07});
+    // саванна: ивы с плакучей кроной вместо блочных акаций
+    make(['Willow_1','Willow_2','Willow_3','Willow_4','Willow_5'], S.acacia, s=>6.2+s[3]*2.4, {mode:'h',shadow:1,tilt:.05});
+    // палмы на пляже у озера
+    make(['PalmTree_1','PalmTree_2','PalmTree_3','PalmTree_4'], S.palms, s=>7.5+s[3]*2.8, {mode:'h',shadow:1,tilt:.12});
+    // лесная чаща: сосны
+    make(['PineTree_1','PineTree_2','PineTree_3','PineTree_4','PineTree_5'], S.firs, s=>10+s[3]*4.2, {mode:'h',shadow:1,tilt:.04});
+    // сухие скелеты в саванне
+    make(['Willow_Dead_1','Willow_Dead_2','Willow_Dead_3','Willow_Dead_4','Willow_Dead_5','CommonTree_Dead_1','CommonTree_Dead_2','CommonTree_Dead_3','CommonTree_Dead_4','CommonTree_Dead_5'], S.dead, s=>5.6+s[3]*2.6, {mode:'h',shadow:1,tilt:.09});
+    // валуны: основной + спутник со смещением (как в блочной версии), по ширине
+    const rk=[];
+    (S.rocks||[]).forEach(s=>{ const sc=1+s[3]*2.2;
+      rk.push([s[0],s[1],s[2],s[3],sc*2.7],[s[0]+sc*.9,s[1]-sc*.6,s[2],1-s[3],sc*1.9]); });
+    make(['Rock_1','Rock_2','Rock_3','Rock_4','Rock_5','Rock_6','Rock_7','Rock_Moss_1','Rock_Moss_2','Rock_Moss_3','Rock_Moss_4','Rock_Moss_5','Rock_Moss_6','Rock_Moss_7'], rk, s=>s[4], {mode:'w',shadow:1,tilt:.25,sink:.1});
+    // лежащие брёвна чащи и равнины: модель ориентирована по Z, как старые коробки
+    make(['WoodLog','WoodLog_Moss'], S.stumps, s=>s[4], {mode:'len',shadow:1,rotY:s=>s[3]});
+    make(['WoodLog','WoodLog_Moss'], S.logs, s=>4.5+s[3]*3, {mode:'len',shadow:1,rotY:s=>s[3]});
+    // кусты: основной + второй поменьше рядом
+    const bu2=[];
+    (S.bushes||[]).forEach(s=>{ bu2.push([s[0],s[1],s[2],s[3]]);
+      if(rng()<.75) bu2.push([s[0]+(rng()-.5)*1.8,s[1]+(rng()-.5)*1.8,s[2],1-s[3]]); });
+    make(['Bush_1','Bush_2','BushBerries_1','BushBerries_2'], bu2, s=>s[3]>.5?2.1+s[3]*1.1:1.5+s[3]*.7, {mode:'h',shadow:1});
+    // папоротники подлеска, трава равнины, цветы
+    make(['Plant_1','Plant_2','Plant_3','Plant_4','Plant_5'], S.ferns, s=>.85+s[3]*.45, {mode:'h'});
+    make(['Grass','Grass_2','Grass_Short'], S.grass, s=>.6+s[3]*.5, {mode:'h'});
+    make(['Flowers'], S.flowers, s=>.45+s[3]*.2, {mode:'h'});
+    // лилии на озере — новое: вода у пляжа оживает
+    const li=[];
+    for(let i=0;i<400&&li.length<46;i++){
+      const a=rng()*6.283, d=rng()*46;
+      const x=-120+Math.cos(a)*d, z=60+Math.sin(a)*d;
+      if(terrainH(x,z)>WATER_Y-.45) continue;
+      li.push([x,z,WATER_Y+.1,rng()]);
+    }
+    make(['Lilypad'], li, s=>.95+s[3]*.75, {mode:'w'});
+    // мёртвые белые берёзы — новое: кольцо у костяной арены + россыпь по саванне
+    const db=[];
+    for(let i=0;i<160&&db.length<12;i++){
+      const a=rng()*6.283, d=30+rng()*17;
+      const x=60+Math.cos(a)*d, z=95+Math.sin(a)*d, h=terrainH(x,z);
+      if(h<WATER_Y+2.4||h>9||pathAt(x,z)>.3) continue;
+      addObs(x,z,.55); db.push([x,z,h,rng()]);
+    }
+    for(let i=0;i<140&&db.length<20;i++){
+      const a=rng()*6.283, d=70+rng()*(MAP_R-120);
+      const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+      if(h<WATER_Y+2.6||h>9||bioAt(x,z)>.5||pathAt(x,z)>.3) continue;
+      addObs(x,z,.55); db.push([x,z,h,rng()]);
+    }
+    make(['BirchTree_Dead_1','BirchTree_Dead_2','BirchTree_Dead_3','BirchTree_Dead_4','BirchTree_Dead_5'], db, s=>5.4+s[3]*2.4, {mode:'h',shadow:1,tilt:.08});
+    // пни с корнями — новое: чаща и опушки джунглей
+    const st2=[];
+    for(let i=0;i<120&&st2.length<22;i++){
+      let x,z;
+      if(rng()<.5){ const a=rng()*6.283, d2=Math.sqrt(rng())*FOREST_R*.9;
+        x=FOREST_C[0]+Math.cos(a)*d2; z=FOREST_C[1]+Math.sin(a)*d2; }
+      else{ const a=rng()*6.283, d2=45+rng()*(MAP_R-100);
+        x=Math.cos(a)*d2; z=Math.sin(a)*d2; }
+      const h=terrainH(x,z);
+      if(h<WATER_Y+2.2||h>11||pathAt(x,z)>.3) continue;
+      addObs(x,z,.8); st2.push([x,z,h,rng()]);
+    }
+    make(['TreeStump','TreeStump_Moss'], st2, s=>2.2+s[3]*.9, {mode:'w',shadow:1,sink:.06});
+    // горячая замена: блочная растительность уходит, геометрии/материалы освобождаются
+    // (общие текстуры TEX.* не трогаем — material.dispose их не удаляет)
+    JB_NAT.old.forEach(m=>{ m.traverse(o=>{ try{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }catch(e){} }); scene.remove(m); });
+    JB_NAT.old.length=0;
+  }, undefined, ()=>{}); }catch(e){}
+})();
 
 // ================= МОДЕЛЬ ДИНОЗАВРА v3: велоцираптор в стиле Jurassic Blocky =================
 // Горизонтальная посадка, зубчатый гребень на спине, крупная голова с зигзагом зубов,
