@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=36;  // IB36: растительность карты пересажена на low-poly GLB-пак Ultimate Nature Pack (Quaternius, CC0, 71 вариант, nature.glb ~4.9МБ): джунгли — CommonTree/Willow, саванна — ивы вместо акаций, пляж озера — палмы, чаща — сосны, сухие скелеты — Willow_Dead/CommonTree_Dead, валуны — Rock/Rock_Moss, брёвна/пни/кусты/трава/папоротники/цветы, лилии на воде (новое) и мёртвые белые берёзы у костяной арены (новое). Конвертер OBJ+MTL→GLB: цвета материалов запечены в вершины с подъёмом ×2.4 под свет JB, земля y=0, макс-габарит 1. Точки блочных скаттеров сохранены — препятствия и тропы не изменились; блочная растительность — фолбэк до загрузки GLB. Динозавры IB35 и карта v4 (рельеф/лагерь/арена) без изменений
+const JB_BUILD=37;  // IB37: 8 новых видов пересажены с блочных моделей на GLB со скелетными анимациями: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -1804,12 +1804,16 @@ function buildIndomGLB(def){
     glbState, uLen:1/U, jawK:1, headBaseX:-.185, neckZ:-2.6, hipsY:2.15, legReach:2.1, legMax:.40, tagY:4.5 };
 }
 
-// ================= GLB-ПАК: 5 видов с готовыми анимациями (IB35) =================
-// Авториг-пак пользователя (FBX2glTF): единый скелет 29 костей с одинаковыми именами,
+// ================= GLB-ПАК: 13 видов с готовыми анимациями (IB35, IB37) =================
+// IB35: авториг-пак пользователя (FBX2glTF): единый скелет 29 костей с одинаковыми именами,
 // клипы Idle/Walk/Run/Attack/Jump/Death, 1.2-2.3k tris, цвет в материалах без текстур.
+// IB37: +8 видов из моделей пользователя (Sketchfab/JP): текстуры запечены в вершины с
+// гамма-подъёмом, клипы собраны glbkit (ходьба из источника + синтез idle/attack/jump/death).
 // Тот же пайплайн, что у GLB-Индоминуса (IB31): клон с перепривязкой скелета + свой mixer.
 const GLB_PACK={};
-const GLB_TARGET_H={raptor:2.5,rex:3.15,stego:2.9,para:2.5,brachi:4.0};   // высота модели при scale=1 (блок-юниты), откалибровано по мировым костям   // высота модели при scale=1 (блок-юниты)
+const GLB_TARGET_H={raptor:2.5,rex:3.15,stego:2.9,para:2.5,brachi:4.0,                     // высота модели при scale=1 (блок-юниты), откалибрована по мировым костям
+  trike:3.81,spino:4.58,allo:3.24,carno:3.35,pachy:3.22,anky:1.97,dilo:3.13,scorpius:3.35}; // IB37: blocky_h/scale — точное совпадение с блоковыми размерами
+const GLB_FACE={carno:0};   // переопределение разворота: карно уже смотрит в -Z (авто-определение по костям Head/Tail1 недоступно)
 for(const _sp in GLB_TARGET_H){ (function(sp){
   const rec={ok:false,waiters:[]}; GLB_PACK[sp]=rec;
   try{ new THREE.GLTFLoader().load(sp+'.glb?v='+JB_BUILD,
@@ -1817,6 +1821,27 @@ for(const _sp in GLB_TARGET_H){ (function(sp){
       rec.scene.traverse(o=>{ if(o.isMesh) o.frustumCulled=false; });
       rec.scene.updateMatrixWorld(true);
       rec.box=new THREE.Box3().setFromObject(rec.scene);
+      // IB37: точные границы по СКИННИНГУ в позе первого клипа — у части моделей
+      // (аллозавр) сырая геометрия не совпадает с позой из-за масштаба арматуры,
+      // из-за чего высота и посадка по raw-box врут на десятки процентов
+      try{
+        if(rec.clips&&rec.clips.length){
+          const save=[]; rec.scene.traverse(o=>{ save.push([o,o.position.clone(),o.quaternion.clone(),o.scale.clone()]); });
+          const mx=new THREE.AnimationMixer(rec.scene);
+          const a0=mx.clipAction(rec.clips[0]); a0.play();
+          mx.setTime(Math.min(.4, rec.clips[0].duration*.5));
+          rec.scene.updateMatrixWorld(true);
+          const pb=new THREE.Box3(), pv=new THREE.Vector3(), pw=new THREE.Vector3();
+          rec.scene.traverse(o=>{ if(o.isSkinnedMesh){
+            const pos=o.geometry.attributes.position, n=pos.count, step=Math.max(1,Math.floor(n/300));
+            for(let k=0;k<n;k+=step){ pv.fromBufferAttribute(pos,k); pw.copy(pv); o.boneTransform(k,pw); pw.applyMatrix4(o.matrixWorld); pb.expandByPoint(pw); }
+          }});
+          mx.stopAllAction();
+          save.forEach(s=>{ s[0].position.copy(s[1]); s[0].quaternion.copy(s[2]); s[0].scale.copy(s[3]); });
+          rec.scene.updateMatrixWorld(true);
+          if(pb.min.y<=pb.max.y&&isFinite(pb.min.y)) rec.box=pb;
+        }
+      }catch(e){}
       rec.h=Math.max(.001,rec.box.max.y-rec.box.min.y);
       let hb=null, tb=null;                                  // куда смотрит модель: сравниваем голову и хвост
       rec.scene.traverse(o=>{ const n=o.name||'';
@@ -1825,6 +1850,7 @@ for(const _sp in GLB_TARGET_H){ (function(sp){
       rec.face=Math.PI;                                      // по умолчанию морда в +Z → разворот в -Z
       if(hb&&tb){ const hp=hb.getWorldPosition(new THREE.Vector3()), tp=tb.getWorldPosition(new THREE.Vector3());
         if(hp.z<tp.z) rec.face=0; }
+      if(GLB_FACE[sp]!==undefined) rec.face=GLB_FACE[sp];    // IB37: ручное переопределение
       rec.ok=true;
       const w=rec.waiters.splice(0); for(const f of w) try{f();}catch(e){}
       try{ if(G.state!=='menu'&&my&&my.dinoId&&myMesh&&!myMesh.glbAnim&&dinoDef(my.dinoId).model===sp) applyPlayerDino(my.dinoId); }catch(e){}
@@ -1866,7 +1892,8 @@ function buildGLBDino(def){
       if(mm.has(m0)) return mm.get(m0);
       const c=m0.color.clone(); c.r=Math.min(1,c.r*2.4); c.g=Math.min(1,c.g*2.4); c.b=Math.min(1,c.b*2.4);   // пак тёмный — поднимаем под свет JB
       c.r*=tr; c.g*=tg; c.b*=tb;
-      const lm=new THREE.MeshLambertMaterial({color:c, skinning:true});
+      const vc=!!(o.geometry&&o.geometry.attributes&&o.geometry.attributes.color);   // IB37: цвет запечён в вершины — включаем vertexColors
+      const lm=new THREE.MeshLambertMaterial({color:c, skinning:true, vertexColors:vc});
       mm.set(m0,lm); mats.push(lm); return lm; });
     o.material=wasArr?nm:nm[0];
     o.castShadow=true; o.receiveShadow=true; } });
