@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=33;  // IB33: Поза Индоминуса по референсу ходьбы (Blender T-rex): пасть в IDLE/WALK/RUN закрыта (была разинута — «болеет»), голова и шея подняты, хвост выпрямлен из крюка в лёгкую дугу; в WALK/RUN добавлено кивание головы 2 раза за цикл в такт шагам; BITE/ROAR/DEAD не тронуты; corrections запечены прямо в каналы GLB (q_anim*q_fix), геометрия и веса не тронуты Настоящий СКЕЛЕТ Индоминуса — цельная шкура со skinning'ом (19 костей, веса по анатомии, ничего не разрезано и не отрывается) + 6 скелетных анимаций в GLB (IDLE/WALK/RUN/BITE/ROAR/DEAD) через AnimationMixer с кроссфейдами; лапы, шея, голова, хвост и челюсть двигаются плавно — процедурные вращения шарниров для GLB отключены; скелет перепривязывается при клоне (сетевые игроки с ригом); децимация 260k tris, JPEG-текстуры; финальные веса хвоста (дуга вверх) и исправленные translation-каналы
+const JB_BUILD=34;  // IB34: КАРТА v4 под качество Индоминуса — земля с детальной текстурой (крошка+травинки), слоистые скалы-страты, мокрая кромка песка; вода с бегущими волнами по вершинам (фасеточные блики); деревья: круглые стволы-цилиндры, 3-ярусные кроны, ели-конусы; валуны-додекаэдры и шпили-конусы; факелы у ворот лагеря, пелена брызг водопада; НОВОЕ: мёртвые деревья саванны, камешки-россыпи, далёкие острова на горизонте; травы 650→900 пучков; все ориентиры, коллизии и геймплей не тронуты
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -807,6 +807,22 @@ TEX.cloth=makeTex((g,s)=>{ g.fillStyle='#d9cca6'; g.fillRect(0,0,s,s);
   for(let i=0;i<s;i+=6){ g.beginPath(); g.moveTo(0,i); g.lineTo(s,i); g.stroke();
     g.beginPath(); g.moveTo(i,0); g.lineTo(i,s); g.stroke(); }
 });
+// детальная текстура ЗЕМЛИ: мелкая крошка, комки и травинки — умножается на цвета фасеток,
+// придаёт грунту «шкуру» вместо плоской заливки (карта v4 под качество Индоминуса)
+TEX.ground=makeTex((g,s)=>{
+  g.fillStyle='#c8c8c8'; g.fillRect(0,0,s,s);                     // нейтральная база: map умножается на vertexColor
+  for(let i=0;i<900;i++){ const v=rand(-26,26)|0;                 // крупные мягкие пятна освещённости
+    g.fillStyle='rgba(128+'+v+',128+'+v+',128+'+v+',.16)';
+    g.beginPath(); g.arc(rand(0,s),rand(0,s),rand(4,17),0,6.283); g.fill(); }
+  for(let i=0;i<2600;i++){ const v=rand(-42,30)|0;                // мелкая крошка
+    g.fillStyle='rgba(128+'+v+',128+'+v+',128+'+v+','+rand(.08,.2).toFixed(2)+')';
+    g.fillRect(rand(0,s),rand(0,s),rand(1,2.6),rand(1,2.6)); }
+  for(let i=0;i<380;i++){ const x=rand(0,s),y=rand(0,s),a=rand(-.4,.4); // травинки-чёрточки
+    g.strokeStyle='rgba('+(70+rand(-20,30)|0)+','+(120+rand(-25,25)|0)+',60,'+rand(.1,.26).toFixed(2)+')';
+    g.lineWidth=rand(.6,1.3); g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.sin(a)*3.4,y-rand(2,5.5)); g.stroke(); }
+},256);
+TEX.ground.wrapS=TEX.ground.wrapT=THREE.RepeatWrapping;
+TEX.ground.repeat.set(150,150);                    // тайл ~8.4 юнита: мелко, но без муара
 
 // ================= ПРЕГРАДЫ МИРА: круговые коллайдеры =================
 // Деревья, камни, кости, брёвна и постройки — сплошные: сквозь них не пройти (как в JB).
@@ -923,9 +939,15 @@ const FOREST_C=[-190,-170], FOREST_R=100;
           cz=(pos.getZ(f)+pos.getZ(f+1)+pos.getZ(f+2))/3;
     const ny=(nrm.getY(f)+nrm.getY(f+1)+nrm.getY(f+2))/3;   // крутизна фасетки
     const t=vnoise(cx*.05,cz*.05);
-    if(cy<WATER_Y-3) c.setHex(0x867a52).multiplyScalar(.85+t*.2);        // дно
-    else if(cy<WATER_Y+1.1) c.setHex(0xdcc070).multiplyScalar(.86+t*.2); // песок пляжа/отмели — тёплый
-    else if(ny<.6||cy>16.5) c.setHex(0x85827a).multiplyScalar(.85+t*.22);// скалы на обрывах
+    if(cy<WATER_Y-3) c.setHex(0x4a5c3a).multiplyScalar(.78+t*.16);         // дно: тёмный ил — глубина читается сквозь воду
+    else if(cy<WATER_Y+.4) c.setHex(0xb08a52).multiplyScalar(.8+t*.16);    // мокрая кромка: тёмный мокрый песок
+    else if(cy<WATER_Y+1.6) c.setHex(0xe2c274).multiplyScalar(.88+t*.2);   // сухой тёплый песок пляжа
+    else if(ny<.6||cy>16.5){                                            // скалы: слоистые страты по высоте
+      const st=Math.sin(cy*.75+cx*.03)*.5+.5;                           // полосы пластов
+      c.setHex(0x8a857c).multiplyScalar(.8+t*.2);
+      c.lerp(c2.setHex(st>.55?0x6e685e:0xa39a88),.34+(st>.55?st-.55:0)*.6);
+      if(cy>13) c.lerp(c2.setHex(0xb5aca0),clamp((cy-13)/6,0,1)*.4);   // светлые вершины
+    }
     else{
       c.setHex(0x4e9c36).multiplyScalar(.86+t*.24);   // сочная трава
       const dry=clamp((0.42-bioAt(cx,cz))/.32,0,1);
@@ -936,6 +958,8 @@ const FOREST_C=[-190,-170], FOREST_R=100;
       if(dirt>0) c.lerp(c2.setHex(0x8a6b42),dirt*.8);
       const fo=Math.max(0,1-Math.hypot(cx-FOREST_C[0],cz-FOREST_C[1])/FOREST_R);   // хвойная подстилка леса
       if(fo>0) c.lerp(c2.setHex(0x1c4a20),fo*.75);
+      const patch=clamp((vnoise(cx*.035+90,cz*.035+130)-.52)/.3,0,1);    // крупные пятна сочности травы
+      if(patch>0) c.lerp(c2.setHex(0x3f8f2a),patch*.5);
     }
     const pa=pathAt(cx,cz);
     if(pa>0&&cy>WATER_Y+1.1) c.lerp(c2.setHex(0x96784a),pa*.82);         // тропы
@@ -944,20 +968,42 @@ const FOREST_C=[-190,-170], FOREST_R=100;
     for(let v=0;v<3;v++){ colors[(f+v)*3]=c.r; colors[(f+v)*3+1]=c.g; colors[(f+v)*3+2]=c.b; }
   }
   geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
-  const mat=new THREE.MeshPhongMaterial({vertexColors:true,shininess:0,specular:0x000000,flatShading:true});
+  const mat=new THREE.MeshPhongMaterial({vertexColors:true,map:TEX.ground,shininess:0,specular:0x000000,flatShading:true});
   const mesh=new THREE.Mesh(geo,mat);
   mesh.receiveShadow=true;
   scene.add(mesh);
 })();
-// вода: полупрозрачный океан (заливает озеро, реку, пруд и океан вокруг)
-let waterMesh=null;
+// вода v4: полупрозрачный океан с бегущими волнами по вершинам (озеро, река, пруд, океан)
+// цвет по вершинам из глубины дна: у берега бирюза, на глубине тёмная синева; flatShading — фасетки ловят блик
+let waterMesh=null, waterBase=null;
 (function buildWater(){
-  const g=new THREE.PlaneGeometry(MAP_R*2.7,MAP_R*2.7);
-  const m=new THREE.MeshPhongMaterial({color:0x3f9edb,shininess:110,specular:0x446688,transparent:true,opacity:.64});
+  const SEG=88, S=MAP_R*2.7;
+  const g=new THREE.PlaneGeometry(S,S,SEG,SEG);
+  const pos=g.attributes.position, wc=new THREE.Color(), cSh=new THREE.Color(0x3ea6d4), cDp=new THREE.Color(0x113a60);
+  const cols=new Float32Array(pos.count*3);
+  for(let i=0;i<pos.count;i++){
+    const wx=pos.getX(i), wz=-pos.getY(i);            // локаль → мир: mesh повёрнут на -90° по X
+    const h=terrainH(wx,wz);
+    const k=clamp((WATER_Y+.4-h)/3.4,0,1);            // 0 у кромки · 1 глубже ~3.4м
+    wc.copy(cSh).lerp(cDp,k);
+    cols[i*3]=wc.r; cols[i*3+1]=wc.g; cols[i*3+2]=wc.b;
+  }
+  g.setAttribute('color',new THREE.BufferAttribute(cols,3));
+  const m=new THREE.MeshPhongMaterial({vertexColors:true,shininess:8,specular:0x050a10,
+    transparent:true,opacity:.82,flatShading:true});
   const w=new THREE.Mesh(g,m); w.rotation.x=-Math.PI/2; w.position.y=WATER_Y+.4;
-  waterMesh=w;
-  w.receiveShadow=false; scene.add(w);
+  waterMesh=w; waterBase=pos.array.slice();   // опорные вершины
+  w.receiveShadow=false; w.frustumCulled=false; scene.add(w);
 })();
+function updWater(dt){
+  if(!waterMesh) return;
+  const t=ambT, arr=waterMesh.geometry.attributes.position.array;
+  for(let i=0;i<arr.length;i+=3){
+    const x=waterBase[i], y=waterBase[i+1];
+    arr[i+2]=Math.sin(x*.05+t*1.25)*.12+Math.sin(y*.065-t*1.1)*.09+Math.sin((x+y)*.035+t*.6)*.07;
+  }
+  waterMesh.geometry.attributes.position.needsUpdate=true;
+}
 // водопад с месы: отвесный скальный уступ на кромке пруда + ровная струя, пена и брызги
 // (постановка по реальному профилю склона: вода падает с кромки ~15м в пруд на −1.6)
 const foam=[];
@@ -974,6 +1020,12 @@ const foam=[];
   const fm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.85});
   const splash=new THREE.Mesh(new THREE.BoxGeometry(11,.9,5.5),fm);
   splash.position.set(112.4,-1.3,-102.4); splash.rotation.y=-Math.PI/4; scene.add(splash);
+  // молочно-белая пелена брызг у подножия струи: объём из двух скрещенных плоскостей
+  const mistM=new THREE.MeshBasicMaterial({color:0xdff2ff,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending});
+  for(let mi=0;mi<2;mi++){
+    const mist=new THREE.Mesh(new THREE.PlaneGeometry(11,8.5),mistM);
+    mist.position.set(113.7,3.4,-103.7); mist.rotation.y=-Math.PI/4+mi*Math.PI/2; scene.add(mist);
+  }
   const fpos=[[112.0,-102.0],[113.1,-103.1],[114.2,-104.2]];
   for(let i=0;i<3;i++){
     const b=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,1.6),fm);
@@ -1037,6 +1089,19 @@ const flames=[];
   const fl2=new THREE.Mesh(new THREE.BoxGeometry(.5,1,.5),new THREE.MeshBasicMaterial({color:0xffd24a}));
   fl2.position.set(fx,fy+1.3,fz); scene.add(fl2);
   flames.push(fl1,fl2);
+  // факелы у ворот: столб, ковш и живое пламя — мигает вместе с костром
+  for(const gt of GATES) for(const side of [-1,1]){
+    const a=gt+side*.26, tx=Math.cos(a)*R, tz=Math.sin(a)*R, ty=terrainH(tx,tz);
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.13,.2,2.7,6),woodD);
+    pole.position.set(tx,ty+1.35,tz); pole.castShadow=true; scene.add(pole);
+    const cup=new THREE.Mesh(new THREE.CylinderGeometry(.3,.2,.32,6),stone);
+    cup.position.set(tx,ty+2.85,tz); scene.add(cup);
+    const tf=new THREE.Mesh(new THREE.BoxGeometry(.44,.75,.44),new THREE.MeshBasicMaterial({color:0xffa63a}));
+    tf.position.set(tx,ty+3.4,tz); scene.add(tf);
+    const tf2=new THREE.Mesh(new THREE.BoxGeometry(.24,.48,.24),new THREE.MeshBasicMaterial({color:0xffd86a}));
+    tf2.position.set(tx,ty+3.62,tz); scene.add(tf2);
+    flames.push(tf,tf2);
+  }
 })();
 // джунгли: высокие деревья с двухъярусной кроной
 (function buildTrees(){
@@ -1054,23 +1119,28 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const trunkG=new THREE.BoxGeometry(1.4,6.4,1.4), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026,map:TEX.bark});
+  const trunkG=new THREE.CylinderGeometry(.55,.85,6.4,6), trunkM=new THREE.MeshLambertMaterial({color:0x5e4026,map:TEX.bark});
   const crownG=new THREE.BoxGeometry(4.8,2.9,4.8), crownM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
-  const crown=new THREE.InstancedMesh(crownG,crownM,spots.length*2);
+  const crown=new THREE.InstancedMesh(crownG,crownM,spots.length*3);
   trunk.castShadow=true; crown.castShadow=true;
   let k2=0;
   spots.forEach((s,i)=>{
-    const sc=.85+s[3]*.85, th=6.4*sc;
+    const sc=.85+s[3]*.85, th=6.4*sc, tilt=srand(-.07,.07);
     addObs(s[0],s[1],.7*sc+.25);                        // ствол — сплошной
-    dummy.rotation.set(0,s[3]*6.28,0); dummy.scale.setScalar(sc);
+    dummy.rotation.set(tilt,s[3]*6.28,tilt*.8); dummy.scale.setScalar(sc);
     dummy.position.set(s[0],s[2]+th/2,s[1]); dummy.updateMatrix(); trunk.setMatrixAt(i,dummy.matrix);
-    dummy.scale.set(1,1,1);
+    dummy.scale.set(1,1,1); dummy.rotation.set(0,s[3]*6.28,0);
     dummy.position.set(s[0],s[2]+th+1.2,s[1]); dummy.updateMatrix(); crown.setMatrixAt(k2,dummy.matrix);
     c.setHex(0x2f7a2e).multiplyScalar(.8+s[3]*.4); crown.setColorAt(k2++,c);
+    dummy.rotation.y=s[3]*6.28+.78;                     // второй ярус крест-накрест — силуэт кроны богаче
     dummy.position.set(s[0]+srand(-1.4,1.4),s[2]+th+3.2,s[1]+srand(-1.4,1.4));
     dummy.scale.setScalar(.72); dummy.updateMatrix(); crown.setMatrixAt(k2,dummy.matrix);
     c.multiplyScalar(.88); crown.setColorAt(k2++,c);
+    dummy.rotation.y=s[3]*6.28+.39;                     // третий, маленький — «шапка» вершины
+    dummy.position.set(s[0]+srand(-.9,.9),s[2]+th+4.6,s[1]+srand(-.9,.9));
+    dummy.scale.setScalar(.46); dummy.updateMatrix(); crown.setMatrixAt(k2,dummy.matrix);
+    c.multiplyScalar(.92); crown.setColorAt(k2++,c);
   });
   crown.count=k2;
   crown.instanceMatrix.needsUpdate=true;
@@ -1092,7 +1162,7 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const trunkG=new THREE.BoxGeometry(1,5,1), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30,map:TEX.bark});
+  const trunkG=new THREE.CylinderGeometry(.34,.5,5,6), trunkM=new THREE.MeshLambertMaterial({color:0x7a5a30,map:TEX.bark});
   const topG=new THREE.BoxGeometry(7,.9,7), topM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const t2G=new THREE.BoxGeometry(4.4,.8,4.4);
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
@@ -1126,7 +1196,7 @@ const flames=[];
     if(ok) spots.push([x,z,h,srng()]);
   }
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const segG=new THREE.BoxGeometry(1.1,2.2,1.1), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a,map:TEX.bark});
+  const segG=new THREE.CylinderGeometry(.44,.62,2.2,6), segM=new THREE.MeshLambertMaterial({color:0x8a6a3a,map:TEX.bark});
   const leafG=new THREE.BoxGeometry(.9,.14,4.2), leafM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const seg=new THREE.InstancedMesh(segG,segM,spots.length*3);
   const leaf=new THREE.InstancedMesh(leafG,leafM,spots.length*12);
@@ -1191,7 +1261,7 @@ const flames=[];
   scene.add(fern);
   // трава на равнине/саванне
   const gr=[];
-  for(let i=0;i<1200&&gr.length<650;i++){
+  for(let i=0;i<1700&&gr.length<900;i++){
     const a=srng()*6.283, d=28+srng()*(MAP_R-50);
     const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
     if(h<WATER_Y+2.4||h>10.5) continue;
@@ -1267,7 +1337,7 @@ const flames=[];
 // валуны и скальные шпили
 (function buildRocks(){
   const dummy=new THREE.Object3D(), c=new THREE.Color();
-  const g=new THREE.BoxGeometry(2.4,2.4,2.4), mm=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock});
+  const g=new THREE.DodecahedronGeometry(1.55,0), mm=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock,flatShading:true});
   const rocks=[];
   for(let i=0;i<160&&rocks.length<70;i++){
     const a=srng()*6.283, d=38+srng()*(MAP_R-60);
@@ -1306,7 +1376,7 @@ const flames=[];
     let ok=true; for(const s of sp) if(Math.hypot(s[0]-x,s[1]-z)<70){ ok=false; break; }
     if(ok) sp.push([x,z,h,srng()]);
   }
-  const sG=new THREE.BoxGeometry(1,1,1), sM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock});
+  const sG=new THREE.ConeGeometry(1.15,2.6,6), sM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.rock,flatShading:true});
   const spire=new THREE.InstancedMesh(sG,sM,sp.length*6);
   spire.castShadow=true;
   let ksp=0;
@@ -1316,7 +1386,7 @@ const flames=[];
     for(let j=0;j<n;j++){
       const w=3.4-j*.5;
       dummy.position.set(s[0]+srand(-.4,.4)*j,s[2]+1.6+j*2.3,s[1]+srand(-.4,.4)*j);
-      dummy.rotation.set(0,s[3]*6.28+j*.3,0); dummy.scale.set(w,2.4,w);
+      dummy.rotation.set(0,s[3]*6.28+j*.3,0); dummy.scale.set(w,1,w);
       dummy.updateMatrix(); spire.setMatrixAt(ksp,dummy.matrix);
       c.setHex(0x8d8f8a).multiplyScalar(.8+((j%3)*.09));
       spire.setColorAt(ksp++,c);
@@ -1381,8 +1451,8 @@ const flames=[];
     let ok=true; for(const s of spots) if(Math.abs(s[0]-x)<6.5&&Math.abs(s[1]-z)<6.5){ ok=false; break; }
     if(ok) spots.push([x,z,h,srng()]);
   }
-  const trunkG=new THREE.BoxGeometry(1.2,9.5,1.2), trunkM=new THREE.MeshLambertMaterial({color:0x4a3520,map:TEX.bark});
-  const layG=new THREE.BoxGeometry(5.6,1.7,5.6), layM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
+  const trunkG=new THREE.CylinderGeometry(.42,.62,9.5,6), trunkM=new THREE.MeshLambertMaterial({color:0x4a3520,map:TEX.bark});
+  const layG=new THREE.ConeGeometry(2.95,2.7,7), layM=new THREE.MeshLambertMaterial({color:0xffffff,map:TEX.leaf});
   const trunk=new THREE.InstancedMesh(trunkG,trunkM,spots.length);
   const lay=new THREE.InstancedMesh(layG,layM,spots.length*3);
   trunk.castShadow=true; lay.castShadow=true;
@@ -1453,6 +1523,64 @@ const birds=[];
     scene.add(g);
     birds.push({g,wl,wr,cx:srand(-220,220),cz:srand(-220,220),r:srand(40,85),h:srand(30,52),
       sp:srand(.1,.2)*(srng()<.5?1:-1),ph:srng()*6.28});
+  }
+})();
+
+// ================= КАРТА v4: мёртвые деревья · камешки · далёкие острова =================
+(function buildDeadTrees(){                        // сухие скелеты-деревья в саванне — киношный антураж
+  const barkM=new THREE.MeshLambertMaterial({color:0x6f5a3c,map:TEX.bark});
+  for(let i=0;i<12;i++){
+    const a=srng()*6.283, d=60+srng()*(MAP_R-110);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+2.6||h>8.5) continue;
+    if(pathAt(x,z)>.3||Math.hypot(x-60,z-95)<30) continue;
+    if(bioAt(x,z)>.42) continue;                   // только саванна
+    addObs(x,z,.55);
+    const g=new THREE.Group(); g.position.set(x,h,z); g.rotation.y=srng()*6.28; g.rotation.z=srand(-.08,.08);
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(.16,.42,srand(4.5,7),6),barkM);
+    tr.position.y=tr.geometry.parameters.height/2; tr.castShadow=true; g.add(tr);
+    for(let b2=0;b2<3;b2++){                       // голые сучья
+      const br=new THREE.Mesh(new THREE.CylinderGeometry(.06,.16,srand(1.6,2.8),5),barkM);
+      const ba=srand(.5,1.25);
+      br.position.y=tr.geometry.parameters.height*srand(.55,.9);
+      br.rotation.z=ba; br.rotation.y=b2*2.1+srng();
+      br.translateY(br.geometry.parameters.height/2); br.castShadow=true; g.add(br);
+    }
+    scene.add(g);
+  }
+})();
+(function buildPebbles(){                          // камешки-россыпи: оживляют грунт у троп и русла
+  const dummy=new THREE.Object3D(), c=new THREE.Color();
+  const g=new THREE.DodecahedronGeometry(.4,0), m=new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true});
+  const spots=[];
+  for(let i=0;i<900&&spots.length<260;i++){
+    const a=srng()*6.283, d=18+srng()*(MAP_R-40);
+    const x=Math.cos(a)*d, z=Math.sin(a)*d, h=terrainH(x,z);
+    if(h<WATER_Y+1.4||h>12) continue;
+    if(pathAt(x,z)>.5) continue;
+    spots.push([x,z,h,srng()]);
+  }
+  const inst=new THREE.InstancedMesh(g,m,spots.length);
+  inst.receiveShadow=true;
+  spots.forEach((s,i)=>{
+    const sc=srand(.45,1.15);
+    dummy.position.set(s[0]+srand(-.8,.8),s[2]+sc*.16,s[1]+srand(-.8,.8));
+    dummy.rotation.set(srng()*3,srng()*6.28,srng()*3); dummy.scale.setScalar(sc);
+    dummy.updateMatrix(); inst.setMatrixAt(i,dummy.matrix);
+    c.setHex(srng()<.5?0x8f8a80:0x9a8a72).multiplyScalar(.8+s[3]*.3); inst.setColorAt(i,c);
+  });
+  inst.instanceMatrix.needsUpdate=true;
+  if(inst.instanceColor) inst.instanceColor.needsUpdate=true;
+  scene.add(inst);
+})();
+(function buildIslands(){                          // далёкие острова на горизонте: глубина мира
+  const m=new THREE.MeshLambertMaterial({color:0x4d6278});   // туман сам растворит силуэты
+  const ISL=[[-640,260,110,92],[660,-140,132,114],[300,-660,100,84],[-340,640,88,70]];
+  for(const [x,z,r,h] of ISL){
+    const hill=new THREE.Mesh(new THREE.ConeGeometry(r,h,7),m);
+    hill.position.set(x,h*.42-6,z); hill.rotation.y=srand(0,6.28); scene.add(hill);
+    const hill2=new THREE.Mesh(new THREE.ConeGeometry(r*.55,h*.62,7),m);
+    hill2.position.set(x+r*.6,h*.34-6,z+r*.4); hill2.rotation.y=srand(0,6.28); scene.add(hill2);
   }
 })();
 
@@ -5703,8 +5831,8 @@ function frame(now){
   for(let i=0;i<foam.length;i++){
     foam[i].position.y=13.8-((now*.004+i*5)%15.4);
   }
-  // живая вода: дышит приливом · пыльца в лучах
-  if(waterMesh) waterMesh.position.y=WATER_Y+.4+Math.sin(ambT*.65)*.07;
+  // живая вода: волны бегут по вершинам
+  updWater(dt);
   updDust(dt);
   for(let i=0;i<flames.length;i++){
     flames[i].scale.y=1+Math.sin(now*.011+i*2.1)*.22;
