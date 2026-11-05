@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=39;  // IB39: одинаковые ники запрещены. Остров: при коллизии ников «больший» netId автоматически переименовывается в «Ник·2» (правило детерминировано у всех — гонок нет), имя сессии NET.myName отделено от ника аккаунта, чат и hi-пакеты ходят с ним. Облако: ник резервируется клеймом kind 30078 d='jb_nick:<ник в нижнем регистре>' на nostr-релеях — при попытке взять чужой ник в настройках имя откатывается с тостом «ник занят», свой прежний ник при смене освобождается; дефолт «Охотник» не резервируется. IB38: Индоминус заменён на настоящую Sketchfab-модель: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
+const JB_BUILD=40;  // IB40: палитра скорпиуса исправлена (GLB перекрашен ×0.30 по RGB в вершинных цветах — с учётом sRGB-вывода рендера E750 теперь тёмно-угольный со светлыми шипами, как в референсе; раньше гамма-подъём запекания + sRGB выцветали почти чёрную текстуру в альбино-белую); цены динозавров подняты ~×2.3 (трик 240, стего 280, анки 360, карно 380, пахи 360, пара 300, дила 330, алло 480, спино 520, брахио 680, рекс 760); Дикий Индоминус злее: хп 5200->8400 и ×1.4 базовый множитель силы (×1.3 к урону), укус 250/210/340 -> 340/290/450 и кулдаун 1.35с -> 1.05с, бег 13.5 -> 14.8, преследование walk×1.6 -> ×1.8, невидимость чаще и дольше (9-14с цикл, 5с), рёв чаще. IB39: одинаковые ники запрещены: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -377,55 +377,55 @@ const DINOS=[
     heavyLabel:'Вихрь когтей',
     pal:{body:0xa89a78, belly:0xe6e2cc, dark:0x5a503c, head:0x7d7258, stripe:0x564e36, eye:0x9ccf3a, claw:0x2c2822, accent:0x8a715a},
     desc:'Засадный хищник. E — вихрь когтей: два оборота на 360° со ударом по всем вокруг. Q — прыжок: прижми жертву и грызи, пока держишь Q.' },
-  { id:'trike', name:'Трицератопс', cost:100, hp:2100, sta:85, walk:4.8, run:12,
+  { id:'trike', name:'Трицератопс', cost:240, hp:2100, sta:85, walk:4.8, run:12,
     bite:[90,70,130], heavy:200, jumpV:6.5, scale:1.28, turn:2.0, model:'trike',
     q:'charge', qLabel:'Таран', qStat:'160 + отброс', qDmg:160, qSta:30, qCd:6, heavySta:40, heavyCd:7,
     heavyLabel:'Бодание',
     pal:{body:0x5d6470, belly:0x9aa0a8, dark:0x2e3846, head:0x6a7280, stripe:0x83898f, eye:0x1a1410, claw:0x9a9484, accent:0xb8ac9c},
     desc:'Живой танк. E — бодание: скребёт землю и подбрасывает рогами в воздух. Q — таран: разгон с пылью, отбрасывает и оглушает всех на пути.' },
-  { id:'stego', name:'Стегозавр', cost:120, hp:1900, sta:80, walk:4.4, run:10.5,
+  { id:'stego', name:'Стегозавр', cost:280, hp:1900, sta:80, walk:4.4, run:10.5,
     bite:[75,60,110], heavy:150, jumpV:5.5, scale:1.22, turn:1.9, model:'stego',
     q:'thago', qLabel:'Вихрь шипов', qStat:'170 по кругу', qDmg:170, qSta:32, qCd:6.5, heavySta:30, heavyCd:6,
     heavyLabel:'Хвост-хлыст',
     pal:{body:0x5c6e46, belly:0xd4ceb0, dark:0x39482b, head:0x688050, stripe:0x485836, eye:0xffc23d, claw:0x3a352a, accent:0xb08d54},
     desc:'Ходячая крепость с гребнем пластин. E — хвост-хлыст: широкая дуга с отбросом. Q — вихрь шипов: полный оборот хвостом, бьёт вокруг.' },
-  { id:'anky', name:'Анкилозавр', cost:150, hp:2400, sta:75, walk:4.0, run:9.0,
+  { id:'anky', name:'Анкилозавр', cost:360, hp:2400, sta:75, walk:4.0, run:9.0,
     bite:[60,50,85], heavy:130, jumpV:4.5, scale:1.12, turn:1.8, model:'anky',
     q:'club', qLabel:'Дубина', qStat:'140 + стан 1.5с', qDmg:140, qSta:30, qCd:6, heavySta:26, heavyCd:5.5,
     heavyLabel:'Панцирный таран',
     pal:{body:0x6a7078, belly:0x8a9098, dark:0x42464e, head:0x767c84, stripe:0x525860, eye:0xffb02e, claw:0xd8dce0, accent:0xe8ecef},
     desc:'Бронированный танк. E — панцирный таран: сбивает с ног корпусом. Q — дубина: хвост-булава обрушивается и оглушает на 1.5 с.' },
-  { id:'rex', name:'Тираннозавр', cost:320, hp:2600, sta:90, walk:4.2, run:11,
+  { id:'rex', name:'Тираннозавр', cost:760, hp:2600, sta:90, walk:4.2, run:11,
     bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
     heavyLabel:'Челюсти',
     pal:{body:0x6e6a62, belly:0xbdb5a2, dark:0x2f2c26, head:0x7b766c, stripe:0x4f4a40, eye:0xffb02e, claw:0x2e2a20, accent:0x8d6f34},
     desc:'Царь ящеров. E — челюсти судного дня: замах, рывок и хруст костей. Q — попрание: нога обрушивается, земля идёт волной.' },
-  { id:'spino', name:'Спинозавр', cost:220, hp:2200, sta:95, walk:5.4, run:13.5,
+  { id:'spino', name:'Спинозавр', cost:520, hp:2200, sta:95, walk:5.4, run:13.5,
     bite:[110,85,150], heavy:180, jumpV:8, scale:1.35, turn:2.2, model:'spino',
     q:'dash', qLabel:'Косой рывок', qStat:'90×3', qDmg:90, qSta:28, qCd:5.5, heavySta:36, heavyCd:7,
     heavyLabel:'Двойной укус',
     pal:{body:0x5a5f6a, belly:0xb4b8ba, dark:0x333848, head:0x68707c, stripe:0x3d4452, eye:0xffd24a, claw:0x2e3438, accent:0xc2402a},
     desc:'Речной охотник с парусом. E — двойной щелчок пасти. Q — косой рывок: проносится сквозь бой и косит до трёх жертв.' },
-  { id:'allo', name:'Аллозавр', cost:200, hp:2000, sta:85, walk:5.0, run:12.5,
+  { id:'allo', name:'Аллозавр', cost:480, hp:2000, sta:85, walk:5.0, run:12.5,
     bite:[140,110,190], heavy:240, maul:42, pinTime:2.6, jumpV:7.5, scale:1.35, turn:2.0, model:'allo',
     q:'pounce', qLabel:'Преследование', qStat:'42×6', qDmg:42, qSta:22, qCd:5.5, heavySta:30, heavyCd:6.5,
     heavyLabel:'Вихрь когтей',
     pal:{body:0x3e4854, belly:0xb9bcc2, dark:0x22262f, head:0x747a84, stripe:0x2a3038, eye:0xff4a2e, claw:0xdde2e4, accent:0xd84a2a},
     desc:'Засадный гигант с парой рогов над глазами. E — вихрь когтей. Q — прыжок: сшиби жертву с ног и рви, пока держишь Q.' },
-  { id:'carno', name:'Карнотавр', cost:160, hp:1500, sta:90, walk:5.8, run:14.5,
+  { id:'carno', name:'Карнотавр', cost:380, hp:1500, sta:90, walk:5.8, run:14.5,
     bite:[120,95,160], heavy:190, jumpV:8.5, scale:1.05, turn:2.7, model:'carno',
     q:'dash', qLabel:'Таранный рывок', qStat:'85×3', qDmg:85, qSta:26, qCd:5, heavySta:24, heavyCd:6,
     heavyLabel:'Вихрь когтей',
     pal:{body:0x6e4a44, belly:0xb8a494, dark:0x3a2628, head:0x7d5750, stripe:0x462c30, eye:0xffe14a, claw:0x2e2a20, accent:0x9a8a80},
     desc:'Бык среди ящеров: рога и спринтер. E — вихрь когтей. Q — таранный рывок: проносится сквозь бой и косит до трёх жертв.' },
-  { id:'pachy', name:'Пахицефалозавр', cost:150, hp:1600, sta:88, walk:5.4, run:13.5,
+  { id:'pachy', name:'Пахицефалозавр', cost:360, hp:1600, sta:88, walk:5.4, run:13.5,
     bite:[85,70,120], heavy:160, jumpV:8, scale:1.0, turn:2.6, model:'pachy',
     q:'charge', qLabel:'Копыто-таран', qStat:'150 + отброс', qDmg:150, qSta:28, qCd:5.5, heavySta:26, heavyCd:6,
     heavyLabel:'Хвост-прутья',
     pal:{body:0xd6c8a4, belly:0xe4d9bc, dark:0x5a4c34, head:0xdacdaa, stripe:0x6a86a4, eye:0x241a0e, claw:0x8a7a5c, accent:0xe8ddc2},
     desc:'Живая батарея: костяной купол гасит удары. E — хвост-прутья. Q — копыто-таран: разбег и удар куполом, отбрасывает всех на пути.' },
-  { id:'para', name:'Паразауролоф', cost:130, hp:1800, sta:82, walk:5.0, run:12,
+  { id:'para', name:'Паразауролоф', cost:300, hp:1800, sta:82, walk:5.0, run:12,
     bite:[70,55,100], heavy:130, jumpV:7, scale:1.18, turn:2.1, model:'para',
     q:'stomp', qLabel:'Топот стада', qStat:'140 AoE', qDmg:140, qSta:26, qCd:6, heavySta:24, heavyCd:5.5,
     heavyLabel:'Удар хвостом',
@@ -435,13 +435,13 @@ const DINOS=[
     bite:[35,28,55], heavy:70, jumpV:8, scale:.72, turn:2.8, model:'raptor', coin:15, npc:true, ai:'pack',
     pal:{body:0xb08a52, belly:0xe3d5ae, dark:0x6b4e28, head:0xbd9660, stripe:0x453318, eye:0xff9a4a, claw:0x35302a, accent:0xc06a2e},
     desc:'Дикий раптор джунглей.' },
-  { id:'dilo', name:'Дилофозавр', cost:140, hp:560, sta:80, walk:5.4, run:13.5,
+  { id:'dilo', name:'Дилофозавр', cost:330, hp:560, sta:80, walk:5.4, run:13.5,
     bite:[52,44,70], heavy:90, jumpV:8.5, scale:.68, turn:3.0, model:'dilo',
     q:'spit', qLabel:'Плевок кислоты', qStat:'50 + замедл.', qDmg:50, qSta:20, qCd:3.5, heavySta:20, heavyCd:5,
     heavyLabel:'Вихрь когтей',
     pal:{body:0xc9bda0, belly:0xe2d9c2, dark:0x5a4a34, head:0xb5a684, stripe:0x6e5c40, eye:0xd8e04a, claw:0x2e2a20, accent:0xc2482a},
     desc:'Дерзкий вояка с алым гребнем. E — вихрь когтей. Q — кислотный плевок: жжёт и замедляет жертв на расстоянии.' },
-  { id:'brachi', name:'Брахиозавр', cost:280, hp:4800, sta:70, walk:2.6, run:5.2,
+  { id:'brachi', name:'Брахиозавр', cost:680, hp:4800, sta:70, walk:2.6, run:5.2,
     bite:[120,100,150], heavy:280, jumpV:0, scale:2.4, turn:1.0, model:'brachi',
     q:'neckslam', qLabel:'Удар шеей', qStat:'240 + отброс', qDmg:240, qSta:30, qCd:6, heavySta:45, heavyCd:8,
     heavyLabel:'Топот титана',
@@ -483,8 +483,8 @@ const DINOS=[
     heavyLabel:'Веер шипов',
     pal:{body:0x8e9682, belly:0xc4c9b6, dark:0x3f4638, head:0x98a08c, stripe:0x5a644e, eye:0xd0ff2e, claw:0x2a2e26, accent:0xa6ff3a},
     desc:'E750 — первый гибрид ИнГена (Монолофозавр + Карнотавр + скорпен), замороженный в туннелях задолго до Индоминуса. Пассивка «Ядовитые шипы»: каждый укус отравляет — яд добивает сам. Q — плевок ядом на расстоянии, E — веер шипов вокруг.' },
-  { id:'indomWild', name:'Дикий Индоминус', cost:0, hp:5200, sta:130, walk:5.2, run:13.5,
-    bite:[250,210,340], heavy:0, jumpV:8, scale:2.05, turn:1.65, model:'indom', coin:0, npc:true, ai:'boss', boss:true,
+  { id:'indomWild', name:'Дикий Индоминус', cost:0, hp:8400, sta:160, walk:5.8, run:14.8,
+    bite:[340,290,450], heavy:0, jumpV:8, scale:2.05, turn:1.65, model:'indom', coin:0, npc:true, ai:'boss', boss:true,
     q:'pounce', qDmg:0, qSta:99, qCd:9,
     pal:{body:0xcfcab8, belly:0xe8e4d6, dark:0x6a6458, head:0xd8d3c4, stripe:0x7a3024, eye:0xff1e0e, claw:0x2c2822, accent:0x8a2a1e},
     desc:'Рейд-босс. Его сила растёт с числом игроков на сервере.' }
@@ -4496,7 +4496,7 @@ function spawnBoss(fromNet){
     hpMax=fromNet.hpMax; mul=fromNet.mul; px=fromNet.p[0]; pz=fromNet.p[2]; puppet=true; BOSS.dmgMul=fromNet.mul||1;
   } else {
     const P=playersOnServer();
-    const hpMul=1+.55*(P-1); BOSS.dmgMul=1+.35*(P-1);
+    const hpMul=1.4+.55*(P-1); BOSS.dmgMul=1.3+.35*(P-1);   // IB40: босс злее — base +40% хп, +30% урона
     hpMax=Math.round(def.hp*hpMul); mul=hpMul;
     let ok=false;
     for(let i=0;i<40&&!ok;i++){
@@ -4516,7 +4516,7 @@ function spawnBoss(fromNet){
   b.mesh=buildDino(def); scene.add(b.mesh.g); ENT.push(b);
   BOSS.e=b; BOSS.dmg={}; BOSS.life=0; BOSS.tauntT=rand(14,22);
   const P=playersOnServer();
-  chatMsg('ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ! Сила ×'+(1+.55*(P-1)).toFixed(1)+' · игроков на сервере: '+P,null,'bad');
+  chatMsg('ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ! Сила ×'+(1.4+.55*(P-1)).toFixed(1)+' · игроков на сервере: '+P,null,'bad');
   toast('⚠ ДИКИЙ ИНДОМИНУС ВЫШЕЛ НА ОХОТУ!','coin');
   SFX.bossRoar(); shake=1;
   ringFx(px,terrainH(px,pz)+.3,pz,0xff5a3a,26,1.2);
@@ -4586,18 +4586,18 @@ function updBoss(b,dt){
   if(!tgt){ b.moveMode=0; b.speed=0; bossCloakFx(b,dt); return; }
   if(b.cloakT>0) b.cloakT-=dt;
   b.cloakCycle-=dt;
-  if(b.cloakCycle<=0){ b.cloakT=4.5; b.cloakCycle=rand(13,19);
+  if(b.cloakCycle<=0){ b.cloakT=5.0; b.cloakCycle=rand(9,14);   // IB40: исчезает чаще и дольше
     chatMsg('Индоминус растворился... слушай шаги.',null,'bad'); SFX.roar2(); }
   b.roarT-=dt;
-  if(b.roarT<=0){ b.roarT=rand(20,30); startSpec(b,'roar3',2.3); SFX.roar3(); shake=Math.max(shake,.6);
+  if(b.roarT<=0){ b.roarT=rand(14,22); startSpec(b,'roar3',2.3); SFX.roar3(); shake=Math.max(shake,.6);
     ringFx(b.pos.x,b.pos.y+.4,b.pos.z,0xff5a3a,20,.9); if(NET.on) NET.send('bx',{k:'ev',t:'roar'}); }
   BOSS.tauntT-=dt;
   if(BOSS.tauntT<=0){ BOSS.tauntT=rand(18,26);
     chatMsg(['Я чую тебя...','Сырое мясо...','Прячься. Мне нравится охота.','Кости — не единственные, кто шепчет.'][(Math.random()*4)|0],b.name,'bad'); }
   const dp=b.pos.distanceTo(tgt.pos);
   const want=Math.atan2(-(tgt.pos.x-b.pos.x),-(tgt.pos.z-b.pos.z));
-  if(dp>7.2){
-    b.moveMode=dp>16?2:1; b.speed=b.moveMode===2?b.def.run:b.def.walk*1.6;
+    if(dp>7.2){
+    b.moveMode=dp>16?2:1; b.speed=(b.moveMode===2?b.def.run:b.def.walk*1.8);   // IB40: преследует злее
     b.yaw+=clamp(wrapA(want-b.yaw),-b.def.turn*dt*2,b.def.turn*dt*2);
     const f=fwdOf(b), nx=b.pos.x+f.x*6, nz=b.pos.z+f.z*6;
     if(terrainH(nx,nz)<WATER_Y+.4) b.yaw+=dt*2.2;   // не топает в реку
@@ -4607,7 +4607,7 @@ function updBoss(b,dt){
     b.moveMode=0; b.speed=0;
     b.yaw+=clamp(wrapA(want-b.yaw),-b.def.turn*dt*2,b.def.turn*dt*2);
     if(b.biteCd<=0){
-      b.biteCd=1.35; b.attackT=.34;
+      b.biteCd=1.05; b.attackT=.34;   // IB40: кусает чаще
       const dmg=Math.round(b.def.bite[(Math.random()*3)|0]*BOSS.dmgMul);
       const tgtRef=tgt;
       setTimeout(()=>{ if(!b.alive||!tgtRef.alive||G.state!=='play'||ENT.indexOf(tgtRef)<0) return;
