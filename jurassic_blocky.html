@@ -349,7 +349,7 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=38;  // IB38: Индоминус заменён на настоящую Sketchfab-модель (walk-cycle, 158 костей bip_риг, 16к вершин, 27к граней, текстура запечена в вершины с гамма-подъёмом): родной walk 0.83s без дрейфа корня -> walk 1.46s (тяжёлая поступь) + run 0.83s, синтез idle/attack/jump/death; GLB_TARGET_H.indom=4.1, фолбэк buildIndomGLB защищён проверкой headG. IB37: 8 новых видов пересажены с блочных моделей на GLB со скелетными анимациями: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
+const JB_BUILD=39;  // IB39: одинаковые ники запрещены. Остров: при коллизии ников «больший» netId автоматически переименовывается в «Ник·2» (правило детерминировано у всех — гонок нет), имя сессии NET.myName отделено от ника аккаунта, чат и hi-пакеты ходят с ним. Облако: ник резервируется клеймом kind 30078 d='jb_nick:<ник в нижнем регистре>' на nostr-релеях — при попытке взять чужой ник в настройках имя откатывается с тостом «ник занят», свой прежний ник при смене освобождается; дефолт «Охотник» не резервируется. IB38: Индоминус заменён на настоящую Sketchfab-модель: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -3622,7 +3622,7 @@ function jbSign(msg32,key,aux32){
   return jbCat(jbB32(R[0]),jbB32((k+e*key.d)%JB_N));
 }
 const NET={
-  on:false, peer:null, room:null, conns:{}, _hostConn:null, peers:[], names:{}, myNetId:null, code:'',
+  on:false, peer:null, room:null, conns:{}, _hostConn:null, peers:[], names:{}, myName:G.set.name||'Охотник', myNetId:null, code:'',
   tx:{}, rx:{}, stT:0, bT:0, joining:false, _host:true, _iAmHost:false, _mode:'peer',
   PREFIX:'jblocky-',
   send(ch,d,t){ const f=this.tx[ch]; if(f) f(d,t); },
@@ -3648,6 +3648,7 @@ const NET={
   async connect(code){
     if(this.on||this.joining) return this.on;
     this.joining=true; this.code=code;
+    this.myName=G.set.name||'Охотник';
     this.netStatus('сеть: вхожу на общий остров…');
     const wire=(ch,recv)=>{ this.rx[ch]=recv; this.tx[ch]=(d,t)=>this._route(ch,d,t); };   // peer-режим
     wire('st',(d,pid)=>{ const r=ENT.find(e=>e.kind==='human'&&e.id===pid); if(!r) return;
@@ -3658,6 +3659,7 @@ const NET={
       if(fresh&&this._iAmHost&&this._mode!=='peer'&&BOSS.e&&BOSS.e.alive)
         this.send('bx',{k:'sp',hpMax:BOSS.e.hpMax,mul:BOSS.dmgMul,p:[+BOSS.e.pos.x.toFixed(1),0,+BOSS.e.pos.z.toFixed(1)]},pid);
       if(fresh&&this._iAmHost) this.send('en',envPacket(),pid);   // новичку сразу выставляем общее время и погоду
+      try{ this.resolveName(); }catch(e){}             // одинаковые ники на острове запрещены (IB39)
       updNetHud(); });
     wire('ev',(d,pid)=>netOnEvent(d,pid));
     wire('en',(d,pid)=>netApplyEnv(d,pid));            // общая погода/время для всего острова
@@ -3864,7 +3866,7 @@ const NET={
               };
               const pulse=()=>{                      // пульс присутствия: тут — интервал, в фоновой вкладке — воркер (NET.bgTick)
                 if(!self.on||self._mode!=='nostr') return;
-                publish({c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
+                publish({c:'hi',d:{n:(self.myName||G.set.name||'Охотник'),d:my.dinoId,
                   s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:self.myNetId});
                 const now=Date.now();
                 for(const pid in seen){ if(now-seen[pid].t>30000){ delete seen[pid]; self._dropConn(pid); } }
@@ -3982,7 +3984,7 @@ const NET={
         };
         const pulse=()=>{                            // пульс присутствия: тут — интервал, в фоне — воркер (NET.bgTick)
           if(!self.on||self._mode!=='mqtt') return;
-          const hel={c:'hi',d:{n:(G.set.name||'Охотник'),d:my.dinoId,
+          const hel={c:'hi',d:{n:(self.myName||G.set.name||'Охотник'),d:my.dinoId,
             s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:myId};
           self._mpub(base+'/b',JSON.stringify(hel));            // маячок присутствия (hi всем)
           const now=Date.now();
@@ -4002,7 +4004,27 @@ const NET={
     });
   },
   hello(target){ if(!this.on) return;
-    this.send('hi',{n:G.set.name||'Охотник',d:my.dinoId,s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:''},target); },
+    this.send('hi',{n:this.myName||G.set.name||'Охотник',d:my.dinoId,s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:''},target); },
+  nrm(s){ return (''+(s||'Охотник')).trim().toLowerCase(); },
+  resolveName(){                                   // остров: у одинаковых ников «больший» netId переименовывается в «Ник·2» (правило видно обоим — гонок нет)
+    if(!this.on||!this.myName) return false;
+    const mk=this.nrm(this.myName); let hit=null;
+    for(const pid in this.names){ if(pid===this.myNetId) continue;
+      if(this.nrm(this.names[pid].n)===mk){ hit=pid; break; } }
+    if(!hit) return false;
+    if(this.myNetId&&this.myNetId>hit){
+      const old=this.myName, base=old.replace(/·\d+$/,'');
+      const busy={}; for(const p2 in this.names) busy[this.nrm(this.names[p2].n)]=1;
+      let nn='', i=2;
+      while(i<30){ nn=base.slice(0,12)+'·'+i; if(this.nrm(nn)!==mk&&!busy[this.nrm(nn)]) break; i++; }
+      if(nn&&nn!==old){ this.myName=nn; my.name=nn;
+        try{ this.hello(); }catch(e){}
+        setTimeout(()=>{ try{ this.hello(); }catch(e){} },700);     // ретрансляция: паблиш в общий эфир может затеряться
+        setTimeout(()=>{ try{ this.hello(); }catch(e){} },1800);
+        chatMsg('Ник «'+old+'» уже занят на острове — играю как «'+nn+'»','·','sys'); }
+    }
+    return true;
+  },
   leave(){ try{ if(this._hostConn) this._hostConn.close(); }catch(e){}
     for(const k in this.conns){ try{ this.conns[k].close(); }catch(e){} }
     this.conns={}; this._hostConn=null;
@@ -4070,7 +4092,8 @@ const CLOUD={
   // offchain.pub и relay.snort.social держат allowlist — новым игрокам пишут «Policy violated», поэтому их тут нет
   REL:['wss://nos.lol','wss://relay.primal.net','wss://nostr-pub.wellorder.net'],
   ws:[], code:'', key:null, pkHex:'', st:'…', _dirty:false, _pushT:null, _applied:0, _pushJson:'', _applyJson:'',
-  _uid:0, _manual:false, _pulled:false, _mt:null, _lastPushId:'', _okN:0, _rejN:0,
+  _nickShown:G.set.name||'Охотник', _nickClaimedLow:null,
+  _uid:0, _manual:false, _pulled:false, _mt:null, _lastPushId:'', _okN:0, _rejN:0, _msgHooks:[],
   codeNew(){ const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ'; let s='';
     const b=new Uint8Array(12); try{ crypto.getRandomValues(b); }catch(e){ for(let i=0;i<12;i++) b[i]=(Math.random()*256)|0; }
     for(let i=0;i<12;i++) s+=A[b[i]%A.length]; return s; },
@@ -4089,6 +4112,7 @@ const CLOUD={
     for(const url of this.REL) this._openOne(url);
     if(!this._mt) this._mt=setInterval(()=>{ try{ this.maintain(); }catch(e){} },15000);   // держим ВСЕ релеи живыми
     setTimeout(()=>{ if(this.key&&!this._pulled&&!this._manual) this.push(); },6000);   // новый аккаунт — первый сейв
+    setTimeout(()=>{ try{ this.claimNick(true); }catch(e){} },9000);   // ник аккаунта проверяем и клеймим после первого синка
     return true;
   },
   _openOne(url){                                          // один релей: подписка на свой профиль + запись
@@ -4104,7 +4128,9 @@ const CLOUD={
         else if(Array.isArray(a)&&a[0]==='OK'&&a[1]===this._lastPushId){
           if(a[2]){ this._okN++; this._pulled=true; }
           else { this._rejN++; console.log('JBACC rejected',(''+a[3]).slice(0,60)); } }
-        else if(Array.isArray(a)&&a[0]==='OK'&&a[2]) { this._pulled=true; } };
+        else if(Array.isArray(a)&&a[0]==='OK'&&a[2]) { this._pulled=true; }
+        if(Array.isArray(a)&&(a[0]==='EVENT'||a[0]==='EOSE'||a[0]==='OK')&&a[1]!=='jbacc'){
+          for(const h of this._msgHooks){ try{ h(a); }catch(e){} } } };
       ws.onclose=()=>{ const ix=this.ws.indexOf(ws); if(ix>=0) this.ws.splice(ix,1);
         if(this.code===code&&this.key){
           if(!this.ws.some(w=>w.readyState===0||w.readyState===1)){ this.st='облако недоступно · играю локально'; accHud(); }
@@ -4163,6 +4189,88 @@ const CLOUD={
     try{ localStorage.setItem('jb_acc_ts',''+p.ts); }catch(e){}
     applyCloudProfile(p,this._manual);
     this.st='в сети · синхронизирован'; accHud();
+  },
+  nickLow(n){ return (''+(n||'')).trim().toLowerCase().slice(0,14); },
+  nickReq(low,cb){                                  // занят ли ник глобально (клейм другого аккаунта) — через ЖИВЫЕ сокеты профиля
+    if(!this.key||!low){ cb(false); return; }
+    const live=()=>{ let n=0; for(const w of this.ws){ if(w.readyState===1) n++; } return n; };
+    const go=(left)=>{
+      let done=false, hit=false, eose=0;
+      const sub='jbnick'+(++this._uid);
+      const hook=(a)=>{ if(a[1]!==sub) return;
+        if(a[0]==='EVENT'&&a[2]){
+          const e2=a[2]; let c={}; try{ c=JSON.parse(e2.content||'{}'); }catch(err){ }
+          if(c.rel!==1&&e2.pubkey!==this.pkHex){ hit=true; fin(true); } }   // чужой живой клейм — занято
+        else if(a[0]==='EOSE'){ eose++; } };
+      const fin=v=>{ if(done) return; done=true;
+        const ix=this._msgHooks.indexOf(hook); if(ix>=0) this._msgHooks.splice(ix,1);
+        if(v){ cb(true); }
+        else if(left>0&&eose===0){ setTimeout(()=>go(left-1),800); }   // релеи молчали — перепрашиваем
+        else cb(false); };
+      this._msgHooks.push(hook);
+      const req=JSON.stringify(['REQ',sub,{kinds:[30078],'#d':['jb_nick:'+low],limit:4}]);
+      let sent=0; for(const w of this.ws){ if(w.readyState!==1) continue; try{ w.send(req); sent++; }catch(e){} }
+      if(!sent&&live()===0){ fin(false); return; }
+      setTimeout(()=>fin(hit),5000);
+    };
+    go(1);
+  },
+  nickPublish(low,rel,cb){                          // клейм ника (rel=1 — освободить прежний) — живые сокеты, до 3 попыток, фолбэк на новые
+    if(!this.key||!low){ if(cb) cb(false); return; }
+    const attempt=(left)=>{
+      try{
+        const created=Math.floor(Date.now()/1000);
+        const content=JSON.stringify({n:low,rel:rel?1:0,ts:Date.now()});
+        const ser=JSON.stringify([0,this.pkHex,created,30078,[['d','jb_nick:'+low]],content]);
+        const id=jbSha256(new TextEncoder().encode(ser));
+        const aux=new Uint8Array(32); try{ crypto.getRandomValues(aux); }catch(e){ for(let i=0;i<32;i++) aux[i]=(Math.random()*256)|0; }
+        const ev={pubkey:this.pkHex,created_at:created,kind:30078,tags:[['d','jb_nick:'+low]],content,id:jbHex(id),sig:jbHex(jbSign(id,this.key,aux))};
+        let okN=0, done=false;
+        const hook=(a)=>{ if(a[0]==='OK'&&a[1]===ev.id){ if(a[2]){ okN++; fin(true); } else console.log('JBNICK rejected',(''+a[3]).slice(0,60)); } };
+        const fin=ok=>{ if(done) return; done=true;
+          const ix=this._msgHooks.indexOf(hook); if(ix>=0) this._msgHooks.splice(ix,1);
+          for(const w of wsAll){ try{w.close();}catch(e){} }
+          if(ok){ if(cb) cb(true); }
+          else if(left>0) setTimeout(()=>attempt(left-1),1200);
+          else { if(cb) cb(false); } };
+        const wire=JSON.stringify(['EVENT',ev]);
+        this._msgHooks.push(hook);
+        const wsAll=[];
+        let sent=0; for(const w of this.ws){ if(w.readyState!==1) continue; try{ w.send(wire); sent++; }catch(e){} }
+        if(!sent){ for(const url of this.REL){            // живых сокетов нет — экстренный новый
+            let ws; try{ ws=new WebSocket(url); }catch(e){ continue; } wsAll.push(ws);
+            ws.onopen=()=>{ try{ ws.send(wire); }catch(e){} };
+            ws.onmessage=ev2=>{ let a; try{ a=JSON.parse(ev2.data); }catch(e){ return; } hook(a); };
+            ws.onclose=ws.onerror=()=>{}; } }
+        setTimeout(()=>fin(okN>0),4500);
+      }catch(e){ if(cb) cb(false); }
+    };
+    attempt(2);
+  },
+  claimNick(force){                                 // глобальная проверка ника при смене (IB39: одинаковые ники запрещены)
+    const nn=this.nickLow(G.set.name);
+    if(!nn||nn==='охотник') return;                 // дефолт не резервируем
+    if(!force&&nn===this.nickLow(this._nickShown)) return;
+    if(!this.key){ this._nickShown=G.set.name; return; }   // облака нет — рулит островная проверка
+    this.nickReq(nn,(taken)=>{
+      if(taken){
+        if(force){ this._nickShown=G.set.name; return; }   // на буте не пугаем тостом — на острове разведёт resolveName
+        const old=this._nickShown||'Охотник';
+        G.set.name=old; my.name=old;
+        try{ const inp=$('set-name'); if(inp) inp.value=old; }catch(e){}
+        try{ NET.myName=old; if(NET.on){ NET.resolveName(); NET.hello(); } }catch(e){}
+        toast('Ник «'+nn+'» уже занят — выбери другой');
+        try{ chatMsg('Ник «'+nn+'» уже занят другим охотником.','·','sys'); }catch(e){}
+        try{ CLOUD.markDirty(); }catch(e){}
+        return;
+      }
+      this.nickPublish(nn,false,(ok)=>{
+        const oldL=this._nickClaimedLow;
+        if(ok){ this._nickClaimedLow=nn; if(oldL&&oldL!==nn) this.nickPublish(oldL,true,null); }   // прежний ник освобождаем
+        this._nickShown=G.set.name;
+        try{ CLOUD.markDirty(); }catch(e){}
+      });
+    });
   }
 };
 function applyCloudProfile(p,manual){
@@ -4183,6 +4291,7 @@ function applyCloudProfile(p,manual){
     if(!changed) return;
     $('coins-num').textContent=G.coins;
     my.name=G.set.name||'Охотник';
+    try{ CLOUD._nickShown=my.name; NET.myName=my.name; if(NET.on){ NET.resolveName(); NET.hello(); } }catch(e){}
     if(G.state!=='play') applySettings();               // в меню обновим настройки и карточки
     else { camera.fov=G.set.fov; camera.updateProjectionMatrix(); }
     saveProfile();
@@ -4685,7 +4794,7 @@ function chatOpenSet(v){
 $('chat-in').addEventListener('keydown',e=>{
   e.stopPropagation();
   if(e.key==='Enter'){ const v=$('chat-in').value.trim();
-    if(v){ chatMsg(v,G.set.name||'Охотник'); NET.emitIntent('chat',{m:v}); }
+    if(v){ chatMsg(v,NET.myName||G.set.name||'Охотник'); NET.emitIntent('chat',{m:v}); }
     chatOpenSet(false); }
   else if(e.key==='Escape') chatOpenSet(false);
 });
@@ -6072,8 +6181,8 @@ $('set-vol').addEventListener('input',e=>{ const v=+e.target.value/100; SFX.setV
 $('set-vol').addEventListener('change',()=>SFX.coin());
 $('set-fov').addEventListener('input',e=>{ G.set.fov=+e.target.value; $('set-fov-v').textContent=e.target.value; camera.fov=G.set.fov; camera.updateProjectionMatrix(); });
 $('set-gfx').addEventListener('change',e=>{ G.set.gfx=e.target.value; applySettings(); });
-$('set-name').addEventListener('input',e=>{ G.set.name=e.target.value.trim().slice(0,14)||'Охотник'; my.name=G.set.name; });
-$('set-name').addEventListener('change',()=>{ try{ if(NET.on) NET.hello(); }catch(e){} try{ CLOUD.markDirty(); }catch(e){} });
+$('set-name').addEventListener('input',e=>{ G.set.name=e.target.value.trim().slice(0,14)||'Охотник'; my.name=G.set.name; try{ NET.myName=G.set.name; }catch(_e){} });
+$('set-name').addEventListener('change',()=>{ try{ if(NET.on){ NET.resolveName(); NET.hello(); } }catch(e){} try{ CLOUD.claimNick(false); }catch(e){} try{ CLOUD.markDirty(); }catch(e){} });
 applySettings();
 
 // ================= ЦИКЛ: фикс. шаг симуляции + рендер =================
@@ -6134,6 +6243,7 @@ function step(dt){
       if(f) f([+my.pos.x.toFixed(2),+my.pos.y.toFixed(2),+my.pos.z.toFixed(2),+my.yaw.toFixed(3),my.moveMode,Math.round(my.hp),my.cloakT>0?1:0]); }
     for(const e of ENT){ if(e.kind==='human'&&!e.isLocal) updRemote(e,dt); }
     try{ NET.watchdog(); NET.hostWatch(); }catch(e){}   // контроль живости в P2P-звезде
+    NET.hiT=(NET.hiT||0)-dt; if(NET.hiT<=0){ NET.hiT=10; try{ NET.hello(); }catch(e){} }   // re-hello раз в 10с: имена на острове всегда актуальны (IB39)
     NET.envT=(NET.envT||0)-dt; if(NET.envT<=0&&NET.amHost()){ NET.envT=5; NET.send('en',envPacket()); }   // часы и погода — от хоста, раз в 5с
   }
   for(const e of ENT){ if(e.kind==='npc') updNpc(e,dt); }
