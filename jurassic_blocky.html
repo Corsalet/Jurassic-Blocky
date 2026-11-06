@@ -147,9 +147,11 @@
   .dmg.heavy{color:#ff7a4a;font-size:21px}
   /* хитмаркер */
   #hitm{position:fixed;left:50%;top:46%;z-index:6;pointer-events:none;font:900 30px/1 'Trebuchet MS',Arial;color:#fff;opacity:0;
-    transform:translate(-50%,-50%) scale(.7);text-shadow:0 2px 6px #000;transition:opacity .12s,transform .12s}
-  #hitm.on{opacity:1;transform:translate(-50%,-50%) scale(1.12)}
+    transform:translate(-50%,-50%) scale(.7);text-shadow:0 2px 6px #000}
+  /* IB47: гашение — CSS-анимация: даже когда игра лагает и JS-таймеры стоят, ✕ гаснет строго по времени (forwards держит opacity:0) */
+  #hitm.on{opacity:1;transform:translate(-50%,-50%) scale(1.12);animation:hitmfade .42s ease-out forwards}
   #hitm.heavy{color:var(--amb)}
+  @keyframes hitmfade{0%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}45%{opacity:.9;transform:translate(-50%,-50%) scale(1.04)}100%{opacity:0;transform:translate(-50%,-50%) scale(.88)}}
   /* тосты */
   #toasts{position:fixed;top:16%;left:50%;transform:translateX(-50%);z-index:7;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
   .toast{font-size:15px;font-weight:800;color:#fffbe8;letter-spacing:.5px;white-space:nowrap;text-shadow:0 2px 5px #000;animation:tst 2.6s forwards}
@@ -329,7 +331,7 @@
     <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
     <div id="menu-btns"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-dinos" class="jb-btn mini">🦖 ДИНОЗАВРЫ</button><button id="btn-log" class="jb-btn mini">📜 ЖУРНАЛ ОБНОВЛЕНИЙ</button><button id="btn-set" class="jb-btn mini gray">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса</div>
-    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.7.0</div>
+    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.7.1</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -359,7 +361,7 @@
   <div id="log-head">
     <button id="log-back" class="jb-btn mini gray" style="margin-top:0;padding:9px 14px">‹ НАЗАД</button>
     <div id="log-title">ЖУРНАЛ ОБНОВЛЕНИЙ</div>
-    <div id="log-ver">v18.7.0</div>
+    <div id="log-ver">v18.7.1</div>
   </div>
   <div id="log-list"></div>
   <div id="log-foot">JURASSIC BLOCKY · блочный мир динозавров</div>
@@ -417,8 +419,8 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=46;  // IB46: анкилозавр по репорту игрока — (1) фикс белого цвета: у anky.glb запечённые вершинные цвета светлые (avg 0.71 против 0.44 у трике), общий подъём ×2.4 выжигал их в белый — введён GLB_LIFT (anky ×0.62, гасим до уровня трике); (2) хвост стал главным оружием: E — «Хвост-булава» (хвост обрушивается сверху, 140 + стан 1.5с — раньше был на Q и у GLB-модели визуально не махал хвостом: SPEC.club крутил хвост только в late-ветке для блоковых; теперь хвост задаётся в общем вызове SPEC после mixer.update — перекрывает клип, как tailwhip у стего), Q — «Панцирный таран» (бывший E: разгон и удар корпусом); (3) рулетка наград за Дикого Индоминуса: вместо простой плашки «ДОБЫЧА С БОССА» — лента из 48 карточек (монеты/скины/Скорпиус, веса как у выпадения), лента прокручивается 5.4с с длинным торможением и трещоткой (SFX.tick), золотая стрелка по центру указывает на выпавший приз, победная карточка подсвечивается; приз определяется заранее (веса и жалость на 7-й килл нетронуты, награда начисляется сразу — рулетка только показывает). История: IB45 общий постерный фон экранов; IB44 меню по-новому; IB43 экран выбора динозавра; IB42 фикс окрасов Индоминуса; IB41 Three.js локально; IB40 Скорпиус/цены/босс; IB39 уникальные ники. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
-const JB_VERSION='18.7.0';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
+const JB_BUILD=47;  // IB47: репорт игрока («после чата крестик остаётся по центру, хп вообще не тратится, плюс лаги») — (1) ✕-хитмаркер гаснет CSS-анимацией hitmfade (forwards): даже когда игра лагает и JS-таймеры стоят, ✕ исчезает строго по времени; классы добирает animationend; (2) прицел после чата: chatOpenSet(false) и «ЗАБРАТЬ» рулетки зовут tryLock(), а успешный лок сжигает кулдаун plLastTry — ре-лок больше не блокируется молча на 1200мс (старое поведение: курсор-крестик висел по центру, камера не крутилась до клика); (3) «хп не тратится» на боссе: урон ведёт хост, а хостом мог застрять призрак из истории релея или вкладка в фоне/в меню — выборы хоста теперь считают только пиров с флагом p=1 (СЕЙЧАС играет), флаг приезжает в пульсе hi; выборы вынесены в общий NET._electPick (nostr+mqtt) и покрыты тестами; (4) новому хосту даётся 12с тишины (_lastBx) на снапшоты босса, прежде чем перехватить. История: IB46 анкил и рулетка наград; IB45 общий постерный фон экранов; IB44 меню по-новому; IB43 экран выбора динозавра; IB42 фикс окрасов Индоминуса; IB41 Three.js локально; IB40 Скорпиус/цены/босс; IB39 уникальные ники. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
+const JB_VERSION='18.7.1';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='v'+JB_VERSION;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -3714,6 +3716,16 @@ const NET={
     for(const k in this.conns){ if(k!==from){ const c=this.conns[k];
       if(c&&c.open){ try{ c.send({c:msg.c,d:msg.d,f:from}); }catch(e){} } } } },
   amHost(){ return !this.on ? true : this._iAmHost; },
+  _electPick(seen,myId,mySince,nowMs){   // IB47: единый выбор хоста (nostr и mqtt) — вынесен, чтобы жить по одним правилам и проверяться тестами
+    let bid=myId, bs=mySince;
+    for(const pid in seen){
+      if(nowMs-seen[pid].t>12000) continue;   // только живые пиры, не призраки из истории релея
+      if(!seen[pid].p) continue;              // IB47: хост — только тот, кто СЕЙЧАС играет; вкладка в фоне/в меню остров больше не удерживает
+      const sc=seen[pid].since||0;
+      if(sc&&(sc<bs||(sc===bs&&pid<bid))){ bs=sc; bid=pid; }
+    }
+    return {bid,bs};
+  },
   checkHost(){},                                   // звезда: хост — создатель комнаты, миграций нет
   netStatus(t){ this.status=t; const el=$('net-status'); if(el) el.textContent=t; },
   async connect(code){
@@ -3894,8 +3906,8 @@ const NET={
         seenIds.add(e2.id); if(seenIds.size>700) seenIds.clear();
         let m; try{ m=JSON.parse(e2.content); }catch(e){ return; }
         if(!m||typeof m!=='object'||!m.c||!m.f||m.f===self.myNetId) return;
-        if(seen[m.f]){ seen[m.f].t=Date.now(); if(m.d&&m.d._s) seen[m.f].since=m.d._s; }
-        else seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0};
+        if(seen[m.f]){ seen[m.f].t=Date.now(); if(m.d&&m.d._s) seen[m.f].since=m.d._s; if(m.c==='hi') seen[m.f].p=(m.d&&m.d.p)?1:0; }
+        else seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0,p:(m.c==='hi'&&m.d&&m.d.p)?1:0};
         if(m.to&&m.to!==self.myNetId) return;
         if(!self.peers.includes(m.f)) self.peers.push(m.f);
         if(m.c==='st'&&!ENT.find(e=>e.kind==='human'&&e.id===m.f)) netEnsureRemote(m.f);
@@ -3924,21 +3936,17 @@ const NET={
               for(const ch of ['st','hi','ev','en','bx','bd','bh'])
                 self.tx[ch]=(d,t2)=>{ const m={c:ch,d:d,f:self.myNetId}; if(t2) m.to=t2; publish(m); };
               const elect=()=>{
-                let bid=myId, bs=mySince;
-                const nowMs=Date.now();
-                for(const pid in seen){ if(nowMs-seen[pid].t>12000) continue;  // только живые пиры, не призраки из истории релея
-                  const sc=seen[pid].since||0;
-                  if(sc&&(sc<bs||(sc===bs&&pid<bid))){ bs=sc; bid=pid; } }
-                self._nHostId=bid;
-                if(bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
+                const pick=self._electPick(seen,myId,mySince,Date.now());
+                self._nHostId=pick.bid;
+                if(pick.bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
                   if(BOSS.e&&BOSS.e.puppet) BOSS.e.puppet=false; }
-                else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
+                else if(pick.bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false; self._lastBx=Date.now();   // IB47: новому хосту — 12с на снапшоты босса
                   if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
               };
               const pulse=()=>{                      // пульс присутствия: тут — интервал, в фоновой вкладке — воркер (NET.bgTick)
                 if(!self.on||self._mode!=='nostr') return;
                 publish({c:'hi',d:{n:(self.myName||G.set.name||'Охотник'),d:my.dinoId,
-                  s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:self.myNetId});
+                  s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince,p:(G.state==='play')?1:0},f:self.myNetId});
                 const now=Date.now();
                 for(const pid in seen){ if(now-seen[pid].t>30000){ delete seen[pid]; self._dropConn(pid); } }
                 elect();
@@ -4003,7 +4011,8 @@ const NET={
       function onPub(pl){
         let m; try{ m=JSON.parse(pl); }catch(e){ return; }
         if(!m||typeof m!=='object'||!m.c||!m.f||m.f===myId) return;
-        seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0};
+        if(seen[m.f]){ seen[m.f].t=Date.now(); if(m.d&&m.d._s) seen[m.f].since=m.d._s; if(m.c==='hi') seen[m.f].p=(m.d&&m.d.p)?1:0; }
+        else seen[m.f]={t:Date.now(),since:(m.d&&m.d._s)||0,p:(m.c==='hi'&&m.d&&m.d.p)?1:0};
         if(m.c==='st'&&!ENT.find(e=>e.kind==='human'&&e.id===m.f)) netEnsureRemote(m.f);
         if(self._iAmHost) self._mpub(base+'/b',pl);  // звезда: хост переливает чужое всем (своё f — фильтр у отправителя)
         self._recv(m,m.f);
@@ -4042,21 +4051,17 @@ const NET={
         for(const ch of ['st','hi','ev','en','bx','bd','bh']) self.tx[ch]=(d,t2)=>self._mpubRoute(ch,d,t2);
         try{ ws.send(pkt(0x82,0,[0,1,...encStr(base+'/+'),0])); }catch(e){}
         const elect=()=>{
-          let bid=myId, bs=mySince;
-          const nowMs=Date.now();
-          for(const pid in seen){ if(nowMs-seen[pid].t>12000) continue;  // только живые пиры, не призраки
-            const sc=seen[pid].since||0;
-            if(sc&&(sc<bs||(sc===bs&&pid<bid))){ bs=sc; bid=pid; } }
-          self._mHostId=bid;
-          if(bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
+          const pick=self._electPick(seen,myId,mySince,Date.now());
+          self._mHostId=pick.bid;
+          if(pick.bid===myId&&!self._iAmHost){ self._iAmHost=true; self._host=true;
             if(BOSS.e&&BOSS.e.puppet) BOSS.e.puppet=false; }
-          else if(bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false;
+          else if(pick.bid!==myId&&self._iAmHost){ self._iAmHost=false; self._host=false; self._lastBx=Date.now();   // IB47: новому хосту — 12с на снапшоты босса
             if(BOSS.e&&!BOSS.e.puppet) BOSS.e.puppet=true; }
         };
         const pulse=()=>{                            // пульс присутствия: тут — интервал, в фоне — воркер (NET.bgTick)
           if(!self.on||self._mode!=='mqtt') return;
           const hel={c:'hi',d:{n:(self.myName||G.set.name||'Охотник'),d:my.dinoId,
-            s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince},f:myId};
+            s:(my.dinoId==='indom'&&G.skinIndom>0)?G.skins.indom[G.skinIndom]:'',_s:mySince,p:(G.state==='play')?1:0},f:myId};
           self._mpub(base+'/b',JSON.stringify(hel));            // маячок присутствия (hi всем)
           const now=Date.now();
           for(const pid in seen){ if(now-seen[pid].t>30000){ delete seen[pid]; self._dropConn(pid); } }
@@ -4600,6 +4605,7 @@ function bossLeave(silent){
   if(!silent) chatMsg('Дикий Индоминус растворился в тумане... он вернётся.',null,'bad');
 }
 function netOnBoss(d){                              // сетевые события босса (хост → всем)
+  NET._lastBx=Date.now();                           // IB47: хост на связи — метка для перехвата босса, если хост замолчит
   if(d.k==='sp'){ spawnBoss(d); return; }
   const b=BOSS.e;
   if(d.k==='s'){ if(!b||!b.puppet) return;
@@ -4797,7 +4803,7 @@ function lootSpin(win,title,sub){
     }
   })(t0);
 }
-$('loot-ok').addEventListener('click',()=>{ $('ov-loot').classList.add('hidden'); });
+$('loot-ok').addEventListener('click',()=>{ $('ov-loot').classList.add('hidden'); if(G.state==='play') tryLock(); });   // IB47: забрал добычу — прицел сразу в игру
 
 // ================= ЗВУК (WebAudio-синтез, без файлов) =================
 // Весь звук идёт через мастер-гейн (ползунок «Громкость» в настройках).
@@ -4904,7 +4910,7 @@ function chatMsg(text,who,cls){
 function chatOpenSet(v){
   CHAT.open=v; $('chat-wrap').classList.toggle('on',v);
   if(v){ if(document.pointerLockElement) document.exitPointerLock(); $('chat-in').value=''; setTimeout(()=>$('chat-in').focus(),40); }
-  else $('chat-in').blur();
+  else { $('chat-in').blur(); if(G.state==='play') tryLock(); }   // IB47: отправил сообщение — прицел сразу возвращается (курсор больше не висит по центру)
 }
 $('chat-in').addEventListener('keydown',e=>{
   e.stopPropagation();
@@ -4988,12 +4994,13 @@ function updParts(dt){
     p.m.scale.setScalar(.4+clamp(p.life/p.max,0,1));
   }
 }
-function hitmark(heavy){
+function hitmark(heavy){                              // IB47: без setTimeout — раньше при лагах таймер стоял, и ✕-хитмаркер залипал по центру экрана
   const el=$('hitm');
+  el.classList.remove('on','heavy');
+  void el.offsetWidth;                                // рефлоу — перезапуск CSS-анимации гашения с нуля
   el.className='on'+(heavy?' heavy':'');
-  clearTimeout(hitmark.t);
-  hitmark.t=setTimeout(()=>{ el.className=heavy?'heavy':''; },160);
 }
+$('hitm').addEventListener('animationend',()=>{ $('hitm').className=''; });   // IB47: анимация доиграла — классы долой (DOM чист даже когда JS-таймеры стоят)
 
 // ---- ударные волны: расширяющиеся кольца по земле (попрание, вихри, дубина, топот) ----
 const RINGS=[];
@@ -5140,7 +5147,7 @@ document.addEventListener('pointerlockchange',()=>{
   locked=document.pointerLockElement===renderer.domElement;
   if(locked){
     if(plFailed) toast('Захват мыши снова работает');
-    plFailed=false; plTries=0;
+    plFailed=false; plTries=0; plLastTry=0;   // IB47: лок удался — кулдаун сгорел, иначе ре-лок после чата/рулетки молча блокируется 1200мс и прицел «висит»
     if(plRetryTimer){ clearTimeout(plRetryTimer); plRetryTimer=null; }
   }
   else if(G.state==='play'&&!plFailed&&!CHAT.open&&$('ov-code').classList.contains('hidden')&&$('ov-loot').classList.contains('hidden')&&$('ov-set').classList.contains('hidden')) toMenu(); // Esc при захвате = выход в меню
@@ -6307,7 +6314,8 @@ $('dz-strip').addEventListener('click',e=>{
 });
 // ---------- ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1): кнопка «📜 ЖУРНАЛ» в меню открывает историю апдейтов версиями; с v18.6.0 — на общем постерном фоне ----------
 const CHANGELOG=[
-  {v:'18.7.0',d:'06.11',cur:1,txt:'Анкилозавр: больше не белый, а хвост-булава стала главным оружием (E — обрушивает хвост и оглушает, Q — панцирный таран). За Дикого Индоминуса теперь крутится рулетка наград: карточки пролетают по ленте, золотая стрелка указывает приз.'},
+  {v:'18.7.1',d:'06.11',cur:1,txt:'Фиксы сессии: ✕-хитмаркер больше не залипает по центру при лагах (гаснет CSS-анимацией), после чата и рулетки прицел сразу возвращается в игру, хостом больше не застревают «призраки» и свёрнутые вкладки — ХП Дикого Индоминуса снова честно тратится, лаги от гонки за хоста убраны.'},
+  {v:'18.7.0',d:'06.11',txt:'Анкилозавр: больше не белый, а хвост-булава стала главным оружием (E — обрушивает хвост и оглушает, Q — панцирный таран). За Дикого Индоминуса теперь крутится рулетка наград: карточки пролетают по ленте, золотая стрелка указывает приз.'},
   {v:'18.6.0',d:'06.11',txt:'Экраны «Динозавры» и «Журнал обновлений» получили общий фон с постерами — как в главном меню: те же 5 обложек с плавным кроссфейдом, панорамой и параллаксом за курсором; при входе в игру фон убирается.'},
   {v:'18.5.1',d:'06.11',txt:'Главное меню по-новому: карточку выбора убрали — динозавр выбирается только на экране «Динозавры»; кнопки меню стоят столбиком; добавлен этот журнал; версия пишется по-игровому (vX.Y.Z) вместо номера сборки.'},
   {v:'18.5.0',d:'06.11',txt:'Экран «Динозавры»: характеристики полосками, живое 3D-превью с IDLE-анимацией, покупка и окрасы Индоминуса прямо из экрана, лента всех 14 видов с замками.'},
