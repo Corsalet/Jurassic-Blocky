@@ -24,8 +24,11 @@
   /* ---------- меню ---------- */
   .ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}
   .ov.hidden{display:none}
+  /* меню, «Динозавры» и «Журнал» — прозрачные: под ними общий постерный фон #mp-bg (v18.6.0) */
+  #ov-menu,#ov-dinos,#ov-log{background:transparent}
 #vig{position:fixed;inset:0;pointer-events:none;z-index:6;background:radial-gradient(ellipse at 50% 42%,transparent 52%,rgba(6,9,7,.46) 100%)}
-#mp-bg{position:absolute;inset:0;overflow:hidden;z-index:0;transform:scale(1.05);transition:transform 1.1s cubic-bezier(.22,.61,.36,1)}
+#mp-bg{position:fixed;inset:0;overflow:hidden;z-index:8;transform:scale(1.05);transition:transform 1.1s cubic-bezier(.22,.61,.36,1);background:radial-gradient(1200px 700px at 50% 30%,rgba(38,80,42,.55),rgba(7,14,9,.92))}   /* градиент-фолбэк под постерами — как было у .ov в меню */
+#mp-bg.hidden{display:none}   /* в игре постеры спрятаны целиком */
 #ov-menu>#menu-box{position:relative;z-index:2}
 .mp-img{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.08);transition:opacity 2.2s ease}
 .mp-img.show{opacity:1;animation:mpkb 12s linear forwards}
@@ -284,7 +287,10 @@
   </div>
 </div>
 <!-- ================= МЕНЮ ================= -->
-<div id="grain"></div><div id="vig"></div><div id="ov-menu" class="ov"><div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div><div id="mp-tag">ОБЛОЖКА 1/5</div></div>
+<div id="grain"></div><div id="vig"></div>
+<!-- постерный фон — общий для меню, «Динозавров» и «Журнала» (v18.6.0); в игре скрывается -->
+<div id="mp-bg"><div class="mp-img" id="mp-a"></div><div class="mp-img" id="mp-b"></div><div class="mp-shade"></div><div id="mp-tag">ОБЛОЖКА 1/5</div></div>
+<div id="ov-menu" class="ov">
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
     <div id="jb-sub">блочный мир динозавров · модельки по референсам и 3D-обмерам · кино-рендер · общая погода · автообновление</div>
@@ -308,7 +314,7 @@
     <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
     <div id="menu-btns"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-dinos" class="jb-btn mini">🦖 ДИНОЗАВРЫ</button><button id="btn-log" class="jb-btn mini">📜 ЖУРНАЛ ОБНОВЛЕНИЙ</button><button id="btn-set" class="jb-btn mini gray">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса</div>
-    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.5.1</div>
+    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.6.0</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -338,7 +344,7 @@
   <div id="log-head">
     <button id="log-back" class="jb-btn mini gray" style="margin-top:0;padding:9px 14px">‹ НАЗАД</button>
     <div id="log-title">ЖУРНАЛ ОБНОВЛЕНИЙ</div>
-    <div id="log-ver">v18.5.1</div>
+    <div id="log-ver">v18.6.0</div>
   </div>
   <div id="log-list"></div>
   <div id="log-foot">JURASSIC BLOCKY · блочный мир динозавров</div>
@@ -396,8 +402,8 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=44;  // IB44: главное меню по-новому — старая карточка выбора динозавра в меню убрана (вид выбирается только на экране «🦖 ДИНОЗАВРЫ» IB43), кнопки меню стоят столбиком (ИГРАТЬ / ДИНОЗАВРЫ / ЖУРНАЛ / НАСТРОЙКИ), добавлен экран «📜 ЖУРНАЛ ОБНОВЛЕНИЙ» — вся история апдейтов версиями с датами (ESC и «‹ НАЗАД» возвращают в меню), версия пишется по-игровому v18.5.1 (JB_VERSION) вместо «СБОРКА NN» (jb_build при смене JB_BUILD продолжает автореверт кэша у игроков). История: IB43 экран выбора динозавра (статы полосками, живое 3D-превью на отдельном мини-рендере с кино-тонемаппингом, лента 14 видов с замками, окрасы чипсами, покупка из экрана); IB42 фикс окрасов Индоминуса (isSkin-коридор 0.05-2.0 вместо 0.55-1.6); IB41 Three.js локально вместо CDN; IB40 Скорпиус перекрашен, цены ×2.3, дикий Индом злее; IB39 уникальные ники (облако + остров «Ник·2»); IB38 новый Индоминус (Sketchfab-модель); IB37 8 видов на GLB-анимациях; IB36 растительность GLB-пак; IB35 5 видов GLB; IB34 карта v4. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
-const JB_VERSION='18.5.1';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
+const JB_BUILD=45;  // IB45: общий постерный фон — экраны «🦖 ДИНОЗАВРЫ» и «📜 ЖУРНАЛ ОБНОВЛЕНИЙ» получили тот же фон с обложками, что и главное меню (слой #mp-bg вынесен из меню на топ-уровень, ротация/кроссфейд/Кен Бёрнс/параллакс продолжают крутиться за обоими экранами, бейдж «ОБЛОЖКА N/5» общий); при входе в игру фон прячется целиком, при возврате в меню/паузу — возвращается. История: IB44 главное меню по-новому (кнопки столбиком, журнал обновлений, версия vX.Y.Z); IB43 экран выбора динозавра (статы полосками, живое 3D-превью на отдельном мини-рендере с кино-тонемаппингом, лента 14 видов с замками, окрасы чипсами, покупка из экрана); IB42 фикс окрасов Индоминуса (isSkin-коридор 0.05-2.0 вместо 0.55-1.6); IB41 Three.js локально вместо CDN; IB40 Скорпиус перекрашен, цены ×2.3, дикий Индом злее; IB39 уникальные ники (облако + остров «Ник·2»); IB38 новый Индоминус (Sketchfab-модель); IB37 8 видов на GLB-анимациях; IB36 растительность GLB-пак; IB35 5 видов GLB; IB34 карта v4. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
+const JB_VERSION='18.6.0';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='v'+JB_VERSION;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -6064,7 +6070,7 @@ function MP_set(idx){
   im.src=MP_BASE[idx%MP_BASE.length];
 }
 function MP_loop(){
-  if(document.getElementById('ov-menu').classList.contains('hidden')){ MP_timer=setTimeout(MP_loop,1200); return; }
+  if(document.getElementById('mp-bg').classList.contains('hidden')){ MP_timer=setTimeout(MP_loop,1200); return; }   // в игре постеры спрятаны целиком; в меню, «Динозаврах» и «Журнале» — крутятся (v18.6.0)
   MP_i++;
   MP_set(MP_ORDER[MP_i%MP_ORDER.length]);
   MP_timer=setTimeout(MP_loop,6000+Math.random()*3000);            // 6–9 секунд, как договаривались
@@ -6073,7 +6079,7 @@ setTimeout(MP_loop,600);
 // параллакс: фон слегка плывёт за курсором
 (function(){ const bg=document.getElementById('mp-bg'); if(!bg) return;
   addEventListener('mousemove',e=>{
-    if(document.getElementById('ov-menu').classList.contains('hidden')) return;
+    if(document.getElementById('mp-bg').classList.contains('hidden')) return;
     const mx=((e.clientX/innerWidth-.5)*-14).toFixed(1), my=((e.clientY/innerHeight-.5)*-9).toFixed(1);
     bg.style.transform='translate('+mx+'px,'+my+'px) scale(1.06)';
   },{passive:true});
@@ -6088,6 +6094,7 @@ function toMenu(){
   my.resting=false;
   $('hud').classList.remove('on');
   $('ov-menu').classList.remove('hidden');
+  document.getElementById('mp-bg').classList.remove('hidden');   // постеры снова видны за меню
   if(document.pointerLockElement) document.exitPointerLock();
 }
 // ---------- выбор динозавра — только на экране «🦖 ДИНОЗАВРЫ» (v18.5.1): карточку в меню убрали ----------
@@ -6202,7 +6209,7 @@ function dzRenderCard(){
 }
 function dzShow(){
   G.selIdx=clamp(G.selIdx,0,PLAYABLE.length-1);
-  $('ov-menu').classList.add('hidden');            // постеры меню ставятся на паузу сами (MP_loop видит hidden)
+  $('ov-menu').classList.add('hidden');            // панель меню убираем — постерный фон остаётся (общий слой #mp-bg, v18.6.0)
   $('ov-dinos').classList.remove('hidden');
   dzRenderCard(); dzBuild();
   if(!dzRAF){ dzT0=performance.now(); dzRAF=requestAnimationFrame(dzLoop); }
@@ -6235,9 +6242,10 @@ $('dz-strip').addEventListener('click',e=>{
   G.selIdx=(+b.dataset.idx+PLAYABLE.length)%PLAYABLE.length;
   dzRenderCard(); dzBuild();
 });
-// ---------- ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1): кнопка «📜 ЖУРНАЛ» в меню открывает историю апдейтов версиями ----------
+// ---------- ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1): кнопка «📜 ЖУРНАЛ» в меню открывает историю апдейтов версиями; с v18.6.0 — на общем постерном фоне ----------
 const CHANGELOG=[
-  {v:'18.5.1',d:'06.11',cur:1,txt:'Главное меню по-новому: карточку выбора убрали — динозавр выбирается только на экране «Динозавры»; кнопки меню стоят столбиком; добавлен этот журнал; версия пишется по-игровому (vX.Y.Z) вместо номера сборки.'},
+  {v:'18.6.0',d:'06.11',cur:1,txt:'Экраны «Динозавры» и «Журнал обновлений» получили общий фон с постерами — как в главном меню: те же 5 обложек с плавным кроссфейдом, панорамой и параллаксом за курсором; при входе в игру фон убирается.'},
+  {v:'18.5.1',d:'06.11',txt:'Главное меню по-новому: карточку выбора убрали — динозавр выбирается только на экране «Динозавры»; кнопки меню стоят столбиком; добавлен этот журнал; версия пишется по-игровому (vX.Y.Z) вместо номера сборки.'},
   {v:'18.5.0',d:'06.11',txt:'Экран «Динозавры»: характеристики полосками, живое 3D-превью с IDLE-анимацией, покупка и окрасы Индоминуса прямо из экрана, лента всех 14 видов с замками.'},
   {v:'18.4.1',d:'06.11',txt:'Фикс окрасов Индоминуса: изумрудный, полночный и кровавый теперь по-настоящему красят модель (раньше оттенок срезался, и скин выглядел белым).'},
   {v:'18.4.0',d:'06.11',txt:'Three.js грузится локально вместе с игрой — вход быстрее и работает даже без доступа к внешним CDN.'},
@@ -6317,6 +6325,7 @@ $('btn-play').addEventListener('click',async ()=>{
   applyPlayerDino(d.id);
   G.state='play';
   $('ov-menu').classList.add('hidden');
+  document.getElementById('mp-bg').classList.add('hidden');   // в игре постеры не нужны — рендерим остров
   $('hud').classList.add('on');
   mmap.classList.toggle('off',!G.mapOn);
   tryLock();
