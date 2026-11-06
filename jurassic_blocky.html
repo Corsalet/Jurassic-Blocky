@@ -194,11 +194,25 @@
   #chat-in:focus{border-color:var(--amb)}
   /* ---------- добыча с босса ---------- */
   #ov-loot{z-index:22;background:rgba(20,12,4,.72)}
-  #loot-box{width:min(430px,92vw);background:var(--panel);border:2px solid rgba(255,210,74,.55);border-radius:18px;padding:26px 28px 22px;text-align:center;box-shadow:0 0 60px rgba(255,190,60,.25),0 18px 60px rgba(0,0,0,.7);animation:lootin .45s}
+  #loot-box{width:min(660px,94vw);background:var(--panel);border:2px solid rgba(255,210,74,.55);border-radius:18px;padding:24px 26px 20px;text-align:center;box-shadow:0 0 60px rgba(255,190,60,.25),0 18px 60px rgba(0,0,0,.7);animation:lootin .45s}
   @keyframes lootin{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
   #loot-t{font-size:19px;font-weight:900;letter-spacing:3px;color:var(--amb);text-shadow:0 2px 0 #3a2a06}
-  #loot-i{font-size:15.5px;font-weight:800;color:#fff;margin:13px 0 5px;line-height:1.5}
-  #loot-s{font-size:12px;color:rgba(232,245,216,.7);margin-bottom:14px;line-height:1.5}
+  #loot-i{font-size:15.5px;font-weight:800;color:#fff;margin:13px 0 5px;line-height:1.5;min-height:20px}
+  #loot-s{font-size:12px;color:rgba(232,245,216,.7);margin-bottom:14px;line-height:1.5;min-height:15px}
+  /* рулетка наград (IB46): лента пролетающих карточек + золотая стрелка по центру */
+  #loot-strip{position:relative;margin:14px 0 4px;height:104px;border:2px solid rgba(255,210,74,.4);border-radius:12px;background:rgba(6,11,8,.78);overflow:hidden;box-shadow:inset 0 0 26px rgba(0,0,0,.6)}
+  #loot-strip::before,#loot-strip::after{content:'';position:absolute;top:0;bottom:0;width:56px;z-index:1;pointer-events:none}
+  #loot-strip::before{left:0;background:linear-gradient(90deg,rgba(6,11,8,.96),rgba(6,11,8,0))}
+  #loot-strip::after{right:0;background:linear-gradient(-90deg,rgba(6,11,8,.96),rgba(6,11,8,0))}
+  #loot-tape{display:flex;gap:6px;padding:10px 0;will-change:transform}
+  .loot-cell{flex:0 0 96px;height:84px;border-radius:9px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:800 10.5px/1.2 'Trebuchet MS',Arial;color:var(--ink);background:rgba(22,32,20,.9);text-align:center;padding:5px;box-sizing:border-box}
+  .loot-cell .ic{font-size:21px;line-height:1}
+  .loot-cell.coins{border-color:rgba(255,207,77,.45)}
+  .loot-cell.skin{border-color:rgba(170,120,255,.5)}
+  .loot-cell.scorpius{border-color:#ffcf4d;background:linear-gradient(180deg,rgba(90,66,8,.95),rgba(40,30,4,.95));color:#ffe08a;box-shadow:0 0 12px rgba(255,190,60,.35)}
+  .loot-cell.win{border-color:#ffd75a;box-shadow:0 0 20px rgba(255,200,70,.75);background:rgba(66,52,10,.95);transform:scale(1.06)}
+  #loot-arrow{position:absolute;left:50%;top:-1px;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:16px solid #ffcf4d;filter:drop-shadow(0 0 7px rgba(255,190,60,.9));z-index:3}
+  #loot-arrow::after{content:'';position:absolute;left:-6px;top:-16px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff2c8,#ffcf4d 58%,rgba(255,190,60,0) 74%)}
   /* ---------- настройки ---------- */
   #ov-set{z-index:24;background:rgba(7,14,9,.9)}
   #set-box{width:min(460px,94vw);background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:24px 28px 22px;text-align:left}
@@ -271,9 +285,10 @@
 <div id="ov-loot" class="ov hidden">
   <div id="loot-box">
     <div id="loot-t">🏆 ДОБЫЧА С БОССА</div>
+    <div id="loot-strip"><div id="loot-tape"></div><div id="loot-arrow"></div></div>
     <div id="loot-i"></div>
     <div id="loot-s"></div>
-    <button id="loot-ok" class="jb-btn mini">ЗАБРАТЬ</button>
+    <button id="loot-ok" class="jb-btn mini" style="visibility:hidden">ЗАБРАТЬ</button>
   </div>
 </div>
 <!-- ================= СЕКРЕТНЫЙ КОД ================= -->
@@ -314,7 +329,7 @@
     <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
     <div id="menu-btns"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-dinos" class="jb-btn mini">🦖 ДИНОЗАВРЫ</button><button id="btn-log" class="jb-btn mini">📜 ЖУРНАЛ ОБНОВЛЕНИЙ</button><button id="btn-set" class="jb-btn mini gray">⚙ НАСТРОЙКИ</button></div>
     <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса</div>
-    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.6.0</div>
+    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.7.0</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -344,7 +359,7 @@
   <div id="log-head">
     <button id="log-back" class="jb-btn mini gray" style="margin-top:0;padding:9px 14px">‹ НАЗАД</button>
     <div id="log-title">ЖУРНАЛ ОБНОВЛЕНИЙ</div>
-    <div id="log-ver">v18.6.0</div>
+    <div id="log-ver">v18.7.0</div>
   </div>
   <div id="log-list"></div>
   <div id="log-foot">JURASSIC BLOCKY · блочный мир динозавров</div>
@@ -402,8 +417,8 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=45;  // IB45: общий постерный фон — экраны «🦖 ДИНОЗАВРЫ» и «📜 ЖУРНАЛ ОБНОВЛЕНИЙ» получили тот же фон с обложками, что и главное меню (слой #mp-bg вынесен из меню на топ-уровень, ротация/кроссфейд/Кен Бёрнс/параллакс продолжают крутиться за обоими экранами, бейдж «ОБЛОЖКА N/5» общий); при входе в игру фон прячется целиком, при возврате в меню/паузу — возвращается. История: IB44 главное меню по-новому (кнопки столбиком, журнал обновлений, версия vX.Y.Z); IB43 экран выбора динозавра (статы полосками, живое 3D-превью на отдельном мини-рендере с кино-тонемаппингом, лента 14 видов с замками, окрасы чипсами, покупка из экрана); IB42 фикс окрасов Индоминуса (isSkin-коридор 0.05-2.0 вместо 0.55-1.6); IB41 Three.js локально вместо CDN; IB40 Скорпиус перекрашен, цены ×2.3, дикий Индом злее; IB39 уникальные ники (облако + остров «Ник·2»); IB38 новый Индоминус (Sketchfab-модель); IB37 8 видов на GLB-анимациях; IB36 растительность GLB-пак; IB35 5 видов GLB; IB34 карта v4. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
-const JB_VERSION='18.6.0';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
+const JB_BUILD=46;  // IB46: анкилозавр по репорту игрока — (1) фикс белого цвета: у anky.glb запечённые вершинные цвета светлые (avg 0.71 против 0.44 у трике), общий подъём ×2.4 выжигал их в белый — введён GLB_LIFT (anky ×0.62, гасим до уровня трике); (2) хвост стал главным оружием: E — «Хвост-булава» (хвост обрушивается сверху, 140 + стан 1.5с — раньше был на Q и у GLB-модели визуально не махал хвостом: SPEC.club крутил хвост только в late-ветке для блоковых; теперь хвост задаётся в общем вызове SPEC после mixer.update — перекрывает клип, как tailwhip у стего), Q — «Панцирный таран» (бывший E: разгон и удар корпусом); (3) рулетка наград за Дикого Индоминуса: вместо простой плашки «ДОБЫЧА С БОССА» — лента из 48 карточек (монеты/скины/Скорпиус, веса как у выпадения), лента прокручивается 5.4с с длинным торможением и трещоткой (SFX.tick), золотая стрелка по центру указывает на выпавший приз, победная карточка подсвечивается; приз определяется заранее (веса и жалость на 7-й килл нетронуты, награда начисляется сразу — рулетка только показывает). История: IB45 общий постерный фон экранов; IB44 меню по-новому; IB43 экран выбора динозавра; IB42 фикс окрасов Индоминуса; IB41 Three.js локально; IB40 Скорпиус/цены/босс; IB39 уникальные ники. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
+const JB_VERSION='18.7.0';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
 const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='v'+JB_VERSION;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
@@ -444,11 +459,11 @@ const DINOS=[
     pal:{body:0x5c6e46, belly:0xd4ceb0, dark:0x39482b, head:0x688050, stripe:0x485836, eye:0xffc23d, claw:0x3a352a, accent:0xb08d54},
     desc:'Ходячая крепость с гребнем пластин. E — хвост-хлыст: широкая дуга с отбросом. Q — вихрь шипов: полный оборот хвостом, бьёт вокруг.' },
   { id:'anky', name:'Анкилозавр', cost:360, hp:2400, sta:75, walk:4.0, run:9.0,
-    bite:[60,50,85], heavy:130, jumpV:4.5, scale:1.12, turn:1.8, model:'anky',
-    q:'club', qLabel:'Дубина', qStat:'140 + стан 1.5с', qDmg:140, qSta:30, qCd:6, heavySta:26, heavyCd:5.5,
-    heavyLabel:'Панцирный таран',
+    bite:[60,50,85], heavy:140, jumpV:4.5, scale:1.12, turn:1.8, model:'anky',
+    q:'ram', qLabel:'Панцирный таран', qStat:'130 · сбивает с ног', qDmg:130, qSta:30, qCd:6, heavySta:26, heavyCd:5.5,
+    heavyLabel:'Хвост-булава',
     pal:{body:0x6a7078, belly:0x8a9098, dark:0x42464e, head:0x767c84, stripe:0x525860, eye:0xffb02e, claw:0xd8dce0, accent:0xe8ecef},
-    desc:'Бронированный танк. E — панцирный таран: сбивает с ног корпусом. Q — дубина: хвост-булава обрушивается и оглушает на 1.5 с.' },
+    desc:'Бронированный танк. E — хвост-булава: главное оружие, хвост обрушивается сверху и оглушает на 1.5 с. Q — панцирный таран: разгон и удар корпусом, сбивает с ног.' },
   { id:'rex', name:'Тираннозавр', cost:760, hp:2600, sta:90, walk:4.2, run:11,
     bite:[190,150,260], heavy:340, jumpV:7, scale:1.55, turn:1.7, model:'rex',
     q:'stomp', qLabel:'Попрание', qStat:'240 AoE', qDmg:240, qSta:25, qCd:6.5, heavySta:55, heavyCd:8,
@@ -1871,6 +1886,7 @@ const GLB_PACK={};
 const GLB_TARGET_H={raptor:2.5,rex:3.15,stego:2.9,para:2.5,brachi:4.0,                     // высота модели при scale=1 (блок-юниты), откалибрована по мировым костям
   trike:3.81,spino:4.58,allo:3.24,carno:3.35,pachy:3.22,anky:1.97,dilo:3.13,scorpius:3.35,   // IB37: blocky_h/scale — точное совпадение с блоковыми размерами
   indom:4.1};                                                                               // IB38: Индоминус — Sketchfab walk-cycle (габарит прежнего GLB-Инда 6.55/1.6)
+const GLB_LIFT={anky:.62};   // IB46: индивидуальный подъём материала: у anky.glb запечённые вершинные цвета светлые (avg 0.71 против 0.44 у трике) — общий ×2.4 выжигал их в белый; гасим до трике-уровня
 const GLB_FACE={carno:0};   // переопределение разворота: карно уже смотрит в -Z (авто-определение по костям Head/Tail1 недоступно)
 for(const _sp in GLB_TARGET_H){ (function(sp){
   const rec={ok:false,waiters:[]}; GLB_PACK[sp]=rec;
@@ -1950,7 +1966,8 @@ function buildGLBDino(def){
     const wasArr=Array.isArray(o.material);
     const nm=(wasArr?o.material:[o.material]).map(m0=>{
       if(mm.has(m0)) return mm.get(m0);
-      const c=m0.color.clone(); c.r=Math.min(1,c.r*2.4); c.g=Math.min(1,c.g*2.4); c.b=Math.min(1,c.b*2.4);   // пак тёмный — поднимаем под свет JB
+      const LIFT=GLB_LIFT[def.model]||2.4;             // IB46: анки — светлый источник, гасим вместо подъёма
+      const c=m0.color.clone(); c.r=Math.min(1,c.r*LIFT); c.g=Math.min(1,c.g*LIFT); c.b=Math.min(1,c.b*LIFT);   // пак тёмный — поднимаем под свет JB
       c.r*=tr; c.g*=tg; c.b*=tb;
       const vc=!!(o.geometry&&o.geometry.attributes&&o.geometry.attributes.color);   // IB37: цвет запечён в вершины — включаем vertexColors
       const lm=new THREE.MeshLambertMaterial({color:c, skinning:true, vertexColors:vc});
@@ -3267,21 +3284,19 @@ const SPEC={
     if(!late){ Q.hrx=.5; Q.neckRx=-.15; Q.reach=.35; Q.armX=-1.5; Q.hipsY-=.08; }
     for(let i=0;i<md.tail.length;i++) md.tail[i].rotation.y=Math.sin(ambT*30-i*.6)*.25;
   },
-  club(e,md,ph,Q,late){                               // анкилозавр Q: булава сверху вниз
-    if(late){
-      const n2=md.tail.length;
-      if(ph<.45){ const w=smoothT(ph/.45);
-        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=-1.1*w*t; }
-      } else if(ph<.6){ const s2=smoothT((ph-.45)/.15);
-        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(-1.1*t,.9*t,s2); }
-      } else { const r=smoothT((ph-.6)/.4);
-        for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(.9*t,0,r); } }
-    } else {
-      const b=Q.hipsY;
-      if(ph<.45){ const w=smoothT(ph/.45); Q.hipsY=b+.12*w; Q.hrx=-.16*w; }
-      else if(ph<.6){ const s2=smoothT((ph-.45)/.15); Q.hipsY=lerp(b+.12,b-.2,s2); Q.hrx=lerp(-.16,.28,s2); }
-      else { const r=smoothT((ph-.6)/.4); Q.hipsY=lerp(b-.2,b,r); Q.hrx=lerp(.28,.03,r); }
-    }
+  club(e,md,ph,Q,late){                               // анкилозавр: булава сверху вниз — хвост машет и у GLB (IB46: SPEC вызывается после mixer.update и перекрывает клип, как tailwhip у стего)
+    const n2=md.tail.length;
+    if(ph<.45){ const w=smoothT(ph/.45);
+      for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=-1.15*w*t; }
+    } else if(ph<.6){ const s2=smoothT((ph-.45)/.15);
+      for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(-1.15*t,.95*t,s2); }
+    } else { const r=smoothT((ph-.6)/.4);
+      for(let i=0;i<n2;i++){ const t=(i+1)/n2; md.tail[i].rotation.x=lerp(.95*t,0,r); } }
+    if(late) return;                                  // блоковым хвост уже задан (второй вызов за кадр)
+    const b=Q.hipsY;
+    if(ph<.45){ const w=smoothT(ph/.45); Q.hipsY=b+.12*w; Q.hrx=-.16*w; }
+    else if(ph<.6){ const s2=smoothT((ph-.45)/.15); Q.hipsY=lerp(b+.12,b-.2,s2); Q.hrx=lerp(-.16,.28,s2); }
+    else { const r=smoothT((ph-.6)/.4); Q.hipsY=lerp(b-.2,b,r); Q.hrx=lerp(.28,.03,r); }
   },
   spitback(e,md,ph,Q,late){                           // дилофозавр Q: отклонился — пасть раскрыта — плюнул
     if(late) return;
@@ -4723,21 +4738,64 @@ function rollLoot(hpMax){
   let r=Math.random()*(wC+wS+wQ);
   G.bossKills++;
   if(!scorpOwned&&G.bossKills>=7) r=wC+wS;          // жалость: гарантированный Скорпиус
-  let title,sub;
+  let win,title,sub;
   if(r<wC){ const n=180+((Math.random()*241)|0); addCoins(n);
-    title='+'+n+' DinoCoins'; sub='Добыча из шкуры Дикого Индоминуса. Монеты — тоже добыча. Может, следующий килл?'; SFX.loot(); }
+    win={type:'coins',n}; title='+'+n+' DinoCoins'; sub='Добыча из шкуры Дикого Индоминуса. Монеты — тоже добыча. Может, следующий килл?'; }
   else if(r<wC+wS){ const opts=['Полночный','Кровавый','Изумрудный'].filter(s=>!G.skins.indom.includes(s));
     const s=opts[(Math.random()*opts.length)|0]; G.skins.indom.push(s); G.skinIndom=G.skins.indom.length-1;
-    title='Скин Индоминуса: «'+s+'»'; sub='Открыт новый окрас! Сменить — в меню (ESC) на карточке Индоминуса.'; SFX.loot(); SFX.chime(); }
+    win={type:'skin',s}; title='Скин Индоминуса: «'+s+'»'; sub='Открыт новый окрас! Сменить — в меню (ESC) на карточке Индоминуса.'; }
   else { G.owned.scorpius=true; G.bossKills=0;
-    title='НОВЫЙ ГИБРИД: СКОРПИУС РЕКС!'; sub='E750 — прототип Индоминуса с ядовитыми шипами. Выбери его в меню (ESC).';
-    SFX.loot(); SFX.roar3(); toast('🏆 СКОРПИУС РЕКС РАЗБЛОКИРОВАН!','coin'); }
+    win={type:'scorpius'}; title='НОВЫЙ ГИБРИД: СКОРПИУС РЕКС!'; sub='E750 — прототип Индоминуса с ядовитыми шипами. Выбери его в меню (ESC).';
+    toast('🏆 СКОРПИУС РЕКС РАЗБЛОКИРОВАН!','coin'); }
   saveProfile();
   chatMsg(title,null,'sys');
-  $('loot-i').textContent=title; $('loot-s').textContent=sub;
+  lootSpin(win,title,sub);                          // IB46: рулетка — лента с наградами, золотая стрелка указывает приз
+}
+// ---------- рулетка добычи (IB46): награда определена заранее, лента прокручивается к ней ----------
+const LOOT_CELL_W=102;                              // карточка 96 + зазор 6
+const LOOT_WIN_AT=40, LOOT_N=48, LOOT_MS=5400;
+const lootCellHTML=c=>{
+  if(c.type==='coins') return '<div class="loot-cell coins"><span class="ic">💰</span><span>+'+c.n+'<br>DinoCoins</span></div>';
+  if(c.type==='skin') return '<div class="loot-cell skin"><span class="ic">🎨</span><span>Скин:<br>«'+c.s+'»</span></div>';
+  return '<div class="loot-cell scorpius"><span class="ic">🏆</span><span>СКОРПИУС<br>РЕКС</span></div>';
+};
+function lootSpin(win,title,sub){
+  const tape=$('loot-tape'), strip=$('loot-strip');
+  const samp=()=>{ const rr=Math.random();
+    return rr<.60?{type:'coins',n:120+((Math.random()*301)|0)}
+      :rr<.88?{type:'skin',s:['Полночный','Кровавый','Изумрудный'][(Math.random()*3)|0]}
+      :{type:'scorpius'}; };
+  let html='';
+  for(let i=0;i<LOOT_N;i++) html+=lootCellHTML(i===LOOT_WIN_AT?win:samp());
+  tape.innerHTML=html;
+  $('loot-i').textContent=''; $('loot-s').textContent=''; $('loot-ok').style.visibility='hidden';
+  tape.style.transform='translateX(0)';
   $('ov-loot').classList.remove('hidden');
   if(document.pointerLockElement) document.exitPointerLock();
-  clearTimeout(rollLoot.t); rollLoot.t=setTimeout(()=>{ $('ov-loot').classList.add('hidden'); },9000);
+  const cells=tape.children, winEl=cells[LOOT_WIN_AT];
+  const stripW=strip.clientWidth||Math.min(660,innerWidth*.94)-52;
+  // центр победной карточки точно под стрелкой; джиттер ±26px — каждый спин останавливается по-разному
+  const target=LOOT_WIN_AT*LOOT_CELL_W+LOOT_CELL_W/2-stripW/2+((Math.random()*52)|0)-26;
+  clearTimeout(rollLoot.t);
+  const t0=performance.now();
+  let lastIdx=-1;
+  (function frame(now){
+    if(!$('ov-loot')||$('ov-loot').classList.contains('hidden')) return;   // закрыли — стоп
+    const t=clamp((now-t0)/LOOT_MS,0,1);
+    const p=1-Math.pow(1-t,3.4);                    // быстрый старт, длинное торможение
+    const x=-target*p;
+    tape.style.transform='translateX('+x.toFixed(1)+'px)';
+    const idx=Math.floor((x+stripW/2)/LOOT_CELL_W); // карточка под стрелкой — тик на каждой новой
+    if(idx!==lastIdx){ lastIdx=idx; SFX.tick(); }
+    if(t<1) requestAnimationFrame(frame);
+    else{
+      winEl.classList.add('win');
+      $('loot-i').textContent=title; $('loot-s').textContent=sub;
+      SFX.loot(); if(win.type==='skin') SFX.chime(); if(win.type==='scorpius') SFX.roar3();
+      $('loot-ok').style.visibility='visible';
+      rollLoot.t=setTimeout(()=>{ $('ov-loot').classList.add('hidden'); },12000);
+    }
+  })(t0);
 }
 $('loot-ok').addEventListener('click',()=>{ $('ov-loot').classList.add('hidden'); });
 
@@ -4793,6 +4851,7 @@ const SFX={
   growl(){ this.tone('sawtooth',85,60,.35,.16); this.tone('sawtooth',60,45,.4,.13,.05); },
   jump(){ this.tone('sine',240,420,.12,.08); },
   coin(){ this.tone('triangle',880,1560,.14,.18); this.tone('triangle',1320,2100,.18,.14,.08); },
+  tick(){ this.tone('square',1900,1450,.03,.045); },   // рулетка добычи: трещотка при пролёте карточек (IB46)
   hurt(){ this.tone('square',90,60,.15,.25); },
   whip(){ this.noise(.14,.3,0,3200); this.tone('sawtooth',300,90,.12,.1); },
   boom(){ this.tone('sine',55,20,.5,.6); this.noise(.3,.4,0,220); },
@@ -5250,18 +5309,22 @@ function tryHeavy(){                        // E — тяжёлая атака: 
       burst(V3(e.pos.x,e.pos.y+.5,e.pos.z),0xd8c9a0,9,7);
       shake=Math.max(shake,.45); SFX.chomp();
     },330);
-  } else if(m==='anky'){                    // ПАНЦИРНЫЙ ТАРАН: рывок корпусом
-    startSpec(e,'bash',.6); SFX.growl();
-    setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
-      e.pos.addScaledVector(fwdOf(e),3.4); edgePush(e);
-      meleeHit(e,e.def.heavy,6.0,.2,true);
-      for(const t of ENT){ if(t===e||!t.alive||t.team===e.team) continue;
-        if(t.pos.distanceTo(e.pos)<7.0){
+  } else if(m==='anky'){                    // ХВОСТ-БУЛАВА (IB46): главное оружие — хвост обрушивается сверху, долгий стан; таран ушёл на Q
+    startSpec(e,'club',.85); SFX.whip();
+    setTimeout(()=>{
+      if(!e.alive||G.state!=='play') return;
+      meleeHit(e,e.def.heavy,6.8,0,true);
+      for(const t of ENT){
+        if(t===e||!t.alive||t.team===e.team) continue;
+        if(t.pos.distanceTo(e.pos)<7.6){
           const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
-          t.vel.addScaledVector(dir,10); t.stunT=Math.max(t.stunT,.7); } }
-      burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,10,7);
-      shake=Math.max(shake,.45); SFX.boom();
-    },260);
+          t.vel.addScaledVector(dir,9); t.stunT=Math.max(t.stunT,1.5);
+        }
+      }
+      ringFx(e.pos.x,e.pos.y+.25,e.pos.z,0xb0a58c,7.5,.5);
+      burst(V3(e.pos.x,e.pos.y+.3,e.pos.z),0xb0a58c,12,8);
+      shake=Math.max(shake,.7); SFX.boom();
+    },420);
   } else if(m==='brachi'){                  // ТОПОТ ТИТАНА: привстал — грохнул передними ногами
     startSpec(e,'quake',1.05); SFX.growl();
     setTimeout(()=>{ if(!e.alive||G.state!=='play') return;
@@ -5384,23 +5447,23 @@ function tryPounce(){            // Q — особый приём вида: за
     NET.emitIntent('spin',{});
     return;
   }
-  if(q==='club'){                // анкилозавр: булава сверху — грохот и долгий стан
-    startSpec(e,'club',.85); SFX.whip();
+  if(q==='ram'){                 // анкилозавр Q (IB46): панцирный таран — разгон и удар корпусом, сбивает с ног; хвост-булава переехала на E
+    startSpec(e,'bash',.6); SFX.growl();
     setTimeout(()=>{
       if(!e.alive||G.state!=='play') return;
-      meleeHit(e,e.def.qDmg,6.8,0,true);
+      e.pos.addScaledVector(fwdOf(e),3.4); edgePush(e);
+      meleeHit(e,e.def.qDmg,6.0,.2,true);
       for(const t of ENT){
         if(t===e||!t.alive||t.team===e.team) continue;
-        if(t.pos.distanceTo(e.pos)<7.6){
+        if(t.pos.distanceTo(e.pos)<7.0){
           const dir=V3().copy(t.pos).sub(e.pos).setY(0).normalize();
-          t.vel.addScaledVector(dir,9); t.stunT=Math.max(t.stunT,1.5);
+          t.vel.addScaledVector(dir,10); t.stunT=Math.max(t.stunT,.7);
         }
       }
-      ringFx(e.pos.x,e.pos.y+.25,e.pos.z,0xb0a58c,7.5,.5);
-      burst(V3(e.pos.x,e.pos.y+.3,e.pos.z),0xb0a58c,12,8);
-      shake=Math.max(shake,.7); SFX.boom();
-    },420);
-    NET.emitIntent('club',{});
+      burst(V3(e.pos.x,e.pos.y+.4,e.pos.z),0xb0a58c,10,7);
+      shake=Math.max(shake,.45); SFX.boom();
+    },260);
+    NET.emitIntent('ram',{});
     return;
   }
   if(q==='dash'){                // спинозавр: косой рывок — косит всех на пути (до 3)
@@ -6244,7 +6307,8 @@ $('dz-strip').addEventListener('click',e=>{
 });
 // ---------- ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1): кнопка «📜 ЖУРНАЛ» в меню открывает историю апдейтов версиями; с v18.6.0 — на общем постерном фоне ----------
 const CHANGELOG=[
-  {v:'18.6.0',d:'06.11',cur:1,txt:'Экраны «Динозавры» и «Журнал обновлений» получили общий фон с постерами — как в главном меню: те же 5 обложек с плавным кроссфейдом, панорамой и параллаксом за курсором; при входе в игру фон убирается.'},
+  {v:'18.7.0',d:'06.11',cur:1,txt:'Анкилозавр: больше не белый, а хвост-булава стала главным оружием (E — обрушивает хвост и оглушает, Q — панцирный таран). За Дикого Индоминуса теперь крутится рулетка наград: карточки пролетают по ленте, золотая стрелка указывает приз.'},
+  {v:'18.6.0',d:'06.11',txt:'Экраны «Динозавры» и «Журнал обновлений» получили общий фон с постерами — как в главном меню: те же 5 обложек с плавным кроссфейдом, панорамой и параллаксом за курсором; при входе в игру фон убирается.'},
   {v:'18.5.1',d:'06.11',txt:'Главное меню по-новому: карточку выбора убрали — динозавр выбирается только на экране «Динозавры»; кнопки меню стоят столбиком; добавлен этот журнал; версия пишется по-игровому (vX.Y.Z) вместо номера сборки.'},
   {v:'18.5.0',d:'06.11',txt:'Экран «Динозавры»: характеристики полосками, живое 3D-превью с IDLE-анимацией, покупка и окрасы Индоминуса прямо из экрана, лента всех 14 видов с замками.'},
   {v:'18.4.1',d:'06.11',txt:'Фикс окрасов Индоминуса: изумрудный, полночный и кровавый теперь по-настоящему красят модель (раньше оттенок срезался, и скин выглядел белым).'},
@@ -6442,7 +6506,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,GLB_PACK,GLB_TARGET_H,buildDino,buildGLBDino,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,JB_VERSION,CHANGELOG,logShow,logHide,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,GLB_PACK,GLB_TARGET_H,GLB_LIFT,buildDino,buildGLBDino,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,lootSpin,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,JB_VERSION,CHANGELOG,logShow,logHide,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 addEventListener('beforeunload',()=>{ try{ NET.leave(); }catch(e){} try{ CLOUD.push(); }catch(e){} });
 requestAnimationFrame(frame);
 })();
