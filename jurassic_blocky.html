@@ -41,11 +41,10 @@
   #jb-title{font-size:44px;font-weight:900;letter-spacing:2px;line-height:1;text-shadow:0 3px 0 #143a18,0 6px 18px rgba(0,0,0,.7)}
   #jb-title .t1{color:var(--amb)} #jb-title .t2{color:var(--grn)}
   #jb-sub{font-size:12px;letter-spacing:3px;color:rgba(232,245,216,.6);margin:8px 0 18px;text-transform:uppercase}
-  /* карточка динозавра */
-  #dino-card{border:2px solid var(--line);border-radius:12px;background:rgba(20,40,22,.5);padding:14px 16px;text-align:left;margin-bottom:16px}
-  #dc-name{font-size:20px;font-weight:900;color:var(--grn);letter-spacing:1px}
-  #dc-cost{float:right;font-size:13px;font-weight:800;color:var(--amb)}
-  #dc-desc{font-size:12.5px;color:rgba(232,245,216,.78);margin:5px 0 10px;line-height:1.45}
+  /* кнопки главного меню — столбиком (v18.5.1) */
+  #menu-btns{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+  #menu-btns .jb-btn{width:100%}
+  #menu-btns .jb-btn.mini{font-size:14px;padding:12px 18px}
   .stat-row{display:flex;align-items:center;gap:8px;font-size:11px;margin:4px 0}
   .stat-row .sn{width:92px;letter-spacing:1px;color:rgba(232,245,216,.6);text-transform:uppercase;font-weight:700}
   .stat-row .sb{flex:1;height:9px;border:1px solid var(--line);border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden}
@@ -70,6 +69,21 @@
   .dz-chip.on{background:linear-gradient(#5db54a,#3fae4a);color:#fff;border-color:#8ee05a}
   .dz-chip .lz{opacity:.65}
   #dz-skins{display:flex;flex-wrap:wrap;gap:6px}
+  /* ---------- журнал обновлений (v18.5.1) ---------- */
+  #log-box{width:min(660px,94vw);max-height:88vh;display:flex;flex-direction:column;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:20px 24px 16px;box-shadow:0 18px 60px rgba(0,0,0,.6);text-align:left}
+  #log-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  #log-title{flex:1;font-size:23px;font-weight:900;letter-spacing:2px;color:var(--grn);text-shadow:0 2px 0 #143a18}
+  #log-ver{font-family:monospace;font-weight:800;font-size:13px;color:var(--amb);letter-spacing:1px}
+  #log-list{flex:1;min-height:0;overflow:auto;padding-right:6px}
+  .log-item{border:1px solid var(--line);border-radius:12px;background:rgba(20,40,22,.45);padding:10px 14px;margin-bottom:10px}
+  .log-item.cur{border-color:#8ee05a;background:rgba(52,96,48,.32)}
+  .log-top{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .log-v{font-family:monospace;font-weight:900;font-size:15px;color:var(--amb);letter-spacing:1px}
+  .log-item.cur .log-v{color:#c6ff7d}
+  .log-d{font-family:monospace;font-size:10.5px;color:rgba(232,245,216,.5);letter-spacing:1px}
+  .log-txt{font-size:12.5px;line-height:1.5;color:rgba(232,245,216,.82)}
+  .log-cap{font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(232,245,216,.55);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:4px;margin:14px 0 10px}
+  #log-foot{margin-top:8px;font-size:10px;font-family:monospace;color:rgba(232,245,216,.4);letter-spacing:1.5px;text-align:center}
   /* кнопки */
   .jb-btn{display:inline-block;font-family:inherit;font-size:19px;font-weight:900;letter-spacing:1px;color:#fff;cursor:pointer;
     background:linear-gradient(#57c455,#2f9e3d);border:0;border-bottom:4px solid #1c6b28;border-radius:12px;padding:13px 46px;
@@ -103,14 +117,8 @@
   .ab .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);height:0%}
   .ab.cool{filter:grayscale(.7) brightness(.75)}
   .ab.rest{border-color:#7dff8d;box-shadow:0 0 14px rgba(126,255,150,.5)}
-  /* магазин динозавров */
-  #dc-buyrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
-  #menu-coins{font-size:13px;font-weight:900;color:var(--amb);font-family:monospace;letter-spacing:1px;text-align:left}
   .jb-btn.mini{font-size:14px;padding:9px 22px;border-bottom-width:3px;border-radius:10px}
   .jb-btn.mini:disabled{filter:grayscale(.85) brightness(.75);cursor:not-allowed}
-  .dc-arr{font-family:inherit;font-size:15px;font-weight:900;color:var(--grn);background:rgba(20,40,22,.6);
-    border:1px solid var(--line);border-radius:8px;width:27px;height:27px;cursor:pointer;margin:0 8px;vertical-align:middle}
-  .dc-arr:hover{background:rgba(63,174,74,.35);color:#fff}
   /* монеты / инфо */
   #coins{position:absolute;top:16px;right:18px;background:var(--panel);border:2px solid var(--line);border-radius:11px;padding:8px 14px;font-weight:900;font-size:16px;color:var(--amb);letter-spacing:1px;font-family:monospace}
   #coins small{display:block;font-size:9px;letter-spacing:2px;color:rgba(232,245,216,.55);font-weight:700}
@@ -204,10 +212,6 @@
   .acc-tip{font-size:10.5px;color:rgba(232,245,216,.55);margin-top:6px;line-height:1.5}
   #acc-show,#acc-load{margin:0;white-space:nowrap}
   #set-back{display:block;margin:18px auto 0}
-  .btn-row{display:flex;gap:10px;justify-content:center;margin-top:4px}
-  #dc-skinrow{display:none;margin-top:9px;font-size:12px;font-weight:800;letter-spacing:.5px;color:rgba(232,245,216,.85);text-align:center}
-  #dc-skinrow .dc-arr{width:26px;height:26px;font-size:15px}
-  #dc-skinname{color:#cdb4ff}
   /* ---------- яд ---------- */
   #pois-vig{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(60,200,40,0) 42%,rgba(60,200,40,.34) 100%);transition:opacity .3s}
   #err-net{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(7,14,9,.94);color:#ffb0a0;font-size:15px;letter-spacing:1px;text-align:center;padding:30px}
@@ -284,13 +288,6 @@
   <div id="menu-box">
     <div id="jb-title"><span class="t1">JURASSIC</span> <span class="t2">BLOCKY</span></div>
     <div id="jb-sub">блочный мир динозавров · модельки по референсам и 3D-обмерам · кино-рендер · общая погода · автообновление</div>
-    <div id="dino-card">
-      <div id="dc-name"><button class="dc-arr" id="dc-prev">‹</button><span id="dc-title">ВЕЛОЦИРАПТОР</span><button class="dc-arr" id="dc-next">›</button><span id="dc-cost">БЕСПЛАТНО</span></div>
-      <div id="dc-desc"></div>
-      <div id="dc-stats"></div>
-      <div id="dc-skinrow"><button class="dc-arr" id="dc-skinprev">‹</button> ОКРАС: <span id="dc-skinname"></span> <button class="dc-arr" id="dc-skinnext">›</button></div>
-      <div id="dc-buyrow"><span id="menu-coins">0 DinoCoins</span><button id="dc-buy" class="jb-btn mini">КУПИТЬ</button></div>
-    </div>
     <div id="ctrl-grid">
       <div class="ctrl"><b>WASD</b><span>движение</span></div>
       <div class="ctrl"><b>МЫШЬ</b><span>камера</span></div>
@@ -309,9 +306,9 @@
       <div class="ctrl"><b>P</b><span>пауза</span></div>
     </div>
     <div id="net-row"><input type="checkbox" id="net-on" checked style="display:none"><input id="net-room" maxlength="18" value="ostrov" spellcheck="false" style="display:none"><button id="btn-invite" class="jb-btn mini gray" style="margin-top:0;padding:9px 12px;font-size:11px" title="Скопировать ссылку на игру">🔗 ссылка другу</button><span id="net-hint">🌍 Общий остров — без комнат и кодов: все, кто онлайн, играют вместе. Друг открывает ту же ссылку и жмёт ИГРАТЬ</span></div>
-    <div class="btn-row"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-dinos" class="jb-btn mini" style="margin-top:0;padding:12px 18px">🦖 ДИНОЗАВРЫ</button><button id="btn-set" class="jb-btn mini gray" style="margin-top:0;padding:12px 18px">⚙ НАСТРОЙКИ</button></div>
-    <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Анкилозавр 150 · Тираннозавр 180 · Спинозавр 220</div>
-    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">СБОРКА 26</div>
+    <div id="menu-btns"><button id="btn-play" class="jb-btn">ИГРАТЬ</button><button id="btn-dinos" class="jb-btn mini">🦖 ДИНОЗАВРЫ</button><button id="btn-log" class="jb-btn mini">📜 ЖУРНАЛ ОБНОВЛЕНИЙ</button><button id="btn-set" class="jb-btn mini gray">⚙ НАСТРОЙКИ</button></div>
+    <div id="menu-tip">Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса</div>
+    <div id="jb-build" style="margin-top:8px;font:600 10px/1 monospace;color:#8aa06a;letter-spacing:1.5px;opacity:.8;text-align:center">v18.5.1</div>
     <div id="net-status">одиночный режим · локальная симуляция</div>
   </div>
 </div>
@@ -335,6 +332,16 @@
     </div>
   </div>
   <div id="dz-strip"></div>
+</div></div>
+<!-- ================= ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1) ================= -->
+<div id="ov-log" class="ov hidden"><div id="log-box">
+  <div id="log-head">
+    <button id="log-back" class="jb-btn mini gray" style="margin-top:0;padding:9px 14px">‹ НАЗАД</button>
+    <div id="log-title">ЖУРНАЛ ОБНОВЛЕНИЙ</div>
+    <div id="log-ver">v18.5.1</div>
+  </div>
+  <div id="log-list"></div>
+  <div id="log-foot">JURASSIC BLOCKY · блочный мир динозавров</div>
 </div></div>
 <div id="err-net">Не загрузился Three.js — нет файла three.r128.min.js рядом с игрой, а CDN недоступен.<br>Обнови страницу при подключении к интернету.</div>
 <script src="three.r128.min.js"></script>
@@ -389,8 +396,9 @@ a=extmap-allow-mixed`)!==-1){let s=i.sdp.split(`
 <script>
 (function(){
 'use strict';
-const JB_BUILD=43;  // IB43: экран выбора динозавра — кнопка «🦖 ДИНОЗАВРЫ» в главном меню открывает большой экран в духе зоопарка-меню (по референсу из Roblox-диноигры): слева характеристики (здоровье/силы/ходьба/бег/укус/тяжёлый/приём Q полосками) и окрасы, справа ЖИВОЕ 3D-превью на отдельном мини-рендере (свой WebGLRenderer с тем же кино-тонемаппингом ACES+sRGB, подиум, 3 источника света, медленный облет-поворот, IDLE-анимация GLB через родной mixer), снизу лента всех 14 видов с замками некупленных; статусы как в магазине: КУПЛЕНО / ЦЕНА N DC + кнопка КУПИТЬ / СЕКРЕТНЫЙ КОД (индом) / ТОЛЬКО С БОССА (скорпиус), под замком — затемнение с 🔒; окрасы Индоминуса чипсами: Классический + открытые + закрытые «🔒 с босса», выбор окраса сразу перестраивает превью и карточку меню; ESC и «‹ НАЗАД» возвращают в меню, постеры меню на паузе, превью-рендер останавливается и материалы освобождаются при закрытии (геометрии GLB общие с паком — не диспозятся); покупка из экрана синхронит профиль и HUD. IB42: скины Индоминуса на GLB-модели починены (выбил изумрудный — в игре всё равно белый): тонировка buildGLBDino зажимала отношение палитр в коридор 0.55-1.6 (для диких — норм), а скин к базе-белизне давал по всем каналам 0.14-0.31 — коридор резал все каналы в один пол, оттенок терялся, модель лишь чуть темнела. Фикс: скиновые сборки (плеер и удалённые) помечаются isSkin и тонятся с коридором 0.05-2.0 — оттенок доходит до шейдера целиком, текстура (полосы/брюхо в вершинных цветах) сохраняется; дикие и боссы не тронуты. IB41: Three.js переведён с CDN на локальный файл three.r128.min.js рядом с игрой (байт-в-байт тот же r128, md5 eb8549863a97355411c3259a3f93b8e1) — страница больше не блокируется на запросе к cdnjs.cloudflare.com, загрузка быстрее (тот же домен, DNS/TLS уже открыты) и работает без внешнего интернета; CDN оставлен резервом на случай открытия HTML отдельно от файла. IB40: палитра скорпиуса исправлена (GLB перекрашен ×0.30 по RGB в вершинных цветах — с учётом sRGB-вывода рендера E750 теперь тёмно-угольный со светлыми шипами, как в референсе; раньше гамма-подъём запекания + sRGB выцветали почти чёрную текстуру в альбино-белую); цены динозавров подняты ~×2.3 (трик 240, стего 280, анки 360, карно 380, пахи 360, пара 300, дила 330, алло 480, спино 520, брахио 680, рекс 760); Дикий Индоминус злее: хп 5200->8400 и ×1.4 базовый множитель силы (×1.3 к урону), укус 250/210/340 -> 340/290/450 и кулдаун 1.35с -> 1.05с, бег 13.5 -> 14.8, преследование walk×1.6 -> ×1.8, невидимость чаще и дольше (9-14с цикл, 5с), рёв чаще. IB39: одинаковые ники запрещены: Трицератопс и Дилофозавр (JP-рипы: walk/run/idle/attack из 84 родных клипов, у дилы walk — замедленный бег), Спинозавр, Пахицефалозавр и Анкилозавр (authorig, JB-скелет 28-34 кости, ходьба из источника + синтез idle/attack/jump/death), Карнотавр (Blender-риг, байт в клипе), Аллозавр (Mixamo-риг, walk 0-8.6s + bite 8.6-11.9s из одного клипа), Скорпиус E750 (JWE2-риг 142 кости БЕЗ анимаций — все 6 клипов синтезированы на родном скелете: шаг бёдер/колени, хвост-цепь, челюсть, смерть-завал). Текстуры всех моделей запечены в вершины с гамма-подъёмом (0.55→0.76); высоты по блок-размерам видов. Точная посадка по скиннинг-боксу в позе клипа (сырая геометрия аллозавра врала на десятки процентов из-за масштаба арматуры), vertexColors для запечённых текстур, ручной разворот карно (GLB_FACE). Итог: 13 видов (12 + Индоминус) на едином GLB-пайплайне AnimationMixer; блочные версии — фолбэк до загрузки
-const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='СБОРКА '+JB_BUILD;}; jbBuildEl();
+const JB_BUILD=44;  // IB44: главное меню по-новому — старая карточка выбора динозавра в меню убрана (вид выбирается только на экране «🦖 ДИНОЗАВРЫ» IB43), кнопки меню стоят столбиком (ИГРАТЬ / ДИНОЗАВРЫ / ЖУРНАЛ / НАСТРОЙКИ), добавлен экран «📜 ЖУРНАЛ ОБНОВЛЕНИЙ» — вся история апдейтов версиями с датами (ESC и «‹ НАЗАД» возвращают в меню), версия пишется по-игровому v18.5.1 (JB_VERSION) вместо «СБОРКА NN» (jb_build при смене JB_BUILD продолжает автореверт кэша у игроков). История: IB43 экран выбора динозавра (статы полосками, живое 3D-превью на отдельном мини-рендере с кино-тонемаппингом, лента 14 видов с замками, окрасы чипсами, покупка из экрана); IB42 фикс окрасов Индоминуса (isSkin-коридор 0.05-2.0 вместо 0.55-1.6); IB41 Three.js локально вместо CDN; IB40 Скорпиус перекрашен, цены ×2.3, дикий Индом злее; IB39 уникальные ники (облако + остров «Ник·2»); IB38 новый Индоминус (Sketchfab-модель); IB37 8 видов на GLB-анимациях; IB36 растительность GLB-пак; IB35 5 видов GLB; IB34 карта v4. Полная история — в игре: ЖУРНАЛ ОБНОВЛЕНИЙ
+const JB_VERSION='18.5.1';   // игровая версия (vX.Y.Z): показывается в меню и в журнале обновлений; minor — фича, patch — фикс
+const jbBuildEl=()=>{const e=document.getElementById('jb-build'); if(e) e.textContent='v'+JB_VERSION;}; jbBuildEl();
 try{ if(localStorage.jb_build!==String(JB_BUILD)){ fetch(location.href,{cache:'reload'}).then(function(){ localStorage.jb_build=String(JB_BUILD); location.reload(); }).catch(function(){}); } }catch(e){}
 if(typeof THREE==='undefined'){ document.getElementById('err-net').style.display='flex'; return; }
 
@@ -6082,7 +6090,7 @@ function toMenu(){
   $('ov-menu').classList.remove('hidden');
   if(document.pointerLockElement) document.exitPointerLock();
 }
-// ---------- выбор динозавра в меню ----------
+// ---------- выбор динозавра — только на экране «🦖 ДИНОЗАВРЫ» (v18.5.1): карточку в меню убрали ----------
 const PLAYABLE=DINOS.filter(d=>!d.npc);
 G.selIdx=0;
 const MENU_TIP_DEFAULT='Дино-монеты за охоту: Трицератопс 100 · Стегозавр 120 · Паразауролоф 130 · Дилофозавр 140 · Пахицефалозавр 150 · Анкилозавр 150 · Карнотавр 160 · Тираннозавр 320 · Аллозавр 200 · Спинозавр 220 · Брахиозавр 280 · Индоминус — тайна костей · Скорпиус — добыча с босса';
@@ -6090,52 +6098,7 @@ const SKIN_PALS={                                                    // окра
   'Полночный':{body:0x2c2c3a,belly:0x4a4a62,dark:0x16161e,head:0x36364e,stripe:0x565080,eye:0x9a7cff,accent:0x3a3454},
   'Кровавый':{body:0x442020,belly:0x6e3c32,dark:0x200d0d,head:0x522824,stripe:0xa82818,eye:0xff4028,accent:0x7c1c10},
   'Изумрудный':{body:0x1e4432,belly:0x3c6e50,dark:0x0d2116,head:0x285440,stripe:0x1f9a58,eye:0x54ff96,accent:0x15523c} };
-function renderDinoCard(){
-  const d=PLAYABLE[G.selIdx];
-  $('dc-title').textContent=d.name.toUpperCase();
-  $('dc-desc').textContent=d.desc;
-  const rows=[
-    ['Здоровье',d.hp,5200,'#ff7a4a',Math.round(d.hp)],
-    ['Силы',d.sta,90,'#a3e635',Math.round(d.sta)],
-    ['Бег',d.run,14,'#5ad0ff',Math.round(d.run)],
-    ['Укус',Math.max.apply(null,d.bite),260,'#ffd24a',d.bite.join('·')],
-    ['Тяжёлый',d.heavy,340,'#ff5a4a',Math.round(d.heavy)],
-    ['Приём Q',d.qDmg||0,240,'#7dd3fc',d.qStat||'—']
-  ];
-  $('dc-stats').innerHTML=rows.map(r=>
-    '<div class="stat-row"><div class="sn">'+r[0]+'</div><div class="sb"><div style="width:'+clamp(r[1]/r[2]*100,8,100)+'%;background:'+r[3]+'"></div></div><div class="sv">'+r[4]+'</div></div>'
-  ).join('');
-  // магазин: куплено / цена / хватает ли монет (Индоминус — код, Скорпиус — только добыча с босса)
-  const secret=d.id==='indom'&&!G.owned[d.id];
-  const secret2=d.id==='scorpius'&&!G.owned[d.id];
-  const has=!!G.owned[d.id];
-  $('dc-cost').textContent=has?'КУПЛЕНО':(secret2?'ТОЛЬКО С БОССА':(secret?'СЕКРЕТНЫЙ КОД':(d.cost?'ЗА '+d.cost+' DC':'БЕСПЛАТНО')));
-  $('dc-cost').style.color=has?'var(--grn)':(secret2?'#a6ff3a':(secret?'#cdb4ff':'var(--amb)'));
-  const buy=$('dc-buy');
-  buy.style.display=(has||secret||secret2)?'none':'inline-block';
-  if(!has&&!secret&&!secret2){ buy.textContent='КУПИТЬ · '+d.cost+' DC'; buy.disabled=!!d.cost&&G.coins<d.cost; }
-  // скины Индоминуса: переключатель окрасов
-  const sk=$('dc-skinrow');
-  if(d.id==='indom'&&G.skins.indom.length>1){
-    sk.style.display='block';
-    $('dc-skinname').textContent=G.skins.indom[G.skinIndom]||'Классический';
-  } else sk.style.display='none';
-  $('menu-coins').textContent=G.coins+' DinoCoins';
-  $('menu-tip').textContent=MENU_TIP_DEFAULT; $('menu-tip').style.color='';
-}
-$('dc-prev').addEventListener('click',()=>{ G.selIdx=(G.selIdx+PLAYABLE.length-1)%PLAYABLE.length; renderDinoCard(); });
-$('dc-next').addEventListener('click',()=>{ G.selIdx=(G.selIdx+1)%PLAYABLE.length; renderDinoCard(); });
-$('dc-buy').addEventListener('click',()=>{
-  const d=PLAYABLE[G.selIdx];
-  if(!d.cost||G.owned[d.id]||G.coins<d.cost) return;
-  G.coins-=d.cost; G.owned[d.id]=true; saveProfile();
-  $('coins-num').textContent=G.coins;
-  SFX.init(); SFX.resume(); SFX.coin();
-  renderDinoCard();
-});
-$('dc-skinprev').addEventListener('click',()=>{ G.skinIndom=(G.skinIndom+G.skins.indom.length-1)%G.skins.indom.length; saveProfile(); renderDinoCard(); });
-$('dc-skinnext').addEventListener('click',()=>{ G.skinIndom=(G.skinIndom+1)%G.skins.indom.length; saveProfile(); renderDinoCard(); });
-renderDinoCard();
+$('menu-tip').textContent=MENU_TIP_DEFAULT;
 // ---------- ЭКРАН ВЫБОРА ДИНОЗАВРА (IB43): кнопка «🦖 ДИНОЗАВРЫ» в меню — большой экран как в зоопарке:
 // слева характеристики и окрасы, справа живое 3D-превью с IDLE-анимацией, снизу лента всех видов ----------
 const dzOpen=()=>!$('ov-dinos').classList.contains('hidden');
@@ -6247,7 +6210,6 @@ function dzShow(){
 function dzHide(){
   $('ov-dinos').classList.add('hidden');
   $('ov-menu').classList.remove('hidden');
-  renderDinoCard();                                // карточка в меню — в актуальное состояние
   if(dzRAF){ cancelAnimationFrame(dzRAF); dzRAF=0; }
   dzClear();                                       // меш превью больше не нужен
 }
@@ -6260,19 +6222,51 @@ $('dz-buy').addEventListener('click',()=>{
   G.coins-=d.cost; G.owned[d.id]=true; saveProfile();
   $('coins-num').textContent=G.coins;
   SFX.coin(); toast('«'+d.name+'» куплен!');
-  dzRenderCard(); renderDinoCard();
+  dzRenderCard();
 });
 $('dz-skins').addEventListener('click',e=>{
   const b=e.target.closest('[data-skin]'); if(!b||b.dataset.locked) return;
   const nm=b.dataset.skin, ix=G.skins.indom.indexOf(nm);
   G.skinIndom=nm==='Классический'?0:Math.max(1,ix); saveProfile();
-  dzRenderCard(); dzBuild(); renderDinoCard();
+  dzRenderCard(); dzBuild();
 });
 $('dz-strip').addEventListener('click',e=>{
   const b=e.target.closest('[data-idx]'); if(!b) return;
   G.selIdx=(+b.dataset.idx+PLAYABLE.length)%PLAYABLE.length;
   dzRenderCard(); dzBuild();
 });
+// ---------- ЖУРНАЛ ОБНОВЛЕНИЙ (v18.5.1): кнопка «📜 ЖУРНАЛ» в меню открывает историю апдейтов версиями ----------
+const CHANGELOG=[
+  {v:'18.5.1',d:'06.11',cur:1,txt:'Главное меню по-новому: карточку выбора убрали — динозавр выбирается только на экране «Динозавры»; кнопки меню стоят столбиком; добавлен этот журнал; версия пишется по-игровому (vX.Y.Z) вместо номера сборки.'},
+  {v:'18.5.0',d:'06.11',txt:'Экран «Динозавры»: характеристики полосками, живое 3D-превью с IDLE-анимацией, покупка и окрасы Индоминуса прямо из экрана, лента всех 14 видов с замками.'},
+  {v:'18.4.1',d:'06.11',txt:'Фикс окрасов Индоминуса: изумрудный, полночный и кровавый теперь по-настоящему красят модель (раньше оттенок срезался, и скин выглядел белым).'},
+  {v:'18.4.0',d:'06.11',txt:'Three.js грузится локально вместе с игрой — вход быстрее и работает даже без доступа к внешним CDN.'},
+  {v:'18.3.0',d:'05.11',txt:'Скорпиус E750 снова тёмно-угольный со светлыми шипами; цены динозавров подняты; Дикий Индоминус злее: 8400 HP, больнее укус, быстрее бег, чаще стелс.'},
+  {v:'18.2.0',d:'05.11',txt:'Одинаковые ники запрещены: ник резервируется в облаке, дубликат на острове автоматически становится «Ник·2».'},
+  {v:'18.1.0',d:'05.11',txt:'Индоминус — настоящая скелетная модель: тяжёлая поступь, укус с выпадом, прыжок и смерть как в кино.'},
+  {v:'18.0.0',d:'05.11',txt:'8 видов переведены на GLB-модели со скелетными анимациями: Трицератопс, Дилофозавр, Спинозавр, Пахицефалозавр, Анкилозавр, Карнотавр, Аллозавр, Скорпиус E750.'}
+];
+const CHANGELOG_OLD=[
+  ['05.11','Растительность пересажена на low-poly GLB-пак: 71 вариант деревьев, кустов, трав и цветов; лилии на озере, пни и валуны.'],
+  ['05.11','Раптор, Тираннозавр, Стегозавр, Паразауролоф и Брахиозавр стали скелетными GLB-моделями с анимациями.'],
+  ['04.11','Карта v4: детальная земля, вода с глубиной и волнами, факелы, острова на горизонте.'],
+  ['04.11','Индоминус: настоящий скелет и цельная шкура — походка, укус, рык и смерть играют клипами; пасть в покое закрыта, шея поднята.'],
+  ['03.11','Индоминус стал Hunyuan3D-моделью; Тираннозавр пересобран по 3D-обмерам; Скорпиус E750 переделан по фильму.']
+];
+function logRender(){
+  const it=c=>'<div class="log-item'+(c.cur?' cur':'')+'"><div class="log-top"><span class="log-v">v'+c.v+'</span><span class="log-d">'+c.d+(c.cur?' · текущая версия':'')+'</span></div><div class="log-txt">'+c.txt+'</div></div>';
+  $('log-list').innerHTML=CHANGELOG.map(it).join('')
+    +'<div class="log-cap">Ранние обновления</div>'
+    +CHANGELOG_OLD.map(o=>'<div class="log-item"><div class="log-top"><span class="log-d">'+o[0]+'</span></div><div class="log-txt">'+o[1]+'</div></div>').join('');
+  $('log-ver').textContent='v'+JB_VERSION;
+}
+const logOpen=()=>!$('ov-log').classList.contains('hidden');
+function logShow(){ $('ov-menu').classList.add('hidden'); $('ov-log').classList.remove('hidden'); $('log-list').scrollTop=0; }
+function logHide(){ $('ov-log').classList.add('hidden'); $('ov-menu').classList.remove('hidden'); }
+$('btn-log').addEventListener('click',()=>{ SFX.init(); SFX.resume(); logShow(); });
+$('log-back').addEventListener('click',logHide);
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&logOpen()){ e.stopPropagation(); logHide(); } },true);   // ESC — назад в меню
+logRender();
 function applyPlayerDino(id){
   let d=dinoDef(id);
   const sk=(id==='indom'&&G.skinIndom>0)?(G.skins.indom[G.skinIndom]||''):'';   // выбранный окрас
@@ -6297,6 +6291,7 @@ function applyPlayerDino(id){
   $('ab-heavy').querySelector('span').textContent=d.heavyLabel||'Тяжёлый';
 }
 $('btn-play').addEventListener('click',async ()=>{
+  $('menu-tip').textContent=MENU_TIP_DEFAULT; $('menu-tip').style.color='';   // сброс подсказки от прошлой попытки
   const d=PLAYABLE[G.selIdx];
   if(d.id==='indom'&&!G.owned.indom){               // секретный вид — только через квест
     $('menu-tip').textContent='Этот силуэт скрыт туманом... Тайна костей ещё не раскрыта';
@@ -6438,7 +6433,7 @@ function step(dt){
   }
 }
 updComboHud();
-window.JB={my,ENT,camera,scene,renderer,G,keys,GLB_PACK,GLB_TARGET_H,buildDino,buildGLBDino,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,renderDinoCard,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
+window.JB={my,ENT,camera,scene,renderer,G,keys,GLB_PACK,GLB_TARGET_H,buildDino,buildGLBDino,tryBite,tryHeavy,tryPounce,tryRoar,tryCloak,releasePin,enragePack,applyPlayerDino,applyDamage,DINOS,HERDS,updNpc,OBST,resolveObs,saveProfile,startSpec,SPEC,ringFx,diloSpit,PROJ,terrainH,placeOnGround,QUEST,ENV,openCodeModal,submitCode,BOSS,spawnBoss,updBoss,rollLoot,playersOnServer,SFX,chatMsg,CHAT,applySettings,SKIN_PALS,JB_VERSION,CHANGELOG,logShow,logHide,GFX,updPoison,NET,updRemote,netEnsureRemote,hostApplyBossDmg,netOnBoss,dinoDef,jbSha256,jbHex,jbKeygen,jbSign,CLOUD,get camYaw(){return camYaw;},set camYaw(v){camYaw=v;},get myMesh(){return myMesh;}}; // отладка/тесты
 addEventListener('beforeunload',()=>{ try{ NET.leave(); }catch(e){} try{ CLOUD.push(); }catch(e){} });
 requestAnimationFrame(frame);
 })();
